@@ -19,11 +19,11 @@ AEMS enforcement proceeds in four stages:
 3. Detect adoption and operational safety signals.
 4. Report violations, waivers, and follow-up work.
 
-The initial scanner is intentionally local-checkout based. This keeps it simple, reproducible, and independent of GitHub API behavior. A later AEMS runner may clone or fetch each repository automatically and aggregate reports.
+The initial scanner is local-checkout based. The aggregate runner reads the repository manifest, checks out the listed repositories, runs the local scanner against each checkout, and writes one ecosystem report.
 
-## Scanner
+## Local Scanner
 
-The initial scanner is:
+The local scanner is:
 
 ```text
 scripts/aes_sec_001_scan.py
@@ -42,7 +42,7 @@ It reports:
 - whether explicit waiver-log files exist;
 - whether banned C/C++ APIs appear in project-owned source files.
 
-## Basic Use
+## Local Scanner Use
 
 From a repository checkout:
 
@@ -57,6 +57,67 @@ python3 scripts/aes_sec_001_scan.py . --repo-name dlworrell/AEMS --strict
 ```
 
 Strict mode exits non-zero when the minimum adoption gate fails.
+
+## Aggregate Runner
+
+The aggregate runner is:
+
+```text
+scripts/aes_sec_001_aggregate.py
+```
+
+It reads:
+
+```text
+config/aes-sec-001-repositories.json
+```
+
+For each manifest entry, it records:
+
+- repository name;
+- role;
+- ownership classification;
+- checkout or scan status;
+- local scanner classification;
+- secure profile status;
+- waiver log status;
+- banned finding count;
+- minimum adoption gate result.
+
+By default, third-party mirror/fork repositories are listed but not scanned. Use `--include-third-party` when third-party inventory evidence is needed.
+
+Manual use from AEMS:
+
+```sh
+python3 scripts/aes_sec_001_aggregate.py --format markdown
+```
+
+Strict aggregate use:
+
+```sh
+python3 scripts/aes_sec_001_aggregate.py --strict --format markdown
+```
+
+The strict aggregate gate fails only when an expected project-owned repository fails its expected adoption gate or cannot be scanned.
+
+## GitHub Actions
+
+The workflow is:
+
+```text
+.github/workflows/aes-sec-001-scan.yml
+```
+
+It runs the local scanner on pull requests, pushes to `main`, and manual dispatch.
+
+Manual dispatch also supports an optional ecosystem scan:
+
+- `ecosystem_scan=true` runs the aggregate manifest scan;
+- `include_third_party=true` also scans repositories classified as third-party mirrors/forks;
+- `include_dangerous_primitives=true` includes review-required native primitives;
+- `strict=true` enforces the relevant gate.
+
+Workflow reports are uploaded before strict gate enforcement so that failed strict runs still leave reviewable JSON and Markdown artifacts.
 
 ## Dangerous Primitive Review
 
@@ -119,10 +180,9 @@ This is deliberately weaker than final compliance. It establishes a non-noisy fi
 
 AEMS still needs these follow-up pieces:
 
-- repository checkout/fetch orchestration;
-- aggregate report generation across all manifest entries;
+- add waiver logs to every project-owned repository listed in the manifest;
+- report adoption status back into each repository;
 - CI workflow templates for native-code repositories;
-- waiver-log template generation for each adopting repository;
 - CodeQL or equivalent static-analysis workflow templates;
 - sanitizer build presets for CMake, Make, and Meson projects;
 - fuzz-harness discovery and smoke-test execution;
