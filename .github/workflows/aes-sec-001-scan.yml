@@ -1,0 +1,126 @@
+name: AES-SEC-001 Scan
+
+on:
+  pull_request:
+    paths:
+      - "**/*.c"
+      - "**/*.cc"
+      - "**/*.cpp"
+      - "**/*.cxx"
+      - "**/*.h"
+      - "**/*.hh"
+      - "**/*.hpp"
+      - "**/*.hxx"
+      - "**/*.m"
+      - "**/*.mm"
+      - "**/*.S"
+      - "**/*.s"
+      - "**/*.asm"
+      - "**/*.inc"
+      - "Makefile"
+      - "**/Makefile"
+      - "**/*.mk"
+      - "**/CMakeLists.txt"
+      - "**/*.cmake"
+      - "**/meson.build"
+      - "docs/engineering/SECURE-C-CXX.md"
+      - "docs/engineering/AES-SEC-001-enforcement-plan.md"
+      - "scripts/aes_sec_001_scan.py"
+      - "config/aes-sec-001-repositories.json"
+      - ".github/workflows/aes-sec-001-scan.yml"
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      include_dangerous_primitives:
+        description: "Also report review-required dangerous primitives such as memcpy/malloc/free/snprintf."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      strict:
+        description: "Fail the workflow when the secure profile is missing or banned APIs are found."
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  scan-local-repository:
+    name: Scan local repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Show scanner help
+        run: python3 scripts/aes_sec_001_scan.py --help
+
+      - name: Run AES-SEC-001 scanner as JSON
+        run: |
+          EXTRA_ARGS=()
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--include-dangerous-primitives")
+          fi
+
+          python3 scripts/aes_sec_001_scan.py . \
+            --repo-name "${{ github.repository }}" \
+            --format json \
+            "${EXTRA_ARGS[@]}" \
+            > aes-sec-001-scan.json
+
+      - name: Run AES-SEC-001 scanner as Markdown
+        run: |
+          EXTRA_ARGS=()
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--include-dangerous-primitives")
+          fi
+
+          python3 scripts/aes_sec_001_scan.py . \
+            --repo-name "${{ github.repository }}" \
+            --format markdown \
+            "${EXTRA_ARGS[@]}" \
+            > aes-sec-001-scan.md
+
+      - name: Add report to job summary
+        run: cat aes-sec-001-scan.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enforce strict gate
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.strict == 'true' }}
+        run: |
+          EXTRA_ARGS=()
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--include-dangerous-primitives")
+          fi
+
+          python3 scripts/aes_sec_001_scan.py . \
+            --repo-name "${{ github.repository }}" \
+            --strict \
+            "${EXTRA_ARGS[@]}"
+
+      - name: Upload scan reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-sec-001-scan-${{ github.run_id }}
+          path: |
+            aes-sec-001-scan.json
+            aes-sec-001-scan.md
+          if-no-files-found: error
