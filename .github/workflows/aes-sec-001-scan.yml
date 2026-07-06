@@ -121,6 +121,15 @@ jobs:
       - name: Add report to job summary
         run: cat aes-sec-001-scan.md >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Upload scan reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-sec-001-scan-${{ github.run_id }}
+          path: |
+            aes-sec-001-scan.json
+            aes-sec-001-scan.md
+          if-no-files-found: error
+
       - name: Enforce strict gate
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.strict == 'true' }}
         run: |
@@ -133,15 +142,6 @@ jobs:
             --repo-name "${{ github.repository }}" \
             --strict \
             "${EXTRA_ARGS[@]}"
-
-      - name: Upload scan reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: aes-sec-001-scan-${{ github.run_id }}
-          path: |
-            aes-sec-001-scan.json
-            aes-sec-001-scan.md
-          if-no-files-found: error
 
   scan-ecosystem:
     name: Scan ecosystem manifest
@@ -197,6 +197,15 @@ jobs:
       - name: Add ecosystem report to job summary
         run: cat aes-sec-001-ecosystem.md >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Upload ecosystem reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-sec-001-ecosystem-${{ github.run_id }}
+          path: |
+            aes-sec-001-ecosystem.json
+            aes-sec-001-ecosystem.md
+          if-no-files-found: error
+
       - name: Enforce ecosystem strict gate
         if: ${{ github.event.inputs.strict == 'true' }}
         run: |
@@ -213,12 +222,3 @@ jobs:
             --work-dir "$RUNNER_TEMP/aes-sec-001-checkouts" \
             --strict \
             "${EXTRA_ARGS[@]}"
-
-      - name: Upload ecosystem reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: aes-sec-001-ecosystem-${{ github.run_id }}
-          path: |
-            aes-sec-001-ecosystem.json
-            aes-sec-001-ecosystem.md
-          if-no-files-found: error
