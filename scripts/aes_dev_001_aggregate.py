@@ -16,6 +16,7 @@ from aes_dev_001_scan import Dev001Report, scan
 
 DEFAULT_MANIFEST = Path("config/aes-dev-001-repositories.json")
 DOC_AUTH_VALUES = {"local", "delegated", "transitional", "external"}
+NON_PROJECT_STATUSES = {"not-scanned-external", "not-scanned-third-party"}
 
 
 @dataclass
@@ -35,6 +36,14 @@ class RepositoryEntry:
     @property
     def project_owned(self) -> bool:
         return self.ownership == "project-owned"
+
+    @property
+    def external_reference(self) -> bool:
+        return self.ownership == "external-reference"
+
+    @property
+    def third_party(self) -> bool:
+        return self.ownership == "third-party-mirror-or-fork"
 
     @property
     def doc_auth_declared(self) -> bool:
@@ -99,6 +108,8 @@ class AggregateEntry:
 
     @property
     def ready_for_ratchet(self) -> bool:
+        if not self.repository.project_owned:
+            return False
         if self.repository.docs_delegated and self.docs_traceable:
             return True
         return bool(self.summary.get("ready_for_ratchet", False))
@@ -119,7 +130,7 @@ class AggregateEntry:
     @property
     def gap_names(self) -> list[str]:
         repo = self.repository
-        if self.status == "not-scanned-third-party":
+        if self.status in NON_PROJECT_STATUSES:
             return []
         if not self.scanned:
             return ["scan-unavailable"]
@@ -130,20 +141,20 @@ class AggregateEntry:
         elif repo.project_owned and not self.docs_traceable:
             gaps.append("documentation-traceability")
 
-        if repo.profile_required and not self.local_profile_present:
+        if repo.project_owned and repo.profile_required and not self.local_profile_present:
             gaps.append("local-profile")
 
-        if self.local_doc_gaps_apply and repo.project_owned and repo.role not in {"demo-project", "experimental-native-code"}:
+        no_spec_roles = {"demo-project", "experimental-and-test-repository", "edt-validation-project"}
+        if self.local_doc_gaps_apply and repo.project_owned and repo.role not in no_spec_roles:
             if not self.specs_present:
                 gaps.append("specs")
 
         adr_roles = {
-            "system-project",
-            "hardware-platform",
-            "fpga-platform",
-            "system-or-hardware-project",
-            "ecosystem-governance",
-            "enforcement-orchestrator",
+            "program-umbrella-and-managing-organization",
+            "engineering-standards-repository",
+            "project-management-and-enforcement-orchestrator",
+            "operating-system-for-target-hardware",
+            "repository-standard-template-source",
         }
         if self.local_doc_gaps_apply and repo.project_owned and repo.role in adr_roles and not self.adrs_present:
             gaps.append("adrs")
@@ -178,56 +189,67 @@ class AggregateReport:
     standard_path: str
     entries: list[AggregateEntry] = field(default_factory=list)
 
+    def count(self, predicate) -> int:  # type: ignore[no-untyped-def]
+        return sum(1 for entry in self.entries if predicate(entry))
+
     @property
     def scanned_count(self) -> int:
-        return sum(1 for e in self.entries if e.status == "scanned")
+        return self.count(lambda e: e.status == "scanned")
 
     @property
     def project_owned_count(self) -> int:
-        return sum(1 for e in self.entries if e.repository.project_owned)
+        return self.count(lambda e: e.repository.project_owned)
+
+    @property
+    def external_reference_count(self) -> int:
+        return self.count(lambda e: e.repository.external_reference)
+
+    @property
+    def third_party_count(self) -> int:
+        return self.count(lambda e: e.repository.third_party)
 
     @property
     def project_owned_scanned_count(self) -> int:
-        return sum(1 for e in self.entries if e.repository.project_owned and e.status == "scanned")
+        return self.count(lambda e: e.repository.project_owned and e.status == "scanned")
 
     @property
     def failed_checkout_count(self) -> int:
-        return sum(1 for e in self.entries if e.status == "checkout-failed")
+        return self.count(lambda e: e.status == "checkout-failed")
 
     @property
     def scan_failed_count(self) -> int:
-        return sum(1 for e in self.entries if e.status == "scan-failed")
+        return self.count(lambda e: e.status == "scan-failed")
 
     @property
     def doc_auth_declared_count(self) -> int:
-        return sum(1 for e in self.entries if e.repository.doc_auth_declared)
+        return self.count(lambda e: e.repository.doc_auth_declared)
 
     @property
     def docs_traceable_count(self) -> int:
-        return sum(1 for e in self.entries if e.docs_traceable)
+        return self.count(lambda e: e.docs_traceable)
 
     @property
     def local_docs_count(self) -> int:
-        return sum(1 for e in self.entries if e.repository.documentation_authority == "local")
+        return self.count(lambda e: e.repository.documentation_authority == "local")
 
     @property
     def delegated_docs_count(self) -> int:
-        return sum(1 for e in self.entries if e.repository.documentation_authority == "delegated")
+        return self.count(lambda e: e.repository.documentation_authority == "delegated")
 
     @property
     def transitional_docs_count(self) -> int:
-        return sum(1 for e in self.entries if e.repository.documentation_authority == "transitional")
+        return self.count(lambda e: e.repository.documentation_authority == "transitional")
 
     @property
     def external_docs_count(self) -> int:
-        return sum(1 for e in self.entries if e.repository.documentation_authority == "external")
+        return self.count(lambda e: e.repository.documentation_authority == "external")
 
     @property
     def entries_with_gaps(self) -> list[AggregateEntry]:
         return [e for e in self.entries if e.has_gaps]
 
     def gap_count(self, name: str) -> int:
-        return sum(1 for e in self.entries if name in e.gap_names)
+        return self.count(lambda e: name in e.gap_names)
 
     @property
     def failures(self) -> list[AggregateEntry]:
@@ -245,6 +267,8 @@ class AggregateReport:
             "summary": {
                 "repository_count": len(self.entries),
                 "project_owned_count": self.project_owned_count,
+                "external_reference_count": self.external_reference_count,
+                "third_party_count": self.third_party_count,
                 "scanned_count": self.scanned_count,
                 "project_owned_scanned_count": self.project_owned_scanned_count,
                 "checkout_failed_count": self.failed_checkout_count,
@@ -273,7 +297,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     parser.add_argument("--work-dir", default=None)
     parser.add_argument("--format", choices=("json", "markdown"), default="markdown")
-    parser.add_argument("--include-third-party", action="store_true")
+    parser.add_argument("--include-external", action="store_true", help="Also scan external/reference repositories.")
+    parser.add_argument("--include-third-party", action="store_true", help="Deprecated alias for --include-external.")
     parser.add_argument("--strict", action="store_true")
     parser.add_argument("--keep-work-dir", action="store_true")
     parser.add_argument("--max-hits", type=int, default=5)
@@ -333,9 +358,15 @@ def run_git_clone(full_name: str, destination: Path) -> None:
     )
 
 
-def scan_entry(entry: RepositoryEntry, work_dir: Path, include_third_party: bool, max_hits: int) -> AggregateEntry:
-    if entry.ownership != "project-owned" and not include_third_party:
-        return AggregateEntry(repository=entry, status="not-scanned-third-party")
+def non_project_status(entry: RepositoryEntry) -> str:
+    if entry.external_reference:
+        return "not-scanned-external"
+    return "not-scanned-third-party"
+
+
+def scan_entry(entry: RepositoryEntry, work_dir: Path, include_external: bool, max_hits: int) -> AggregateEntry:
+    if not entry.project_owned and not include_external:
+        return AggregateEntry(repository=entry, status=non_project_status(entry))
 
     destination = checkout_dir_for(work_dir, entry.full_name)
     try:
@@ -356,6 +387,7 @@ def scan_entry(entry: RepositoryEntry, work_dir: Path, include_third_party: bool
 def build_report(args: argparse.Namespace) -> AggregateReport:
     manifest = load_manifest(Path(args.manifest))
     entries = repository_entries(manifest)
+    include_external = bool(args.include_external or args.include_third_party)
     temporary_dir: tempfile.TemporaryDirectory[str] | None = None
 
     if args.work_dir is None:
@@ -372,7 +404,7 @@ def build_report(args: argparse.Namespace) -> AggregateReport:
             standard_path=str(manifest.get("standard_path", "")),
         )
         for entry in entries:
-            report.entries.append(scan_entry(entry, work_dir, args.include_third_party, args.max_hits))
+            report.entries.append(scan_entry(entry, work_dir, include_external, args.max_hits))
         return report
     finally:
         if temporary_dir is not None and not args.keep_work_dir:
@@ -393,6 +425,8 @@ def format_markdown(report: AggregateReport) -> str:
         f"- Standard path: `{report.standard_path}`",
         f"- Repositories listed: `{len(report.entries)}`",
         f"- Project-owned repositories: `{report.project_owned_count}`",
+        f"- External/reference repositories: `{report.external_reference_count}`",
+        f"- Third-party mirror/fork repositories: `{report.third_party_count}`",
         f"- Repositories scanned: `{report.scanned_count}`",
         f"- Project-owned repositories scanned: `{report.project_owned_scanned_count}`",
         f"- Checkout failures: `{report.failed_checkout_count}`",
@@ -404,8 +438,6 @@ def format_markdown(report: AggregateReport) -> str:
         f"- Transitional documentation authority: `{summary['transitional_documentation_count']}`",
         f"- External documentation authority: `{summary['external_documentation_count']}`",
         f"- Repositories with evidence gaps: `{summary['entries_with_gap_count']}`",
-        f"- Documentation authority gaps: `{summary['documentation_authority_gap_count']}`",
-        f"- Documentation traceability gaps: `{summary['documentation_traceability_gap_count']}`",
         f"- Local profile gaps: `{summary['profile_gap_count']}`",
         f"- Specification gaps: `{summary['specs_gap_count']}`",
         f"- ADR gaps: `{summary['adr_gap_count']}`",
