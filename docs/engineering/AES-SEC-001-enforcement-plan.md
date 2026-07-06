@@ -16,7 +16,7 @@ AEMS enforcement proceeds in four stages:
 
 1. Inventory repositories.
 2. Classify native-code and hardware/tooling surfaces.
-3. Detect adoption and safety signals.
+3. Detect adoption and operational safety signals.
 4. Report violations, waivers, and follow-up work.
 
 The initial scanner is intentionally local-checkout based. This keeps it simple, reproducible, and independent of GitHub API behavior. A later AEMS runner may clone or fetch each repository automatically and aggregate reports.
@@ -32,13 +32,14 @@ scripts/aes_sec_001_scan.py
 It reports:
 
 - whether `docs/engineering/SECURE-C-CXX.md` exists;
+- whether `docs/engineering/AES-SEC-001-waivers.md` exists;
 - whether C, C++, Objective-C, Objective-C++, assembly, or include files are present;
 - whether hardware/FPGA files are present;
 - whether native build surfaces are present;
-- whether static-analysis signals exist;
-- whether sanitizer signals exist;
-- whether fuzzing signals exist;
-- whether waiver signals exist;
+- whether operational static-analysis signals exist;
+- whether operational sanitizer signals exist;
+- whether operational fuzzing signals exist;
+- whether explicit waiver-log files exist;
 - whether banned C/C++ APIs appear in project-owned source files.
 
 ## Basic Use
@@ -55,7 +56,7 @@ For strict CI behavior:
 python3 scripts/aes_sec_001_scan.py . --repo-name dlworrell/AEMS --strict
 ```
 
-Strict mode exits non-zero when the local secure-coding profile is missing or banned APIs are detected.
+Strict mode exits non-zero when the minimum adoption gate fails.
 
 ## Dangerous Primitive Review
 
@@ -68,6 +69,29 @@ python3 scripts/aes_sec_001_scan.py . --include-dangerous-primitives --format ma
 ```
 
 Those results are review-required findings, not automatic failures unless a local repository profile elevates them.
+
+## Operational Signal Rules
+
+The scanner distinguishes operational evidence from documentation mentions.
+
+Operational evidence is counted only when it appears in relevant configuration, workflow, build, script, or source files. Mentions inside general documentation, generated scan reports, or the scanner implementation itself are not counted as proof of coverage.
+
+The current operational-signal categories are:
+
+- static analysis: `.clang-tidy`, CodeQL configuration, or workflow/build/script references to tools such as `clang-tidy`, `cppcheck`, `CodeQL`, `coverity`, or `pvs-studio`;
+- sanitizers: workflow/build/script references to `-fsanitize`, AddressSanitizer, UndefinedBehaviorSanitizer, or ThreadSanitizer;
+- fuzzing: native fuzz entry points such as `LLVMFuzzerTestOneInput`, or workflow/build/source files explicitly tied to fuzzing;
+- waivers: explicit waiver files such as `docs/engineering/AES-SEC-001-waivers.md`.
+
+## Waiver Log
+
+The default waiver log is:
+
+```text
+docs/engineering/AES-SEC-001-waivers.md
+```
+
+This file must exist even when there are no approved waivers. An empty waiver log should say that no waivers are currently approved.
 
 ## Repository Manifest
 
@@ -85,7 +109,8 @@ Third-party mirrors must not be rewritten as if they were project-owned code. Lo
 
 A repository passes the minimum adoption gate when:
 
-- its expected local secure profile exists; and
+- its expected local secure profile exists;
+- its explicit waiver log exists; and
 - no banned API findings are detected in project-owned native code.
 
 This is deliberately weaker than final compliance. It establishes a non-noisy first enforcement layer.
@@ -97,7 +122,7 @@ AEMS still needs these follow-up pieces:
 - repository checkout/fetch orchestration;
 - aggregate report generation across all manifest entries;
 - CI workflow templates for native-code repositories;
-- waiver-log template generation;
+- waiver-log template generation for each adopting repository;
 - CodeQL or equivalent static-analysis workflow templates;
 - sanitizer build presets for CMake, Make, and Meson projects;
 - fuzz-harness discovery and smoke-test execution;
