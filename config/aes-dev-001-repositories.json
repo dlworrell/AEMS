@@ -5,6 +5,13 @@
   "generated_by": "AEMS",
   "policy": {
     "default_required_profile": "docs/engineering/AES-DEV-001-development-principles.md",
+    "documentation_authority_values": [
+      "local",
+      "delegated",
+      "transitional",
+      "external"
+    ],
+    "documentation_authority_rule": "Every project-owned repository must declare where its authoritative development, specification, and ADR documents currently live. Documentation may be local, delegated to another project repository, transitional pending migration, or external for third-party mirrors/forks.",
     "third_party_policy": "Do not rewrite upstream policy in mirrored or vendored repositories. Track local patch policy separately.",
     "ratchet_rule": "Report development-process evidence first. Baseline gaps before introducing hard gates. Require evidence for new major work before blocking legacy repositories."
   },
@@ -15,6 +22,11 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "docs/engineering",
+        "docs/engineering/reports"
+      ],
       "notes": "Implements adoption reporting and enforcement checks."
     },
     {
@@ -23,6 +35,15 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
+      "documentation_authority": "transitional",
+      "documentation_repository": "dlworrell/atarix",
+      "documentation_paths": [
+        "docs/architecture",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering"
+      ],
+      "migration_status": "centralized-in-atarix-pending-split",
       "notes": "Bootstrapping repository for project governance and early system formation."
     },
     {
@@ -31,6 +52,11 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "shared/docs",
+        "shared/config"
+      ],
       "notes": "Provides reusable scaffolding for future repositories."
     },
     {
@@ -39,6 +65,15 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
+      "documentation_authority": "transitional",
+      "documentation_repository": "dlworrell/atarix",
+      "documentation_paths": [
+        "docs/architecture",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering"
+      ],
+      "migration_status": "centralized-in-atarix-pending-split",
       "notes": "Catalyst/Catylist governance and specification work."
     },
     {
@@ -47,6 +82,15 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
+      "documentation_authority": "transitional",
+      "documentation_repository": "dlworrell/atarix",
+      "documentation_paths": [
+        "docs/architecture",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering"
+      ],
+      "migration_status": "centralized-in-atarix-pending-split",
       "notes": "Processor and tooling research should follow documentation-first and check-in discipline."
     },
     {
@@ -55,8 +99,15 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "docs/architecture",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering"
+      ],
       "local_profile_path": "docs/engineering/ATARIX-DEV-001-development-principles.md",
-      "notes": "Primary Atarix system repository; has an ATARIX-specific local profile."
+      "notes": "Primary Atarix system repository; currently holds much of the centralized project documentation and has an ATARIX-specific local profile."
     },
     {
       "full_name": "dlworrell/BB816-MATX-PCIE",
@@ -64,7 +115,16 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
-      "notes": "Hardware repository; requires specifications, versioned interfaces, and ADR coverage as the design matures."
+      "documentation_authority": "transitional",
+      "documentation_repository": "dlworrell/atarix",
+      "documentation_paths": [
+        "docs/architecture",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering"
+      ],
+      "migration_status": "centralized-in-atarix-pending-split",
+      "notes": "Hardware repository; authoritative docs are currently centralized in ATARIX until ownership is split."
     },
     {
       "full_name": "dlworrell/code-noodling",
@@ -72,6 +132,11 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": false,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "Experimental work should report evidence but should not be blocked before a local project profile is created."
     },
     {
@@ -80,6 +145,11 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "docs",
+        "README.md"
+      ],
       "notes": "Documentation tooling should model documentation-first project discipline."
     },
     {
@@ -88,6 +158,11 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": false,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "Documentation repository; report development-process evidence without overfitting hardware/software gates."
     },
     {
@@ -96,7 +171,16 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
-      "notes": "Application repository; externally visible behavior and automation should be documented."
+      "documentation_authority": "transitional",
+      "documentation_repository": "dlworrell/atarix",
+      "documentation_paths": [
+        "docs/architecture",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering"
+      ],
+      "migration_status": "centralized-in-atarix-pending-split",
+      "notes": "Application repository; authoritative docs may be centralized until project-local specs are split out."
     },
     {
       "full_name": "dlworrell/Just-a-Geek-LLC",
@@ -104,6 +188,11 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "Organization governance should inherit ecosystem check-in and documentation discipline."
     },
     {
@@ -112,6 +201,11 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": false,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "Demo repository; use ratcheting rather than noisy hard gates."
     },
     {
@@ -120,7 +214,16 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
-      "notes": "FPGA repository; hardware interfaces and build flows should have specifications and ADRs as the design matures."
+      "documentation_authority": "transitional",
+      "documentation_repository": "dlworrell/atarix",
+      "documentation_paths": [
+        "docs/architecture",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering"
+      ],
+      "migration_status": "centralized-in-atarix-pending-split",
+      "notes": "FPGA repository; authoritative docs are currently centralized in ATARIX until ownership is split."
     },
     {
       "full_name": "dlworrell/Vega816",
@@ -128,7 +231,16 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
-      "notes": "System/hardware repository; requires development-process evidence and architecture traceability."
+      "documentation_authority": "transitional",
+      "documentation_repository": "dlworrell/atarix",
+      "documentation_paths": [
+        "docs/architecture",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering"
+      ],
+      "migration_status": "centralized-in-atarix-pending-split",
+      "notes": "System/hardware repository; authoritative docs are currently centralized in ATARIX until ownership is split."
     },
     {
       "full_name": "dlworrell/cglm",
@@ -136,6 +248,7 @@
       "ownership": "third-party-mirror-or-fork",
       "expected_profile": false,
       "profile_required": false,
+      "documentation_authority": "external",
       "notes": "Do not rewrite upstream policy. Track local patches separately."
     },
     {
@@ -144,6 +257,7 @@
       "ownership": "third-party-mirror-or-fork",
       "expected_profile": false,
       "profile_required": false,
+      "documentation_authority": "external",
       "notes": "Do not rewrite upstream policy. Track local patches separately."
     }
   ]
