@@ -10,7 +10,7 @@ It performs a local checkout scan and reports:
 - whether native-code files are present;
 - whether native build/test/tooling surfaces are present;
 - whether banned C/C++ APIs appear in project-owned source files;
-- whether static-analysis, sanitizer, fuzzing, or waiver signals exist.
+- whether real static-analysis, sanitizer, fuzzing, or waiver evidence exists.
 
 The scanner is intentionally dependency-free. It should run anywhere a
 standard Python 3 interpreter is available.
@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Iterable
 
 SECURE_PROFILE_PATH = Path("docs/engineering/SECURE-C-CXX.md")
+DEFAULT_WAIVER_PATH = Path("docs/engineering/AES-SEC-001-waivers.md")
 
 NATIVE_SOURCE_EXTENSIONS = {
     ".c",
@@ -69,6 +70,20 @@ BUILD_SURFACE_NAMES = {
 BUILD_SURFACE_EXTENSIONS = {
     ".mk",
     ".cmake",
+}
+
+WORKFLOW_EXTENSIONS = {
+    ".yml",
+    ".yaml",
+}
+
+SCRIPT_EXTENSIONS = {
+    ".sh",
+    ".bash",
+    ".zsh",
+    ".py",
+    ".pl",
+    ".rb",
 }
 
 BANNED_APIS = {
@@ -116,6 +131,11 @@ DEFAULT_EXCLUDED_DIRS = {
     "__pycache__",
 }
 
+GENERATED_REPORT_NAMES = {
+    "aes-sec-001-scan.json",
+    "aes-sec-001-scan.md",
+}
+
 TEXT_FILE_LIMIT_BYTES = 2_000_000
 
 
@@ -134,6 +154,7 @@ class ScanReport:
     root: str
     classification: str
     secure_profile_present: bool
+    waiver_log_present: bool
     native_files: list[str] = field(default_factory=list)
     hardware_files: list[str] = field(default_factory=list)
     build_surfaces: list[str] = field(default_factory=list)
@@ -151,12 +172,25 @@ class ScanReport:
     def has_banned_api_findings(self) -> bool:
         return any(f.severity == "banned" for f in self.findings)
 
+    @property
+    def requires_secure_profile(self) -> bool:
+        return self.has_native_code or bool(self.build_surfaces)
+
+    @property
+    def passes_minimum_adoption_gate(self) -> bool:
+        return (
+            self.secure_profile_present
+            and self.waiver_log_present
+            and not self.has_banned_api_findings
+        )
+
     def to_dict(self) -> dict[str, object]:
         return {
             "repository": self.repository,
             "root": self.root,
             "classification": self.classification,
             "secure_profile_present": self.secure_profile_present,
+            "waiver_log_present": self.waiver_log_present,
             "native_file_count": len(self.native_files),
             "hardware_file_count": len(self.hardware_files),
             "build_surface_count": len(self.build_surfaces),
@@ -171,9 +205,8 @@ class ScanReport:
             "summary": {
                 "has_native_code": self.has_native_code,
                 "has_banned_api_findings": self.has_banned_api_findings,
-                "requires_secure_profile": self.has_native_code or bool(self.build_surfaces),
-                "passes_minimum_adoption_gate": self.secure_profile_present
-                and not self.has_banned_api_findings,
+                "requires_secure_profile": self.requires_secure_profile,
+                "passes_minimum_adoption_gate": self.passes_minimum_adoption_gate,
             },
         }
 
@@ -216,14 +249,50 @@ def iter_files(root: Path) -> Iterable[Path]:
     for path in root.rglob("*"):
         if not path.is_file():
             continue
-        rel_parts = path.relative_to(root).parts
+        rel = path.relative_to(root)
+        rel_parts = rel.parts
         if any(part in DEFAULT_EXCLUDED_DIRS for part in rel_parts[:-1]):
+            continue
+        if rel.name in GENERATED_REPORT_NAMES:
             continue
         yield path
 
 
 def is_build_surface(path: Path) -> bool:
     return path.name in BUILD_SURFACE_NAMES or path.suffix in BUILD_SURFACE_EXTENSIONS
+
+
+def is_workflow_file(root: Path, path: Path) -> bool:
+    rel = path.relative_to(root)
+    parts = rel.parts
+    return (
+        len(parts) >= 3
+        and parts[0] == ".github"
+        and parts[1] == "workflows"
+        and path.suffix in WORKFLOW_EXTENSIONS
+    )
+
+
+def is_documentation_file(root: Path, path: Path) -> bool:
+    rel = path.relative_to(root).as_posix().lower()
+    return rel.startswith("docs/") or rel.endswith(".md") or rel.endswith(".rst")
+
+
+def is_scanner_itself(root: Path, path: Path) -> bool:
+    return path.relative_to(root).as_posix() == "scripts/aes_sec_001_scan.py"
+
+
+def is_operational_evidence_candidate(root: Path, path: Path) -> bool:
+    if is_scanner_itself(root, path):
+        return False
+    if is_documentation_file(root, path):
+        return False
+    return (
+        is_workflow_file(root, path)
+        or is_build_surface(path)
+        or path.suffix in BUILD_SURFACE_EXTENSIONS
+        or path.suffix in SCRIPT_EXTENSIONS
+    )
 
 
 def is_probably_text(path: Path) -> bool:
@@ -254,9 +323,21 @@ def classify(native_files: list[str], hardware_files: list[str], build_surfaces:
     return "documentation-or-governance"
 
 
-def contains_any(path: Path, needles: tuple[str, ...]) -> bool:
-    lower = "/" + path.as_posix().lower()
-    return any(needle in lower for needle in needles)
+def is_explicit_waiver_file(root: Path, path: Path) -> bool:
+    rel = path.relative_to(root).as_posix()
+    rel_lower = rel.lower()
+    name_lower = path.name.lower()
+    if rel == DEFAULT_WAIVER_PATH.as_posix():
+        return True
+    if rel_lower in {
+        "docs/engineering/waivers.md",
+        "docs/security/waivers.md",
+        "security/waivers.md",
+    }:
+        return True
+    if "/waivers/" in f"/{rel_lower}" and path.suffix.lower() in {".md", ".json", ".yml", ".yaml"}:
+        return True
+    return name_lower in {"waivers.md", "waivers.yml", "waivers.yaml", "waivers.json"}
 
 
 def collect_signals(root: Path, files: list[Path]) -> tuple[list[str], list[str], list[str], list[str]]:
@@ -270,28 +351,33 @@ def collect_signals(root: Path, files: list[Path]) -> tuple[list[str], list[str]
         name = path.name.lower()
         rel_lower = rel.lower()
 
-        if name in {".clang-tidy", ".clang-format"} or "clang-tidy" in rel_lower:
-            static_analysis.add(rel)
-        if "codeql" in rel_lower or "cppcheck" in rel_lower or "coverity" in rel_lower:
-            static_analysis.add(rel)
-        if "sanitize" in rel_lower or "asan" in rel_lower or "ubsan" in rel_lower or "tsan" in rel_lower:
-            sanitizers.add(rel)
-        if "fuzz" in rel_lower or "libfuzzer" in rel_lower or "afl" in rel_lower:
-            fuzzing.add(rel)
-        if "waiver" in rel_lower or "exception" in rel_lower:
+        if is_explicit_waiver_file(root, path):
             waivers.add(rel)
+
+        if name == ".clang-tidy" or rel_lower.startswith(".github/codeql/"):
+            static_analysis.add(rel)
 
         text = read_text_lossy(path)
         if text is None:
             continue
-        if "-fsanitize" in text or "AddressSanitizer" in text or "UndefinedBehaviorSanitizer" in text:
-            sanitizers.add(rel)
-        if "clang-tidy" in text or "cppcheck" in text or "CodeQL" in text:
-            static_analysis.add(rel)
-        if "LLVMFuzzerTestOneInput" in text or "libFuzzer" in text or "AFL" in text:
+
+        if is_operational_evidence_candidate(root, path):
+            if any(token in text for token in ("clang-tidy", "cppcheck", "CodeQL", "coverity", "pvs-studio")):
+                static_analysis.add(rel)
+            if any(token in text for token in ("-fsanitize", "AddressSanitizer", "UndefinedBehaviorSanitizer", "ThreadSanitizer")):
+                sanitizers.add(rel)
+            if any(token in text for token in ("LLVMFuzzerTestOneInput", "libFuzzer", "AFL++", "honggfuzz")):
+                fuzzing.add(rel)
+
+        if path.suffix in NATIVE_SOURCE_EXTENSIONS:
+            if "LLVMFuzzerTestOneInput" in text:
+                fuzzing.add(rel)
+
+        if "fuzz" in rel_lower and (
+            path.suffix in NATIVE_SOURCE_EXTENSIONS
+            or is_operational_evidence_candidate(root, path)
+        ):
             fuzzing.add(rel)
-        if "AES-SEC-001" in text and "waiver" in text.lower():
-            waivers.add(rel)
 
     return sorted(static_analysis), sorted(sanitizers), sorted(fuzzing), sorted(waivers)
 
@@ -312,7 +398,9 @@ def scan_source_for_apis(
     if include_dangerous_primitives:
         symbols |= DANGEROUS_PRIMITIVES
 
-    pattern = re.compile(r"\b(" + "|".join(re.escape(symbol) for symbol in sorted(symbols)) + r")\s*\(")
+    pattern = re.compile(
+        r"\b(" + "|".join(re.escape(symbol) for symbol in sorted(symbols)) + r")\s*\("
+    )
     findings: list[ApiFinding] = []
     rel = path.relative_to(root).as_posix()
 
@@ -363,12 +451,14 @@ def scan(root: Path, repo_name: str | None, include_dangerous_primitives: bool) 
     static_analysis, sanitizers, fuzzing, waivers = collect_signals(root, files)
 
     secure_profile_present = (root / SECURE_PROFILE_PATH).is_file()
+    waiver_log_present = (root / DEFAULT_WAIVER_PATH).is_file()
 
     return ScanReport(
         repository=repo_name or root.name,
         root=str(root),
         classification=classify(native_files, hardware_files, build_surfaces),
         secure_profile_present=secure_profile_present,
+        waiver_log_present=waiver_log_present,
         native_files=native_files,
         hardware_files=hardware_files,
         build_surfaces=build_surfaces,
@@ -387,6 +477,7 @@ def format_markdown(report: ScanReport) -> str:
         "",
         f"- Classification: `{report.classification}`",
         f"- Secure profile present: `{report.secure_profile_present}`",
+        f"- Waiver log present: `{report.waiver_log_present}`",
         f"- Native files: `{len(report.native_files)}`",
         f"- Hardware files: `{len(report.hardware_files)}`",
         f"- Build surfaces: `{len(report.build_surfaces)}`",
@@ -394,7 +485,7 @@ def format_markdown(report: ScanReport) -> str:
         f"- Review-required primitive findings: `{sum(1 for f in report.findings if f.severity == 'review-required')}`",
         f"- Passes minimum adoption gate: `{data['summary']['passes_minimum_adoption_gate']}`",
         "",
-        "## Signals",
+        "## Operational Signals",
         "",
         f"- Static analysis: {', '.join(report.static_analysis_signals) if report.static_analysis_signals else 'none found'}",
         f"- Sanitizers: {', '.join(report.sanitizer_signals) if report.sanitizer_signals else 'none found'}",
@@ -430,9 +521,7 @@ def main() -> int:
     else:
         print(format_markdown(report))
 
-    if args.strict and (
-        not report.secure_profile_present or report.has_banned_api_findings
-    ):
+    if args.strict and not report.passes_minimum_adoption_gate:
         return 1
     return 0
 
