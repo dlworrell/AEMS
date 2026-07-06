@@ -17,10 +17,10 @@ AES-DEV-001 is separate from AES-SEC-001. AES-SEC-001 governs secure C and C++ c
 AEMS enforcement proceeds in five stages:
 
 1. Inventory project-owned repositories.
-2. Detect development-process evidence.
-3. Report gaps without blocking legacy work.
-4. Preserve a first ecosystem baseline.
-5. Ratchet future changes toward required evidence.
+2. Declare documentation authority for each repository.
+3. Detect development-process evidence.
+4. Report gaps without blocking legacy work.
+5. Preserve a first ecosystem baseline and ratchet future changes toward required evidence.
 
 The first scanner is evidence-oriented. It does not attempt to prove architectural correctness.
 
@@ -80,6 +80,8 @@ For each manifest entry, it records:
 - role;
 - ownership classification;
 - checkout or scan status;
+- documentation authority;
+- documentation reference;
 - local profile status;
 - specification-directory status;
 - ADR-directory status;
@@ -113,7 +115,30 @@ The manifest supports:
 - third-party mirrors/forks;
 - optional local profile paths;
 - whether a local profile is currently required;
+- documentation authority;
+- delegated documentation repository;
+- delegated documentation paths;
+- migration status;
 - ratcheting notes.
+
+## Documentation Authority
+
+A repository's authoritative development, specification, and ADR documentation may be:
+
+- `local`: owned inside the repository;
+- `delegated`: owned by another project repository;
+- `transitional`: currently centralized elsewhere pending later migration;
+- `external`: owned by an upstream third-party project.
+
+The current ecosystem is intentionally transitional. Much of the project architecture documentation still lives in `dlworrell/atarix`. That should be recorded as delegated or transitional documentation authority rather than misreported as ordinary missing documentation.
+
+The first ratchet rule is therefore:
+
+```text
+Every project-owned repository must declare where its authoritative development, specification, and ADR documents currently live.
+```
+
+This is deliberately weaker than requiring every repository to contain every document locally.
 
 ## Evidence Categories
 
@@ -161,16 +186,17 @@ Evidence gaps do not initially fail the gate.
 
 AEMS should later ratchet toward stronger enforcement:
 
-1. Require local development profiles in project-owned repositories.
-2. Require specs for externally visible interfaces.
-3. Require ADRs for major architecture decisions.
-4. Require versioning evidence for interface changes.
-5. Require observability and recovery sections for subsystem specifications.
-6. Require trust-boundary or authority-model documentation for security-sensitive paths.
-7. Require test or test-rationale evidence for meaningful changes.
+1. Require documentation authority declarations in project-owned repositories.
+2. Require local development profiles in project-owned repositories where the manifest says they are required.
+3. Require specs for externally visible interfaces, either locally or by delegated reference.
+4. Require ADRs for major architecture decisions, either locally or by delegated reference.
+5. Require versioning evidence for interface changes.
+6. Require observability and recovery sections for subsystem specifications.
+7. Require trust-boundary or authority-model documentation for security-sensitive paths.
+8. Require test or test-rationale evidence for meaningful changes.
 
 ## Engineering Rule
 
 Do not turn architectural governance into a noisy checkbox machine.
 
-First, report evidence. Then preserve the baseline. Then ratchet where the signal is strong.
+First, declare where the truth lives. Then report evidence. Then preserve the baseline. Then ratchet where the signal is strong.
