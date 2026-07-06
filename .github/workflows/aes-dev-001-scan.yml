@@ -1,0 +1,135 @@
+name: AES-DEV-001 Scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      ecosystem_scan:
+        description: Run the aggregate ecosystem scan
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      include_third_party:
+        description: Include third-party mirrors/forks in ecosystem scan
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      strict:
+        description: Fail on checkout or scan failure. Evidence gaps remain reporting-only.
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/aes_dev_001_scan.py'
+      - 'scripts/aes_dev_001_aggregate.py'
+      - 'config/aes-dev-001-repositories.json'
+      - 'docs/engineering/AES-DEV-001-enforcement-plan.md'
+      - '.github/workflows/aes-dev-001-scan.yml'
+  pull_request:
+    paths:
+      - 'scripts/aes_dev_001_scan.py'
+      - 'scripts/aes_dev_001_aggregate.py'
+      - 'config/aes-dev-001-repositories.json'
+      - 'docs/engineering/AES-DEV-001-enforcement-plan.md'
+      - '.github/workflows/aes-dev-001-scan.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  scan-local:
+    name: Local AES-DEV-001 scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Show scanner help
+        run: python3 scripts/aes_dev_001_scan.py --help
+
+      - name: Run local JSON scan
+        run: python3 scripts/aes_dev_001_scan.py . --repo-name dlworrell/AEMS --format json > aes-dev-001-scan.json
+
+      - name: Run local Markdown scan
+        run: python3 scripts/aes_dev_001_scan.py . --repo-name dlworrell/AEMS --format markdown > aes-dev-001-scan.md
+
+      - name: Add local scan to summary
+        run: cat aes-dev-001-scan.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload local scan reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-dev-001-local-scan
+          path: |
+            aes-dev-001-scan.json
+            aes-dev-001-scan.md
+
+  scan-ecosystem:
+    name: Ecosystem AES-DEV-001 scan
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecosystem_scan == 'true' }}
+
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Show aggregate help
+        run: python3 scripts/aes_dev_001_aggregate.py --help
+
+      - name: Run ecosystem JSON scan
+        run: |
+          args=()
+          if [ "${{ inputs.include_third_party }}" = "true" ]; then
+            args+=(--include-third-party)
+          fi
+          python3 scripts/aes_dev_001_aggregate.py --format json "${args[@]}" > aes-dev-001-ecosystem.json
+
+      - name: Run ecosystem Markdown scan
+        run: |
+          args=()
+          if [ "${{ inputs.include_third_party }}" = "true" ]; then
+            args+=(--include-third-party)
+          fi
+          python3 scripts/aes_dev_001_aggregate.py --format markdown "${args[@]}" > aes-dev-001-ecosystem.md
+
+      - name: Add ecosystem scan to summary
+        run: cat aes-dev-001-ecosystem.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload ecosystem scan reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-dev-001-ecosystem-scan
+          path: |
+            aes-dev-001-ecosystem.json
+            aes-dev-001-ecosystem.md
+
+      - name: Enforce reporting gate
+        if: ${{ inputs.strict == 'true' }}
+        run: |
+          args=()
+          if [ "${{ inputs.include_third_party }}" = "true" ]; then
+            args+=(--include-third-party)
+          fi
+          python3 scripts/aes_dev_001_aggregate.py --strict --format markdown "${args[@]}"
