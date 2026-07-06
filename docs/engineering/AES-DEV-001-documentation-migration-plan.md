@@ -8,7 +8,7 @@ Related issue: #7
 
 This plan moves project documentation from the current ATARIX-centered transitional state into the repositories that own the corresponding work.
 
-The goal is repo-local ownership, not duplicated documentation.
+The goal is repo-local ownership where the documentation truly governs a separate repository, not duplicated documentation and not migration for its own sake.
 
 ## Current State
 
@@ -16,10 +16,10 @@ The first AES-DEV-001 ecosystem baseline established:
 
 - all repositories declare documentation authority;
 - all repositories have traceable documentation authority;
-- seven project-owned repositories still point to `dlworrell/atarix` as transitional documentation authority;
+- some project-owned repositories still point to `dlworrell/atarix` as documentation authority;
 - evidence gaps are visible but not yet hard failures.
 
-The transitional model is acceptable for inventory. It is not the desired end state.
+The transitional model is acceptable for inventory. It must now be refined so ATARIX-local material is not accidentally moved into supporting repositories.
 
 ## Desired State
 
@@ -31,7 +31,7 @@ Shared templates remain in `dlworrell/repo_templates`.
 
 Cross-project orchestration and enforcement material remains in `dlworrell/AEMS`.
 
-Project-specific architecture, specifications, ADRs, and implementation notes should move to the project repository they govern.
+Project-specific architecture, specifications, ADRs, and implementation notes should move to the project repository they govern only when ownership is clear.
 
 ## Migration Rules
 
@@ -42,6 +42,7 @@ Project-specific architecture, specifications, ADRs, and implementation notes sh
 5. Do not split documents before ownership is understood.
 6. Do not rewrite third-party mirrors/forks.
 7. Prefer clean ownership over convenience.
+8. Do not move ATARIX-local support or lineage material merely because it mentions another repository name.
 
 ## Provenance Requirement
 
@@ -62,11 +63,11 @@ Migration-date: YYYY-MM-DD
 Reason: AES-DEV-001 repository-local documentation ownership
 ```
 
-## Target Repositories
+## Candidate Target Repositories
 
 ### `dlworrell/P0`
 
-Likely owns bootstrap and foundation material.
+May own bootstrap and foundation material when that material governs P0 specifically.
 
 Potential destination areas:
 
@@ -77,18 +78,7 @@ Potential destination areas:
 
 ### `dlworrell/Catylist`
 
-Likely owns ecosystem governance and Catalyst/Catylist specification material.
-
-Potential destination areas:
-
-- `docs/architecture/`
-- `docs/specs/`
-- `docs/adr/`
-- `docs/engineering/`
-
-### `dlworrell/65x02`
-
-Likely owns processor, tooling, and 65x02-family research material.
+May own ecosystem governance and Catalyst/Catylist specification material when that material governs Catylist specifically.
 
 Potential destination areas:
 
@@ -99,7 +89,7 @@ Potential destination areas:
 
 ### `dlworrell/BB816-MATX-PCIE`
 
-Likely owns BB816 motherboard and PCIe hardware-platform material.
+May own BB816 motherboard and PCIe hardware-platform material if that material is not ATARIX-local system architecture.
 
 Potential destination areas:
 
@@ -110,7 +100,7 @@ Potential destination areas:
 
 ### `dlworrell/JAG`
 
-Likely owns application-specific behavior, automation, architecture, and product documentation.
+May own application-specific behavior, automation, architecture, and product documentation.
 
 Potential destination areas:
 
@@ -119,31 +109,19 @@ Potential destination areas:
 - `docs/adr/`
 - `docs/engineering/`
 
-### `dlworrell/ulx3s`
+## Explicit Non-Migration Targets
 
-Likely owns ULX3S FPGA platform material.
+Do not migrate the following categories merely because they mention standalone repositories or boards. These are ATARIX-local support, reference, lineage, or integration material unless a later decision says otherwise:
 
-Potential destination areas:
+- ULX3S material used by ATARIX;
+- Vega816 material used by ATARIX;
+- 65x02 processor/tooling material used by ATARIX.
 
-- `docs/architecture/`
-- `docs/specs/`
-- `docs/adr/`
-- `docs/fpga/`
+For AES-DEV-001 reporting, these should be treated as delegated ATARIX-local documentation, not as pending migration debt.
 
-### `dlworrell/Vega816`
+## Material That Should Stay in ATARIX
 
-Likely owns Vega816 system and hardware material.
-
-Potential destination areas:
-
-- `docs/architecture/`
-- `docs/specs/`
-- `docs/adr/`
-- `docs/engineering/`
-
-## Material That Should Probably Stay in ATARIX
-
-Material should remain in `dlworrell/atarix` when it governs the ATARIX machine as a whole, including:
+Material should remain in `dlworrell/atarix` when it governs the ATARIX machine as a whole or ATARIX-local support/integration work, including:
 
 - ATARIX system architecture;
 - ATARIX discovery format;
@@ -152,7 +130,10 @@ Material should remain in `dlworrell/atarix` when it governs the ATARIX machine 
 - ATARIX fabric controller;
 - ATARIX supervisor model;
 - ATARIX ring and capability model;
-- ATARIX-specific local profile material.
+- ATARIX-specific local profile material;
+- ULX3S material used as part of ATARIX design;
+- Vega816 analysis used as ATARIX lineage or rationale;
+- 65x02 CPU/tooling material used by ATARIX.
 
 ## Material That Should Probably Move to AES
 
@@ -174,28 +155,32 @@ For each migration:
 
 1. Identify the source document in `dlworrell/atarix`.
 2. Decide the owning repository.
-3. Create the destination directory if needed.
-4. Copy or adapt the document into the destination repository.
-5. Add the provenance block.
-6. Add a source-side forwarding note or index entry if needed.
-7. Update `config/aes-dev-001-repositories.json` when ownership changes from transitional to local.
-8. Re-run the AES-DEV-001 ecosystem scan.
-9. Preserve a migration report after each batch.
+3. Confirm the document is not ATARIX-local support, lineage, or integration material.
+4. Create the destination directory if needed.
+5. Copy or adapt the document into the destination repository.
+6. Add the provenance block.
+7. Add a source-side forwarding note or index entry if needed.
+8. Update `config/aes-dev-001-repositories.json` when ownership changes from transitional or delegated to local.
+9. Re-run the AES-DEV-001 ecosystem scan.
+10. Preserve a migration report after each batch.
 
 ## First Batch Candidate
 
-Start with documents whose ownership is obvious and low-risk:
+Do not start with ULX3S, Vega816, or 65x02 material. Those are ATARIX-local unless later reclassified.
 
-1. BB816-specific documents to `dlworrell/BB816-MATX-PCIE`.
-2. ULX3S-specific documents to `dlworrell/ulx3s`.
-3. Vega816-specific documents to `dlworrell/Vega816`.
-4. 65x02 processor/tooling documents to `dlworrell/65x02`.
+Start only with documents whose ownership is obvious and not ATARIX-local. The current likely first candidates are:
 
-Do not begin with ambiguous ecosystem governance documents.
+1. BB816-specific documents that govern `dlworrell/BB816-MATX-PCIE` rather than ATARIX as a whole.
+2. JAG-specific documents that govern `dlworrell/JAG` rather than ATARIX as a whole.
+3. Catylist-specific governance documents that clearly belong in `dlworrell/Catylist`.
+
+Do not begin with ambiguous ecosystem governance, lineage, board-support, or CPU-support documents.
 
 ## AEMS Reporting Implication
 
-During migration, AEMS should continue to accept `transitional` documentation authority.
+During migration, AEMS should continue to accept `delegated` or `transitional` documentation authority.
+
+When material is intentionally ATARIX-local and should remain in ATARIX, prefer `delegated` over `transitional` in the manifest.
 
 After a repository's documentation has moved, change its manifest entry to:
 
@@ -203,7 +188,7 @@ After a repository's documentation has moved, change its manifest entry to:
 "documentation_authority": "local"
 ```
 
-and remove transitional migration metadata that no longer applies.
+and remove migration metadata that no longer applies.
 
 ## Ratchet Direction
 
@@ -212,7 +197,7 @@ The next ratchet is not merely local profile adoption.
 The next real ratchet is:
 
 ```text
-Repositories with clear ownership should migrate authoritative project documents from transitional ATARIX authority to local repository authority.
+Repositories with clear non-ATARIX-local ownership should migrate authoritative project documents from transitional ATARIX authority to local repository authority.
 ```
 
-Local profile adoption remains useful, but it is secondary to moving the actual documents into the owning repositories.
+Local profile adoption remains useful, but it is secondary to moving the actual documents into the owning repositories when that ownership is real.
