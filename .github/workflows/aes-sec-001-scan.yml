@@ -24,8 +24,10 @@ on:
       - "**/*.cmake"
       - "**/meson.build"
       - "docs/engineering/SECURE-C-CXX.md"
+      - "docs/engineering/AES-SEC-001-waivers.md"
       - "docs/engineering/AES-SEC-001-enforcement-plan.md"
       - "scripts/aes_sec_001_scan.py"
+      - "scripts/aes_sec_001_aggregate.py"
       - "config/aes-sec-001-repositories.json"
       - ".github/workflows/aes-sec-001-scan.yml"
   push:
@@ -49,6 +51,22 @@ on:
         options:
           - "true"
           - "false"
+      ecosystem_scan:
+        description: "Also scan all repositories listed in config/aes-sec-001-repositories.json."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      include_third_party:
+        description: "Include third-party mirror/fork repositories in the ecosystem scan."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 permissions:
   contents: read
@@ -123,4 +141,84 @@ jobs:
           path: |
             aes-sec-001-scan.json
             aes-sec-001-scan.md
+          if-no-files-found: error
+
+  scan-ecosystem:
+    name: Scan ecosystem manifest
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ecosystem_scan == 'true' }}
+
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Show aggregate runner help
+        run: python3 scripts/aes_sec_001_aggregate.py --help
+
+      - name: Run ecosystem scan as JSON
+        run: |
+          EXTRA_ARGS=()
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--include-dangerous-primitives")
+          fi
+          if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--include-third-party")
+          fi
+
+          python3 scripts/aes_sec_001_aggregate.py \
+            --manifest config/aes-sec-001-repositories.json \
+            --work-dir "$RUNNER_TEMP/aes-sec-001-checkouts" \
+            --format json \
+            "${EXTRA_ARGS[@]}" \
+            > aes-sec-001-ecosystem.json
+
+      - name: Run ecosystem scan as Markdown
+        run: |
+          EXTRA_ARGS=()
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--include-dangerous-primitives")
+          fi
+          if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--include-third-party")
+          fi
+
+          python3 scripts/aes_sec_001_aggregate.py \
+            --manifest config/aes-sec-001-repositories.json \
+            --work-dir "$RUNNER_TEMP/aes-sec-001-checkouts" \
+            --format markdown \
+            "${EXTRA_ARGS[@]}" \
+            > aes-sec-001-ecosystem.md
+
+      - name: Add ecosystem report to job summary
+        run: cat aes-sec-001-ecosystem.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enforce ecosystem strict gate
+        if: ${{ github.event.inputs.strict == 'true' }}
+        run: |
+          EXTRA_ARGS=()
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--include-dangerous-primitives")
+          fi
+          if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--include-third-party")
+          fi
+
+          python3 scripts/aes_sec_001_aggregate.py \
+            --manifest config/aes-sec-001-repositories.json \
+            --work-dir "$RUNNER_TEMP/aes-sec-001-checkouts" \
+            --strict \
+            "${EXTRA_ARGS[@]}"
+
+      - name: Upload ecosystem reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-sec-001-ecosystem-${{ github.run_id }}
+          path: |
+            aes-sec-001-ecosystem.json
+            aes-sec-001-ecosystem.md
           if-no-files-found: error
