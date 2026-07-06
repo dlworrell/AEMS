@@ -12,10 +12,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import shutil
 import subprocess
-import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -60,6 +58,23 @@ class AggregateEntry:
         summary = self.scan.get("summary", {})
         return bool(summary.get("passes_minimum_adoption_gate", False))
 
+    @property
+    def findings(self) -> list[dict[str, Any]]:
+        if not isinstance(self.scan, dict):
+            return []
+        findings = self.scan.get("findings", [])
+        if not isinstance(findings, list):
+            return []
+        return [finding for finding in findings if isinstance(finding, dict)]
+
+    @property
+    def banned_finding_count(self) -> int:
+        return sum(1 for finding in self.findings if finding.get("severity") == "banned")
+
+    @property
+    def review_required_finding_count(self) -> int:
+        return sum(1 for finding in self.findings if finding.get("severity") == "review-required")
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "repository": self.repository.__dict__,
@@ -69,6 +84,8 @@ class AggregateEntry:
             "error": self.error,
             "expected_to_pass_gate": self.expected_to_pass_gate,
             "passes_expected_gate": self.passes_expected_gate,
+            "banned_finding_count": self.banned_finding_count,
+            "review_required_finding_count": self.review_required_finding_count,
         }
 
 
@@ -92,6 +109,14 @@ class AggregateReport:
         return [entry for entry in self.entries if not entry.passes_expected_gate]
 
     @property
+    def banned_finding_count(self) -> int:
+        return sum(entry.banned_finding_count for entry in self.entries)
+
+    @property
+    def review_required_finding_count(self) -> int:
+        return sum(entry.review_required_finding_count for entry in self.entries)
+
+    @property
     def passes(self) -> bool:
         return not self.expected_gate_failures
 
@@ -105,6 +130,8 @@ class AggregateReport:
                 "scanned_count": self.scanned_count,
                 "checkout_failed_count": self.failed_checkout_count,
                 "expected_gate_failure_count": len(self.expected_gate_failures),
+                "banned_finding_count": self.banned_finding_count,
+                "review_required_finding_count": self.review_required_finding_count,
                 "passes": self.passes,
             },
             "entries": [entry.to_dict() for entry in self.entries],
@@ -214,7 +241,7 @@ def scan_entry(
     destination = checkout_dir_for(work_dir, entry.full_name)
     try:
         run_git_clone(entry.full_name, destination)
-    except FileNotFoundError as exc:
+    except FileNotFoundError:
         return AggregateEntry(
             repository=entry,
             status="checkout-failed",
@@ -286,6 +313,11 @@ def format_bool(value: bool) -> str:
     return "PASS" if value else "FAIL"
 
 
+def finding_value(finding: dict[str, Any], key: str) -> str:
+    value = finding.get(key, "")
+    return str(value).replace("|", "\\|")
+
+
 def format_markdown(report: AggregateReport) -> str:
     lines = [
         "# AES-SEC-001 Ecosystem Adoption Report",
@@ -297,12 +329,14 @@ def format_markdown(report: AggregateReport) -> str:
         f"- Repositories scanned: `{report.scanned_count}`",
         f"- Checkout failures: `{report.failed_checkout_count}`",
         f"- Expected gate failures: `{len(report.expected_gate_failures)}`",
+        f"- Banned findings: `{report.banned_finding_count}`",
+        f"- Review-required findings: `{report.review_required_finding_count}`",
         f"- Aggregate result: `{format_bool(report.passes)}`",
         "",
         "## Repository Results",
         "",
-        "| Repository | Role | Ownership | Status | Class | Profile | Waiver Log | Banned Findings | Gate |",
-        "|---|---|---|---|---|---:|---:|---:|---:|",
+        "| Repository | Role | Ownership | Status | Class | Profile | Waiver Log | Banned Findings | Review Findings | Gate |",
+        "|---|---|---|---|---|---:|---:|---:|---:|---:|",
     ]
 
     for entry in report.entries:
@@ -311,8 +345,6 @@ def format_markdown(report: AggregateReport) -> str:
         classification = scan_data.get("classification", "n/a") if isinstance(scan_data, dict) else "n/a"
         profile = scan_data.get("secure_profile_present", "n/a") if isinstance(scan_data, dict) else "n/a"
         waiver_log = scan_data.get("waiver_log_present", "n/a") if isinstance(scan_data, dict) else "n/a"
-        findings = scan_data.get("findings", []) if isinstance(scan_data, dict) else []
-        banned_count = sum(1 for finding in findings if finding.get("severity") == "banned")
         gate = summary.get("passes_minimum_adoption_gate", "n/a") if isinstance(summary, dict) else "n/a"
         lines.append(
             "| "
@@ -323,7 +355,8 @@ def format_markdown(report: AggregateReport) -> str:
             f"`{classification}` | "
             f"`{profile}` | "
             f"`{waiver_log}` | "
-            f"`{banned_count}` | "
+            f"`{entry.banned_finding_count}` | "
+            f"`{entry.review_required_finding_count}` | "
             f"`{gate}` |"
         )
 
@@ -334,6 +367,30 @@ def format_markdown(report: AggregateReport) -> str:
             lines.append(f"- `{entry.repository.full_name}`: {reason}")
     else:
         lines.extend(["", "## Expected Gate Failures", "", "None."])
+
+    if report.review_required_finding_count:
+        lines.extend([
+            "",
+            "## Review-Required Findings",
+            "",
+            "These are not gate failures. They identify native-code operations that need review, wrapper decisions, or documented invariants.",
+            "",
+            "| Repository | Symbol | Path | Line |",
+            "|---|---|---|---:|",
+        ])
+        for entry in report.entries:
+            for finding in entry.findings:
+                if finding.get("severity") != "review-required":
+                    continue
+                lines.append(
+                    "| "
+                    f"`{entry.repository.full_name}` | "
+                    f"`{finding_value(finding, 'symbol')}` | "
+                    f"`{finding_value(finding, 'path')}` | "
+                    f"{finding_value(finding, 'line')} |"
+                )
+    else:
+        lines.extend(["", "## Review-Required Findings", "", "None."])
 
     return "\n".join(lines)
 
