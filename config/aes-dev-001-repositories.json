@@ -11,152 +11,104 @@
       "transitional",
       "external"
     ],
-    "documentation_authority_rule": "Every project-owned repository must declare where its authoritative development, specification, and ADR documents currently live. Documentation may be local, delegated to another project repository, transitional pending migration, or external for third-party mirrors/forks.",
-    "third_party_policy": "Do not rewrite upstream policy in mirrored or vendored repositories. Track local patch policy separately.",
-    "ratchet_rule": "Report development-process evidence first. Baseline gaps before introducing hard gates. Require evidence for new major work before blocking legacy repositories."
+    "ownership_values": [
+      "project-owned",
+      "external-reference",
+      "third-party-mirror-or-fork"
+    ],
+    "documentation_authority_rule": "Every project-owned repository must declare where its authoritative development, specification, and ADR documents currently live. Documentation may be local, delegated to another project repository, transitional pending migration, or external for reference or third-party repositories.",
+    "external_reference_policy": "External/reference repositories are used for ideas, lineage, compatibility research, or borrowed implementation patterns. They are not governed as Catalyst project repositories and should not be rewritten to satisfy Catalyst policy.",
+    "ratchet_rule": "Report development-process evidence first. Baseline gaps before introducing hard gates. Require evidence for new major Catalyst project work before blocking legacy repositories."
   },
   "repositories": [
     {
+      "full_name": "dlworrell/Catylist",
+      "role": "program-umbrella-and-managing-organization",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
+      "notes": "Catalyst/Catylist is the program umbrella and managing organization."
+    },
+    {
+      "full_name": "dlworrell/AES",
+      "role": "engineering-standards-repository",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "standards",
+        "docs"
+      ],
+      "notes": "AES is the engineering standards repository for Catalyst."
+    },
+    {
       "full_name": "dlworrell/AEMS",
-      "role": "enforcement-orchestrator",
+      "role": "project-management-and-enforcement-orchestrator",
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
       "documentation_paths": [
         "docs/engineering",
-        "docs/engineering/reports"
+        "docs/engineering/reports",
+        "config",
+        "scripts"
       ],
-      "notes": "Implements adoption reporting and enforcement checks."
+      "notes": "AEMS manages projects and enforcement/reporting for everything under Catalyst."
     },
     {
-      "full_name": "dlworrell/P0",
-      "role": "bootstrap-repository",
+      "full_name": "dlworrell/atarix",
+      "role": "operating-system-for-target-hardware",
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
-      "documentation_authority": "transitional",
-      "documentation_repository": "dlworrell/atarix",
+      "documentation_authority": "local",
       "documentation_paths": [
         "docs/architecture",
         "docs/specs",
         "docs/adr",
-        "docs/engineering"
+        "docs/engineering",
+        "docs"
       ],
-      "migration_status": "centralized-in-atarix-pending-split",
-      "notes": "Bootstrapping repository for project governance and early system formation."
+      "local_profile_path": "docs/engineering/ATARIX-DEV-001-development-principles.md",
+      "notes": "Atarix is the operating system for the hardware being built. Hardware-reference material inside Atarix remains local to Atarix when it supports the OS and system architecture."
+    },
+    {
+      "full_name": "dlworrell/engineering-docs-toolkit",
+      "role": "engineering-document-toolkit",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
+      "notes": "EDT is the engineering document toolkit."
     },
     {
       "full_name": "dlworrell/repo_templates",
-      "role": "template-source",
+      "role": "repository-standard-template-source",
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
       "documentation_paths": [
         "shared/docs",
-        "shared/config"
-      ],
-      "notes": "Provides reusable scaffolding for future repositories."
-    },
-    {
-      "full_name": "dlworrell/Catylist",
-      "role": "ecosystem-governance",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "profile_required": true,
-      "documentation_authority": "transitional",
-      "documentation_repository": "dlworrell/atarix",
-      "documentation_paths": [
-        "docs/architecture",
-        "docs/specs",
-        "docs/adr",
-        "docs/engineering"
-      ],
-      "migration_status": "centralized-in-atarix-pending-split",
-      "notes": "Catalyst/Catylist governance and specification work."
-    },
-    {
-      "full_name": "dlworrell/65x02",
-      "role": "processor-and-tooling-research",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "profile_required": true,
-      "documentation_authority": "delegated",
-      "documentation_repository": "dlworrell/atarix",
-      "documentation_paths": [
-        "docs/architecture",
-        "docs/specs",
-        "docs/adr",
-        "docs/engineering",
-        "docs/cpu-test-suite-integration-v1.md",
-        "tests/cpu/README.md"
-      ],
-      "migration_status": "atarix-local-do-not-migrate",
-      "notes": "65x02 material is ATARIX-local support and integration documentation unless later reclassified."
-    },
-    {
-      "full_name": "dlworrell/atarix",
-      "role": "system-project",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "profile_required": true,
-      "documentation_authority": "local",
-      "documentation_paths": [
-        "docs/architecture",
-        "docs/specs",
-        "docs/adr",
-        "docs/engineering"
-      ],
-      "local_profile_path": "docs/engineering/ATARIX-DEV-001-development-principles.md",
-      "notes": "Primary Atarix system repository; currently holds much of the centralized project documentation and has an ATARIX-specific local profile."
-    },
-    {
-      "full_name": "dlworrell/BB816-MATX-PCIE",
-      "role": "hardware-platform",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "profile_required": true,
-      "documentation_authority": "transitional",
-      "documentation_repository": "dlworrell/atarix",
-      "documentation_paths": [
-        "docs/architecture",
-        "docs/specs",
-        "docs/adr",
-        "docs/engineering"
-      ],
-      "migration_status": "centralized-in-atarix-pending-split",
-      "notes": "Hardware repository; authoritative docs are currently centralized in ATARIX until ownership is split."
-    },
-    {
-      "full_name": "dlworrell/code-noodling",
-      "role": "experimental-native-code",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "profile_required": false,
-      "documentation_authority": "local",
-      "documentation_paths": [
-        "README.md",
-        "docs"
-      ],
-      "notes": "Experimental work should report evidence but should not be blocked before a local project profile is created."
-    },
-    {
-      "full_name": "dlworrell/engineering-docs-toolkit",
-      "role": "documentation-tooling",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "profile_required": true,
-      "documentation_authority": "local",
-      "documentation_paths": [
-        "docs",
+        "shared/config",
         "README.md"
       ],
-      "notes": "Documentation tooling should model documentation-first project discipline."
+      "notes": "repo_templates is the repo standard that Catalyst repositories default to or start with."
     },
     {
       "full_name": "dlworrell/herkules-1934-english",
-      "role": "documentation-and-build-book",
+      "role": "edt-validation-project",
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": false,
@@ -165,37 +117,33 @@
         "README.md",
         "docs"
       ],
-      "notes": "Documentation repository; report development-process evidence without overfitting hardware/software gates."
+      "notes": "Herkules 1934 English is the test project for EDT output and expectations."
     },
     {
-      "full_name": "dlworrell/JAG",
-      "role": "application-project",
+      "full_name": "dlworrell/code-noodling",
+      "role": "experimental-and-test-repository",
       "ownership": "project-owned",
       "expected_profile": true,
-      "profile_required": true,
-      "documentation_authority": "transitional",
-      "documentation_repository": "dlworrell/atarix",
-      "documentation_paths": [
-        "docs/architecture",
-        "docs/specs",
-        "docs/adr",
-        "docs/engineering"
-      ],
-      "migration_status": "centralized-in-atarix-pending-split",
-      "notes": "Application repository; authoritative docs may be centralized until project-local specs are split out."
-    },
-    {
-      "full_name": "dlworrell/Just-a-Geek-LLC",
-      "role": "organization-governance",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "profile_required": true,
+      "profile_required": false,
       "documentation_authority": "local",
       "documentation_paths": [
         "README.md",
         "docs"
       ],
-      "notes": "Organization governance should inherit ecosystem check-in and documentation discipline."
+      "notes": "code-noodling is an experimentation and testing repository."
+    },
+    {
+      "full_name": "dlworrell/Just-a-Geek-LLC",
+      "role": "organization-administrative-reference",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": false,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
+      "notes": "Organization-administrative repository. It is tracked, but not part of the technical hardware/OS dependency tree."
     },
     {
       "full_name": "dlworrell/Rocket_demo",
@@ -211,55 +159,58 @@
       "notes": "Demo repository; use ratcheting rather than noisy hard gates."
     },
     {
-      "full_name": "dlworrell/ulx3s",
-      "role": "fpga-platform",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "profile_required": true,
-      "documentation_authority": "delegated",
-      "documentation_repository": "dlworrell/atarix",
-      "documentation_paths": [
-        "docs/ulx3s-backplane-controller.md",
-        "docs/adr/ADR-0001-ulx3s-selection.md",
-        "docs/fpga-fabric.md",
-        "docs/hardware.md"
-      ],
-      "migration_status": "atarix-local-do-not-migrate",
-      "notes": "ULX3S material is ATARIX-local support and integration documentation unless later reclassified."
-    },
-    {
-      "full_name": "dlworrell/Vega816",
-      "role": "system-or-hardware-project",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "profile_required": true,
-      "documentation_authority": "delegated",
-      "documentation_repository": "dlworrell/atarix",
-      "documentation_paths": [
-        "docs/vega816-analysis.md",
-        "docs/design-rationale-history-v1.md",
-        "docs/cpu-card-architecture-v1.md"
-      ],
-      "migration_status": "atarix-local-do-not-migrate",
-      "notes": "Vega816 material is ATARIX-local lineage, rationale, and integration documentation unless later reclassified."
-    },
-    {
       "full_name": "dlworrell/cglm",
-      "role": "third-party-c-library",
-      "ownership": "third-party-mirror-or-fork",
+      "role": "external-reference-c-library",
+      "ownership": "external-reference",
       "expected_profile": false,
       "profile_required": false,
       "documentation_authority": "external",
-      "notes": "Do not rewrite upstream policy. Track local patches separately."
+      "notes": "External/reference repository used for ideas or implementation reference. Do not rewrite to satisfy Catalyst policy."
     },
     {
       "full_name": "dlworrell/CLK",
-      "role": "third-party-emulator",
-      "ownership": "third-party-mirror-or-fork",
+      "role": "external-reference-emulator",
+      "ownership": "external-reference",
       "expected_profile": false,
       "profile_required": false,
       "documentation_authority": "external",
-      "notes": "Do not rewrite upstream policy. Track local patches separately."
+      "notes": "External/reference repository used for ideas or implementation reference. Do not rewrite to satisfy Catalyst policy."
+    },
+    {
+      "full_name": "dlworrell/65x02",
+      "role": "external-reference-processor-and-tooling",
+      "ownership": "external-reference",
+      "expected_profile": false,
+      "profile_required": false,
+      "documentation_authority": "external",
+      "notes": "External/reference repository used by Atarix for ideas. It is not governed as a Catalyst project repository."
+    },
+    {
+      "full_name": "dlworrell/BB816-MATX-PCIE",
+      "role": "external-reference-hardware-platform",
+      "ownership": "external-reference",
+      "expected_profile": false,
+      "profile_required": false,
+      "documentation_authority": "external",
+      "notes": "External/reference repository used by Atarix for ideas. It is not governed as a Catalyst project repository."
+    },
+    {
+      "full_name": "dlworrell/ulx3s",
+      "role": "external-reference-fpga-platform",
+      "ownership": "external-reference",
+      "expected_profile": false,
+      "profile_required": false,
+      "documentation_authority": "external",
+      "notes": "External/reference repository used by Atarix for ideas. It is not governed as a Catalyst project repository."
+    },
+    {
+      "full_name": "dlworrell/Vega816",
+      "role": "external-reference-system-or-hardware-project",
+      "ownership": "external-reference",
+      "expected_profile": false,
+      "profile_required": false,
+      "documentation_authority": "external",
+      "notes": "External/reference repository used by Atarix for ideas. It is not governed as a Catalyst project repository."
     }
   ]
 }
