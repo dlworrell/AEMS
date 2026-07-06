@@ -40,7 +40,8 @@ It reports:
 - whether operational sanitizer signals exist;
 - whether operational fuzzing signals exist;
 - whether explicit waiver-log files exist;
-- whether banned C/C++ APIs appear in project-owned source files.
+- whether banned C/C++ APIs appear in project-owned source files;
+- whether review-required native primitives appear when requested.
 
 ## Local Scanner Use
 
@@ -82,6 +83,7 @@ For each manifest entry, it records:
 - secure profile status;
 - waiver log status;
 - banned finding count;
+- review-required finding count;
 - minimum adoption gate result.
 
 By default, third-party mirror/fork repositories are listed but not scanned. Use `--include-third-party` when third-party inventory evidence is needed.
@@ -119,7 +121,7 @@ Manual dispatch also supports an optional ecosystem scan:
 
 Workflow reports are uploaded before strict gate enforcement so that failed strict runs still leave reviewable JSON and Markdown artifacts.
 
-## Dangerous Primitive Review
+## Review-Required Primitive Review
 
 By default, the scanner reports only APIs banned by AES-SEC-001.
 
@@ -129,7 +131,16 @@ To also report dangerous-but-sometimes-necessary primitives such as `memcpy`, `m
 python3 scripts/aes_sec_001_scan.py . --include-dangerous-primitives --format markdown
 ```
 
-Those results are review-required findings, not automatic failures unless a local repository profile elevates them.
+The aggregate workflow can run the same review mode through manual dispatch by setting:
+
+```text
+include_dangerous_primitives=true
+strict=false
+ecosystem_scan=true
+include_third_party=false
+```
+
+Those results are review-required findings, not automatic failures unless a local repository profile elevates them. The aggregate Markdown report includes both a per-repository review finding count and a detailed review-required findings table.
 
 ## Operational Signal Rules
 
@@ -180,12 +191,13 @@ This is deliberately weaker than final compliance. It establishes a non-noisy fi
 
 AEMS still needs these follow-up pieces:
 
-- add waiver logs to every project-owned repository listed in the manifest;
+- preserve the passing aggregate baseline as a durable project artifact;
 - report adoption status back into each repository;
 - CI workflow templates for native-code repositories;
 - CodeQL or equivalent static-analysis workflow templates;
 - sanitizer build presets for CMake, Make, and Meson projects;
 - fuzz-harness discovery and smoke-test execution;
+- review-required primitive classification by wrapper, invariant, or planned replacement;
 - banned API detection that understands comments, generated code, vendored code, and local waiver markers more precisely.
 
 ## Engineering Rule
