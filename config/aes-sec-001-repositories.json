@@ -1,0 +1,132 @@
+{
+  "standard": "AES-SEC-001",
+  "standard_repository": "dlworrell/AES",
+  "standard_path": "standards/AES-SEC-001-secure-c-cpp-coding-rules.md",
+  "generated_by": "AEMS",
+  "policy": {
+    "default_required_profile": "docs/engineering/SECURE-C-CXX.md",
+    "third_party_policy": "Do not rewrite upstream policy in mirrored or vendored repositories. Track local patch policy separately.",
+    "ratchet_rule": "Existing violations may be baselined. New project-owned violations should block merge unless a waiver is recorded."
+  },
+  "repositories": [
+    {
+      "full_name": "dlworrell/AEMS",
+      "role": "enforcement-orchestrator",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Implements adoption reporting and enforcement checks."
+    },
+    {
+      "full_name": "dlworrell/P0",
+      "role": "bootstrap-repository",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Bootstrapping repository for project governance and early system formation."
+    },
+    {
+      "full_name": "dlworrell/repo_templates",
+      "role": "template-source",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Provides reusable scaffolding for future repositories."
+    },
+    {
+      "full_name": "dlworrell/Catylist",
+      "role": "ecosystem-governance",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Catalyst/Catylist governance and specification work."
+    },
+    {
+      "full_name": "dlworrell/65x02",
+      "role": "processor-and-tooling-research",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Native-code and firmware risk likely as the project matures."
+    },
+    {
+      "full_name": "dlworrell/atarix",
+      "role": "system-project",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Primary Atarix system repository."
+    },
+    {
+      "full_name": "dlworrell/BB816-MATX-PCIE",
+      "role": "hardware-platform",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Hardware repository; host tooling and firmware should inherit AES-SEC-001."
+    },
+    {
+      "full_name": "dlworrell/code-noodling",
+      "role": "experimental-native-code",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Experimental C/C++/CUDA/native-code work should be scanned but may use ratcheting."
+    },
+    {
+      "full_name": "dlworrell/engineering-docs-toolkit",
+      "role": "documentation-tooling",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Documentation tooling may grow native helpers later."
+    },
+    {
+      "full_name": "dlworrell/herkules-1934-english",
+      "role": "documentation-and-build-book",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Documentation repository; future build tooling should inherit AES-SEC-001."
+    },
+    {
+      "full_name": "dlworrell/JAG",
+      "role": "application-project",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Application repository; native components should inherit AES-SEC-001."
+    },
+    {
+      "full_name": "dlworrell/Just-a-Geek-LLC",
+      "role": "organization-governance",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Organization governance; native tooling should still inherit AES-SEC-001."
+    },
+    {
+      "full_name": "dlworrell/Rocket_demo",
+      "role": "demo-project",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Demo repository; use ratcheting rather than noisy hard gates."
+    },
+    {
+      "full_name": "dlworrell/ulx3s",
+      "role": "fpga-platform",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "FPGA repository; host tooling and firmware should inherit AES-SEC-001."
+    },
+    {
+      "full_name": "dlworrell/Vega816",
+      "role": "system-or-hardware-project",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Likely native/firmware/hardware work; requires adoption tracking."
+    },
+    {
+      "full_name": "dlworrell/cglm",
+      "role": "third-party-c-library",
+      "ownership": "third-party-mirror-or-fork",
+      "expected_profile": false,
+      "notes": "Do not rewrite upstream policy. Track local patches separately."
+    },
+    {
+      "full_name": "dlworrell/CLK",
+      "role": "third-party-emulator",
+      "ownership": "third-party-mirror-or-fork",
+      "expected_profile": false,
+      "notes": "Do not rewrite upstream policy. Track local patches separately."
+    }
+  ]
+}
