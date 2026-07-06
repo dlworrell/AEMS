@@ -1,37 +1,56 @@
 # AES-DEV-001 Documentation Migration Plan
 
-Status: Initial
+Status: Revised
 Owner: AEMS
 Related issue: #7
 
 ## Purpose
 
-This plan moves project documentation from the current ATARIX-centered transitional state into the repositories that own the corresponding work.
+This plan governs documentation ownership for the Catalyst tree.
 
-The goal is repo-local ownership where the documentation truly governs a separate repository, not duplicated documentation and not migration for its own sake.
+The goal is repo-local ownership where the documentation truly governs a Catalyst project repository, not duplicated documentation and not migration for its own sake.
+
+## Catalyst Tree
+
+Catalyst repositories are organized as follows:
+
+- `dlworrell/Catylist`: Catalyst program umbrella and managing organization.
+- `dlworrell/AES`: engineering standards repository.
+- `dlworrell/AEMS`: project management, assessment, reporting, and enforcement for everything under Catalyst.
+- `dlworrell/atarix`: operating system for the hardware being built.
+- `dlworrell/engineering-docs-toolkit`: engineering document toolkit.
+- `dlworrell/repo_templates`: repository standard used as the default/start point for Catalyst repositories.
+- `dlworrell/herkules-1934-english`: EDT validation project.
+- `dlworrell/code-noodling`: experimentation and testing repository.
+
+The following repositories are external/reference repositories used for ideas, lineage, compatibility research, or borrowed implementation patterns. They are not governed as Catalyst project repositories:
+
+- `dlworrell/cglm`
+- `dlworrell/CLK`
+- `dlworrell/65x02`
+- `dlworrell/BB816-MATX-PCIE`
+- `dlworrell/ulx3s`
+- `dlworrell/Vega816`
 
 ## Current State
 
-The first AES-DEV-001 ecosystem baseline established:
+The first AES-DEV-001 ecosystem baseline established that documentation authority is traceable. The manifest has since been corrected so external/reference repositories are no longer treated as project-owned Catalyst repositories.
 
-- all repositories declare documentation authority;
-- all repositories have traceable documentation authority;
-- some project-owned repositories still point to `dlworrell/atarix` as documentation authority;
-- evidence gaps are visible but not yet hard failures.
-
-The transitional model is acceptable for inventory. It must now be refined so ATARIX-local material is not accidentally moved into supporting repositories.
+The important correction is that Atarix may contain reference material about external repositories when that material supports Atarix design. That material is Atarix-local unless explicitly reclassified.
 
 ## Desired State
 
-Each project-owned repository should eventually contain its own authoritative development, specification, and ADR material when that material primarily governs that repository.
+Each Catalyst project repository should contain its own authoritative development, specification, and ADR material when that material primarily governs that repository.
 
 Shared ecosystem standards remain in `dlworrell/AES`.
 
 Shared templates remain in `dlworrell/repo_templates`.
 
-Cross-project orchestration and enforcement material remains in `dlworrell/AEMS`.
+Cross-project orchestration, management, reporting, and enforcement material remains in `dlworrell/AEMS`.
 
-Project-specific architecture, specifications, ADRs, and implementation notes should move to the project repository they govern only when ownership is clear.
+Atarix system, OS, hardware-support, board-reference, lineage, and integration material remains in `dlworrell/atarix` when it governs Atarix.
+
+External/reference repositories are not migration targets.
 
 ## Migration Rules
 
@@ -40,9 +59,9 @@ Project-specific architecture, specifications, ADRs, and implementation notes sh
 3. Leave a forwarding note or index entry in the source repository when needed.
 4. Do not copy stale material merely to satisfy a scanner.
 5. Do not split documents before ownership is understood.
-6. Do not rewrite third-party mirrors/forks.
+6. Do not rewrite external/reference repositories.
 7. Prefer clean ownership over convenience.
-8. Do not move ATARIX-local support or lineage material merely because it mentions another repository name.
+8. Do not move Atarix-local support, reference, lineage, or integration material merely because it mentions another repository name.
 
 ## Provenance Requirement
 
@@ -65,20 +84,9 @@ Reason: AES-DEV-001 repository-local documentation ownership
 
 ## Candidate Target Repositories
 
-### `dlworrell/P0`
-
-May own bootstrap and foundation material when that material governs P0 specifically.
-
-Potential destination areas:
-
-- `docs/architecture/`
-- `docs/specs/`
-- `docs/adr/`
-- `docs/engineering/`
-
 ### `dlworrell/Catylist`
 
-May own ecosystem governance and Catalyst/Catylist specification material when that material governs Catylist specifically.
+Move material here only when it governs the Catalyst program umbrella or managing organization.
 
 Potential destination areas:
 
@@ -87,108 +95,116 @@ Potential destination areas:
 - `docs/adr/`
 - `docs/engineering/`
 
-### `dlworrell/BB816-MATX-PCIE`
+### `dlworrell/AES`
 
-May own BB816 motherboard and PCIe hardware-platform material if that material is not ATARIX-local system architecture.
-
-Potential destination areas:
-
-- `docs/architecture/`
-- `docs/specs/`
-- `docs/adr/`
-- `docs/hardware/`
-
-### `dlworrell/JAG`
-
-May own application-specific behavior, automation, architecture, and product documentation.
+Move material here only when it is an ecosystem-wide engineering standard or reusable engineering doctrine.
 
 Potential destination areas:
 
-- `docs/architecture/`
-- `docs/specs/`
-- `docs/adr/`
+- `standards/`
+- `docs/`
+
+### `dlworrell/AEMS`
+
+Move material here only when it governs project management, assessment, reporting, enforcement, scanners, manifests, or CI.
+
+Potential destination areas:
+
 - `docs/engineering/`
+- `docs/engineering/reports/`
+- `config/`
+- `scripts/`
+
+### `dlworrell/atarix`
+
+Keep material here when it governs the Atarix operating system, target hardware integration, OS-level architecture, reference boards used by Atarix, lineage, or system rationale.
+
+### `dlworrell/engineering-docs-toolkit`
+
+Move material here only when it governs EDT behavior, formats, commands, generated output, validation strategy, or toolkit architecture.
+
+### `dlworrell/repo_templates`
+
+Move material here only when it governs repository layout, default files, shared templates, default policies, or Catalyst repo bootstrap behavior.
+
+### `dlworrell/herkules-1934-english`
+
+Move material here only when it governs the Herkules EDT validation project or its expected generated deliverables.
+
+### `dlworrell/code-noodling`
+
+Move material here only when it governs experimental code, test harnesses, exploratory algorithms, or temporary engineering investigations.
 
 ## Explicit Non-Migration Targets
 
-Do not migrate the following categories merely because they mention standalone repositories or boards. These are ATARIX-local support, reference, lineage, or integration material unless a later decision says otherwise:
+Do not migrate documentation into these repositories as part of Catalyst governance:
 
-- ULX3S material used by ATARIX;
-- Vega816 material used by ATARIX;
-- 65x02 processor/tooling material used by ATARIX.
+- `dlworrell/cglm`
+- `dlworrell/CLK`
+- `dlworrell/65x02`
+- `dlworrell/BB816-MATX-PCIE`
+- `dlworrell/ulx3s`
+- `dlworrell/Vega816`
 
-For AES-DEV-001 reporting, these should be treated as delegated ATARIX-local documentation, not as pending migration debt.
+These repositories are external/reference repositories. They are used to borrow ideas from and should not be rewritten to satisfy Catalyst policy.
 
-## Material That Should Stay in ATARIX
+## Material That Should Stay in Atarix
 
-Material should remain in `dlworrell/atarix` when it governs the ATARIX machine as a whole or ATARIX-local support/integration work, including:
+Material should remain in `dlworrell/atarix` when it governs the Atarix machine as a whole or Atarix-local support/integration work, including:
 
-- ATARIX system architecture;
-- ATARIX discovery format;
-- ATARIX mailbox protocol;
-- ATARIX DMA model;
-- ATARIX fabric controller;
-- ATARIX supervisor model;
-- ATARIX ring and capability model;
-- ATARIX-specific local profile material;
-- ULX3S material used as part of ATARIX design;
-- Vega816 analysis used as ATARIX lineage or rationale;
-- 65x02 CPU/tooling material used by ATARIX.
-
-## Material That Should Probably Move to AES
-
-Material should move to `dlworrell/AES` when it is an ecosystem-wide engineering standard, including:
-
-- development-process standards;
-- secure coding standards;
-- governance rules that apply across repositories;
-- reusable review checklists;
-- non-project-specific engineering doctrine.
-
-## Material That Should Probably Move to AEMS
-
-Material should move to `dlworrell/AEMS` when it governs automation, reporting, enforcement, scanning, CI, or repository assessment.
+- Atarix system architecture;
+- Atarix discovery format;
+- Atarix mailbox protocol;
+- Atarix DMA model;
+- Atarix fabric controller;
+- Atarix supervisor model;
+- Atarix ring and capability model;
+- Atarix-specific local profile material;
+- ULX3S material used as part of Atarix design;
+- Vega816 analysis used as Atarix lineage or rationale;
+- 65x02 CPU/tooling material used by Atarix;
+- BB816-MATX-PCIE material used as external hardware reference for Atarix.
 
 ## Migration Workflow
 
 For each migration:
 
-1. Identify the source document in `dlworrell/atarix`.
-2. Decide the owning repository.
-3. Confirm the document is not ATARIX-local support, lineage, or integration material.
-4. Create the destination directory if needed.
-5. Copy or adapt the document into the destination repository.
-6. Add the provenance block.
-7. Add a source-side forwarding note or index entry if needed.
-8. Update `config/aes-dev-001-repositories.json` when ownership changes from transitional or delegated to local.
-9. Re-run the AES-DEV-001 ecosystem scan.
-10. Preserve a migration report after each batch.
+1. Identify the source document.
+2. Decide the owning Catalyst repository.
+3. Confirm the document is not Atarix-local support, reference, lineage, or integration material.
+4. Confirm the destination repository is a Catalyst project repository, not an external/reference repository.
+5. Create the destination directory if needed.
+6. Copy or adapt the document into the destination repository.
+7. Add the provenance block.
+8. Add a source-side forwarding note or index entry if needed.
+9. Update `config/aes-dev-001-repositories.json` when ownership changes.
+10. Re-run the AES-DEV-001 ecosystem scan.
+11. Preserve a migration report after each batch.
 
 ## First Batch Candidate
 
-Do not start with ULX3S, Vega816, or 65x02 material. Those are ATARIX-local unless later reclassified.
+Do not start with external/reference repositories.
 
-Start only with documents whose ownership is obvious and not ATARIX-local. The current likely first candidates are:
+Start with documents whose Catalyst ownership is obvious and not Atarix-local. The current likely first candidates are:
 
-1. BB816-specific documents that govern `dlworrell/BB816-MATX-PCIE` rather than ATARIX as a whole.
-2. JAG-specific documents that govern `dlworrell/JAG` rather than ATARIX as a whole.
-3. Catylist-specific governance documents that clearly belong in `dlworrell/Catylist`.
+1. AEMS-specific enforcement, reporting, scanner, or workflow material.
+2. AES-specific ecosystem standards or engineering doctrine.
+3. EDT-specific toolkit behavior and validation documents.
+4. repo_templates-specific repository-standard material.
+5. Herkules-specific EDT validation material.
+6. JAG-specific material only if JAG remains a Catalyst project repository and the document governs JAG directly.
 
-Do not begin with ambiguous ecosystem governance, lineage, board-support, or CPU-support documents.
+Do not begin with ambiguous ecosystem governance, lineage, board-support, CPU-support, or hardware-reference documents.
 
 ## AEMS Reporting Implication
 
-During migration, AEMS should continue to accept `delegated` or `transitional` documentation authority.
+AEMS should report three distinct classes:
 
-When material is intentionally ATARIX-local and should remain in ATARIX, prefer `delegated` over `transitional` in the manifest.
+- Catalyst project repositories;
+- external/reference repositories;
+- third-party mirrors/forks.
 
-After a repository's documentation has moved, change its manifest entry to:
-
-```json
-"documentation_authority": "local"
-```
-
-and remove migration metadata that no longer applies.
+External/reference repositories should normally be listed but not scanned. They are not policy targets.
 
 ## Ratchet Direction
 
@@ -197,7 +213,7 @@ The next ratchet is not merely local profile adoption.
 The next real ratchet is:
 
 ```text
-Repositories with clear non-ATARIX-local ownership should migrate authoritative project documents from transitional ATARIX authority to local repository authority.
+Catalyst project repositories with clear ownership should keep their authoritative project documents locally; external/reference repositories remain outside Catalyst governance.
 ```
 
-Local profile adoption remains useful, but it is secondary to moving the actual documents into the owning repositories when that ownership is real.
+Local profile adoption remains useful, but it is secondary to correct repository classification and real document ownership.
