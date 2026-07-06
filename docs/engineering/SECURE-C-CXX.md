@@ -3,6 +3,7 @@
 Status: Adopted
 Repository: dlworrell/AEMS
 Inherited Standard: AES-SEC-001
+Waiver Log: docs/engineering/AES-SEC-001-waivers.md
 
 ## Policy
 
@@ -33,6 +34,8 @@ Unsafe operations are allowed only when they are required by the platform, ABI, 
 ## Waivers
 
 A waiver is required for any violation of an AES `MUST` or `BANNED` rule. Waivers must identify the rule, file path, reason, safety invariant, owner, review date, and supporting test evidence.
+
+Approved waivers are recorded in `docs/engineering/AES-SEC-001-waivers.md`. The waiver log must exist even when no waivers are currently approved.
 
 ## Ratchet Rule
 
