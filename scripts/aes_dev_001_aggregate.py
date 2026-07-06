@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
-"""Aggregate AES-DEV-001 development-principles evidence.
-
-This runner reads the AES-DEV-001 repository manifest, checks out project
-repositories, runs the local AES-DEV-001 scanner, and writes one ecosystem report.
-
-The first version reports evidence and gaps. It is intentionally conservative about
-hard gates so that legacy repositories can be baselined before the policy ratchets.
-"""
+"""Aggregate AES-DEV-001 development-principles evidence."""
 
 from __future__ import annotations
 
@@ -22,6 +15,7 @@ from typing import Any
 from aes_dev_001_scan import Dev001Report, scan
 
 DEFAULT_MANIFEST = Path("config/aes-dev-001-repositories.json")
+DOC_AUTH_VALUES = {"local", "delegated", "transitional", "external"}
 
 
 @dataclass
@@ -32,11 +26,23 @@ class RepositoryEntry:
     expected_profile: bool
     profile_required: bool
     local_profile_path: str = ""
+    documentation_authority: str = ""
+    documentation_repository: str = ""
+    documentation_paths: list[str] = field(default_factory=list)
+    migration_status: str = ""
     notes: str = ""
 
     @property
     def project_owned(self) -> bool:
         return self.ownership == "project-owned"
+
+    @property
+    def doc_auth_declared(self) -> bool:
+        return self.documentation_authority in DOC_AUTH_VALUES
+
+    @property
+    def docs_delegated(self) -> bool:
+        return self.documentation_authority in {"delegated", "transitional"}
 
 
 @dataclass
@@ -53,10 +59,10 @@ class AggregateEntry:
 
     @property
     def summary(self) -> dict[str, Any]:
-        if not self.scanned or self.scan is None:
+        if not self.scanned or not isinstance(self.scan, dict):
             return {}
-        summary = self.scan.get("summary", {})
-        return summary if isinstance(summary, dict) else {}
+        value = self.scan.get("summary", {})
+        return value if isinstance(value, dict) else {}
 
     @property
     def local_profile_present(self) -> bool:
@@ -79,34 +85,72 @@ class AggregateEntry:
         return int(self.summary.get("evidence_category_count", 0))
 
     @property
+    def docs_traceable(self) -> bool:
+        repo = self.repository
+        if not repo.doc_auth_declared:
+            return False
+        if repo.documentation_authority == "local":
+            return True
+        if repo.documentation_authority == "external":
+            return not repo.project_owned
+        if repo.docs_delegated:
+            return bool(repo.documentation_repository and repo.documentation_paths)
+        return False
+
+    @property
     def ready_for_ratchet(self) -> bool:
+        if self.repository.docs_delegated and self.docs_traceable:
+            return True
         return bool(self.summary.get("ready_for_ratchet", False))
 
     @property
+    def doc_reference(self) -> str:
+        repo = self.repository
+        if repo.documentation_authority in {"local", "external"}:
+            return repo.documentation_authority
+        if repo.docs_delegated:
+            return f"{repo.documentation_repository}:{', '.join(repo.documentation_paths)}"
+        return "undeclared"
+
+    @property
+    def local_doc_gaps_apply(self) -> bool:
+        return self.repository.documentation_authority not in {"delegated", "transitional", "external"}
+
+    @property
     def gap_names(self) -> list[str]:
+        repo = self.repository
         if self.status == "not-scanned-third-party":
             return []
         if not self.scanned:
             return ["scan-unavailable"]
 
-        gaps = []
-        if self.repository.profile_required and not self.local_profile_present:
+        gaps: list[str] = []
+        if repo.project_owned and not repo.doc_auth_declared:
+            gaps.append("documentation-authority")
+        elif repo.project_owned and not self.docs_traceable:
+            gaps.append("documentation-traceability")
+
+        if repo.profile_required and not self.local_profile_present:
             gaps.append("local-profile")
-        if self.repository.project_owned and self.repository.role not in {"demo-project", "experimental-native-code"}:
+
+        if self.local_doc_gaps_apply and repo.project_owned and repo.role not in {"demo-project", "experimental-native-code"}:
             if not self.specs_present:
                 gaps.append("specs")
-        if self.repository.project_owned and self.repository.role in {
+
+        adr_roles = {
             "system-project",
             "hardware-platform",
             "fpga-platform",
             "system-or-hardware-project",
             "ecosystem-governance",
             "enforcement-orchestrator",
-        }:
-            if not self.adrs_present:
-                gaps.append("adrs")
-        if self.evidence_present_count == 0:
+        }
+        if self.local_doc_gaps_apply and repo.project_owned and repo.role in adr_roles and not self.adrs_present:
+            gaps.append("adrs")
+
+        if self.local_doc_gaps_apply and self.evidence_present_count == 0:
             gaps.append("evidence")
+
         return gaps
 
     @property
@@ -120,6 +164,8 @@ class AggregateEntry:
             "checkout_path": self.checkout_path,
             "scan": self.scan,
             "error": self.error,
+            "documentation_traceable": self.docs_traceable,
+            "documentation_reference": self.doc_reference,
             "gaps": self.gap_names,
             "ready_for_ratchet": self.ready_for_ratchet,
         }
@@ -134,51 +180,62 @@ class AggregateReport:
 
     @property
     def scanned_count(self) -> int:
-        return sum(1 for entry in self.entries if entry.status == "scanned")
-
-    @property
-    def failed_checkout_count(self) -> int:
-        return sum(1 for entry in self.entries if entry.status == "checkout-failed")
-
-    @property
-    def scan_failed_count(self) -> int:
-        return sum(1 for entry in self.entries if entry.status == "scan-failed")
+        return sum(1 for e in self.entries if e.status == "scanned")
 
     @property
     def project_owned_count(self) -> int:
-        return sum(1 for entry in self.entries if entry.repository.project_owned)
+        return sum(1 for e in self.entries if e.repository.project_owned)
 
     @property
     def project_owned_scanned_count(self) -> int:
-        return sum(1 for entry in self.entries if entry.repository.project_owned and entry.status == "scanned")
+        return sum(1 for e in self.entries if e.repository.project_owned and e.status == "scanned")
+
+    @property
+    def failed_checkout_count(self) -> int:
+        return sum(1 for e in self.entries if e.status == "checkout-failed")
+
+    @property
+    def scan_failed_count(self) -> int:
+        return sum(1 for e in self.entries if e.status == "scan-failed")
+
+    @property
+    def doc_auth_declared_count(self) -> int:
+        return sum(1 for e in self.entries if e.repository.doc_auth_declared)
+
+    @property
+    def docs_traceable_count(self) -> int:
+        return sum(1 for e in self.entries if e.docs_traceable)
+
+    @property
+    def local_docs_count(self) -> int:
+        return sum(1 for e in self.entries if e.repository.documentation_authority == "local")
+
+    @property
+    def delegated_docs_count(self) -> int:
+        return sum(1 for e in self.entries if e.repository.documentation_authority == "delegated")
+
+    @property
+    def transitional_docs_count(self) -> int:
+        return sum(1 for e in self.entries if e.repository.documentation_authority == "transitional")
+
+    @property
+    def external_docs_count(self) -> int:
+        return sum(1 for e in self.entries if e.repository.documentation_authority == "external")
 
     @property
     def entries_with_gaps(self) -> list[AggregateEntry]:
-        return [entry for entry in self.entries if entry.has_gaps]
+        return [e for e in self.entries if e.has_gaps]
+
+    def gap_count(self, name: str) -> int:
+        return sum(1 for e in self.entries if name in e.gap_names)
 
     @property
-    def profile_gap_count(self) -> int:
-        return sum(1 for entry in self.entries if "local-profile" in entry.gap_names)
-
-    @property
-    def specs_gap_count(self) -> int:
-        return sum(1 for entry in self.entries if "specs" in entry.gap_names)
-
-    @property
-    def adr_gap_count(self) -> int:
-        return sum(1 for entry in self.entries if "adrs" in entry.gap_names)
-
-    @property
-    def evidence_gap_count(self) -> int:
-        return sum(1 for entry in self.entries if "evidence" in entry.gap_names)
-
-    @property
-    def checkout_or_scan_failures(self) -> list[AggregateEntry]:
-        return [entry for entry in self.entries if entry.status in {"checkout-failed", "scan-failed"}]
+    def failures(self) -> list[AggregateEntry]:
+        return [e for e in self.entries if e.status in {"checkout-failed", "scan-failed"}]
 
     @property
     def passes_reporting_gate(self) -> bool:
-        return not self.checkout_or_scan_failures
+        return not self.failures
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -192,58 +249,34 @@ class AggregateReport:
                 "project_owned_scanned_count": self.project_owned_scanned_count,
                 "checkout_failed_count": self.failed_checkout_count,
                 "scan_failed_count": self.scan_failed_count,
+                "documentation_authority_declared_count": self.doc_auth_declared_count,
+                "documentation_traceable_count": self.docs_traceable_count,
+                "local_documentation_count": self.local_docs_count,
+                "delegated_documentation_count": self.delegated_docs_count,
+                "transitional_documentation_count": self.transitional_docs_count,
+                "external_documentation_count": self.external_docs_count,
                 "entries_with_gap_count": len(self.entries_with_gaps),
-                "profile_gap_count": self.profile_gap_count,
-                "specs_gap_count": self.specs_gap_count,
-                "adr_gap_count": self.adr_gap_count,
-                "evidence_gap_count": self.evidence_gap_count,
+                "documentation_authority_gap_count": self.gap_count("documentation-authority"),
+                "documentation_traceability_gap_count": self.gap_count("documentation-traceability"),
+                "profile_gap_count": self.gap_count("local-profile"),
+                "specs_gap_count": self.gap_count("specs"),
+                "adr_gap_count": self.gap_count("adrs"),
+                "evidence_gap_count": self.gap_count("evidence"),
                 "passes_reporting_gate": self.passes_reporting_gate,
             },
-            "entries": [entry.to_dict() for entry in self.entries],
+            "entries": [e.to_dict() for e in self.entries],
         }
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Run AES-DEV-001 evidence scans for repositories listed in the AEMS manifest."
-    )
-    parser.add_argument(
-        "--manifest",
-        default=str(DEFAULT_MANIFEST),
-        help="Path to the repository manifest. Defaults to config/aes-dev-001-repositories.json.",
-    )
-    parser.add_argument(
-        "--work-dir",
-        default=None,
-        help="Directory where repositories will be cloned. Defaults to a temporary directory.",
-    )
-    parser.add_argument(
-        "--format",
-        choices=("json", "markdown"),
-        default="markdown",
-        help="Report format. Defaults to markdown.",
-    )
-    parser.add_argument(
-        "--include-third-party",
-        action="store_true",
-        help="Scan third-party mirror/fork repositories too. By default they are listed but not scanned.",
-    )
-    parser.add_argument(
-        "--strict",
-        action="store_true",
-        help="Exit non-zero on checkout or scan failure. Does not yet fail on evidence gaps.",
-    )
-    parser.add_argument(
-        "--keep-work-dir",
-        action="store_true",
-        help="Do not delete the temporary work directory after the run.",
-    )
-    parser.add_argument(
-        "--max-hits",
-        type=int,
-        default=5,
-        help="Maximum sample hits per evidence category per repository. Defaults to 5.",
-    )
+    parser = argparse.ArgumentParser(description="Run AES-DEV-001 scans for repositories in the manifest.")
+    parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
+    parser.add_argument("--work-dir", default=None)
+    parser.add_argument("--format", choices=("json", "markdown"), default="markdown")
+    parser.add_argument("--include-third-party", action="store_true")
+    parser.add_argument("--strict", action="store_true")
+    parser.add_argument("--keep-work-dir", action="store_true")
+    parser.add_argument("--max-hits", type=int, default=5)
     return parser.parse_args()
 
 
@@ -257,8 +290,10 @@ def load_manifest(path: Path) -> dict[str, Any]:
 
 
 def repository_entries(manifest: dict[str, Any]) -> list[RepositoryEntry]:
-    entries = []
+    entries: list[RepositoryEntry] = []
     for item in manifest.get("repositories", []):
+        raw_paths = item.get("documentation_paths", [])
+        doc_paths = [str(p) for p in raw_paths] if isinstance(raw_paths, list) else []
         entries.append(
             RepositoryEntry(
                 full_name=str(item["full_name"]),
@@ -267,6 +302,10 @@ def repository_entries(manifest: dict[str, Any]) -> list[RepositoryEntry]:
                 expected_profile=bool(item.get("expected_profile", False)),
                 profile_required=bool(item.get("profile_required", item.get("expected_profile", False))),
                 local_profile_path=str(item.get("local_profile_path", "")),
+                documentation_authority=str(item.get("documentation_authority", "")),
+                documentation_repository=str(item.get("documentation_repository", "")),
+                documentation_paths=doc_paths,
+                migration_status=str(item.get("migration_status", "")),
                 notes=str(item.get("notes", "")),
             )
         )
@@ -285,8 +324,13 @@ def run_git_clone(full_name: str, destination: Path) -> None:
     if destination.exists():
         shutil.rmtree(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    cmd = ["git", "clone", "--depth", "1", "--quiet", clone_url(full_name), str(destination)]
-    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    subprocess.run(
+        ["git", "clone", "--depth", "1", "--quiet", clone_url(full_name), str(destination)],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
 
 
 def scan_entry(entry: RepositoryEntry, work_dir: Path, include_third_party: bool, max_hits: int) -> AggregateEntry:
@@ -297,45 +341,23 @@ def scan_entry(entry: RepositoryEntry, work_dir: Path, include_third_party: bool
     try:
         run_git_clone(entry.full_name, destination)
     except FileNotFoundError:
-        return AggregateEntry(
-            repository=entry,
-            status="checkout-failed",
-            checkout_path=str(destination),
-            error="git executable was not found",
-        )
+        return AggregateEntry(entry, "checkout-failed", str(destination), error="git executable was not found")
     except subprocess.CalledProcessError as exc:
-        stderr = exc.stderr.strip() if exc.stderr else str(exc)
-        return AggregateEntry(
-            repository=entry,
-            status="checkout-failed",
-            checkout_path=str(destination),
-            error=stderr[:1000],
-        )
+        return AggregateEntry(entry, "checkout-failed", str(destination), error=(exc.stderr or str(exc))[:1000])
 
     try:
         scan_report: Dev001Report = scan(destination, entry.full_name, max_hits=max_hits)
-    except Exception as exc:  # noqa: BLE001 - aggregate reporting must continue across repositories.
-        return AggregateEntry(
-            repository=entry,
-            status="scan-failed",
-            checkout_path=str(destination),
-            error=f"{type(exc).__name__}: {exc}",
-        )
+    except Exception as exc:
+        return AggregateEntry(entry, "scan-failed", str(destination), error=f"{type(exc).__name__}: {exc}")
 
-    return AggregateEntry(
-        repository=entry,
-        status="scanned",
-        checkout_path=str(destination),
-        scan=scan_report.to_dict(),
-    )
+    return AggregateEntry(entry, "scanned", str(destination), scan=scan_report.to_dict())
 
 
 def build_report(args: argparse.Namespace) -> AggregateReport:
-    manifest_path = Path(args.manifest)
-    manifest = load_manifest(manifest_path)
+    manifest = load_manifest(Path(args.manifest))
     entries = repository_entries(manifest)
-
     temporary_dir: tempfile.TemporaryDirectory[str] | None = None
+
     if args.work_dir is None:
         temporary_dir = tempfile.TemporaryDirectory(prefix="aes-dev-001-")
         work_dir = Path(temporary_dir.name)
@@ -344,24 +366,25 @@ def build_report(args: argparse.Namespace) -> AggregateReport:
         work_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        aggregate = AggregateReport(
+        report = AggregateReport(
             standard=str(manifest.get("standard", "AES-DEV-001")),
             standard_repository=str(manifest.get("standard_repository", "")),
             standard_path=str(manifest.get("standard_path", "")),
         )
         for entry in entries:
-            aggregate.entries.append(scan_entry(entry, work_dir, args.include_third_party, args.max_hits))
-        return aggregate
+            report.entries.append(scan_entry(entry, work_dir, args.include_third_party, args.max_hits))
+        return report
     finally:
         if temporary_dir is not None and not args.keep_work_dir:
             temporary_dir.cleanup()
 
 
-def format_bool(value: bool) -> str:
+def passfail(value: bool) -> str:
     return "PASS" if value else "FAIL"
 
 
 def format_markdown(report: AggregateReport) -> str:
+    summary = report.to_dict()["summary"]
     lines = [
         "# AES-DEV-001 Ecosystem Evidence Report",
         "",
@@ -374,28 +397,39 @@ def format_markdown(report: AggregateReport) -> str:
         f"- Project-owned repositories scanned: `{report.project_owned_scanned_count}`",
         f"- Checkout failures: `{report.failed_checkout_count}`",
         f"- Scan failures: `{report.scan_failed_count}`",
-        f"- Repositories with evidence gaps: `{len(report.entries_with_gaps)}`",
-        f"- Local profile gaps: `{report.profile_gap_count}`",
-        f"- Specification gaps: `{report.specs_gap_count}`",
-        f"- ADR gaps: `{report.adr_gap_count}`",
-        f"- Evidence gaps: `{report.evidence_gap_count}`",
-        f"- Reporting gate: `{format_bool(report.passes_reporting_gate)}`",
+        f"- Documentation authority declared: `{summary['documentation_authority_declared_count']}`",
+        f"- Documentation traceable: `{summary['documentation_traceable_count']}`",
+        f"- Local documentation authority: `{summary['local_documentation_count']}`",
+        f"- Delegated documentation authority: `{summary['delegated_documentation_count']}`",
+        f"- Transitional documentation authority: `{summary['transitional_documentation_count']}`",
+        f"- External documentation authority: `{summary['external_documentation_count']}`",
+        f"- Repositories with evidence gaps: `{summary['entries_with_gap_count']}`",
+        f"- Documentation authority gaps: `{summary['documentation_authority_gap_count']}`",
+        f"- Documentation traceability gaps: `{summary['documentation_traceability_gap_count']}`",
+        f"- Local profile gaps: `{summary['profile_gap_count']}`",
+        f"- Specification gaps: `{summary['specs_gap_count']}`",
+        f"- ADR gaps: `{summary['adr_gap_count']}`",
+        f"- Evidence gaps: `{summary['evidence_gap_count']}`",
+        f"- Reporting gate: `{passfail(report.passes_reporting_gate)}`",
         "",
         "## Repository Results",
         "",
-        "| Repository | Role | Ownership | Status | Profile | Specs | ADRs | Evidence | Ratchet | Gaps |",
-        "|---|---|---|---|---:|---:|---:|---:|---:|---|",
+        "| Repository | Role | Ownership | Status | Docs | Doc Reference | Profile | Specs | ADRs | Evidence | Ratchet | Gaps |",
+        "|---|---|---|---|---|---|---:|---:|---:|---:|---:|---|",
     ]
 
     for entry in report.entries:
         evidence = f"{entry.evidence_present_count}/{entry.evidence_category_count}" if entry.scanned else "n/a"
         gaps = ", ".join(entry.gap_names) if entry.gap_names else "none"
+        doc_ref = entry.doc_reference.replace("|", "\\|")
         lines.append(
             "| "
             f"`{entry.repository.full_name}` | "
             f"`{entry.repository.role}` | "
             f"`{entry.repository.ownership}` | "
             f"`{entry.status}` | "
+            f"`{entry.repository.documentation_authority or 'undeclared'}` | "
+            f"`{doc_ref}` | "
             f"`{entry.local_profile_present if entry.scanned else 'n/a'}` | "
             f"`{entry.specs_present if entry.scanned else 'n/a'}` | "
             f"`{entry.adrs_present if entry.scanned else 'n/a'}` | "
@@ -404,11 +438,10 @@ def format_markdown(report: AggregateReport) -> str:
             f"`{gaps}` |"
         )
 
-    if report.checkout_or_scan_failures:
+    if report.failures:
         lines.extend(["", "## Checkout or Scan Failures", ""])
-        for entry in report.checkout_or_scan_failures:
-            reason = entry.error or "unknown failure"
-            lines.append(f"- `{entry.repository.full_name}`: {reason}")
+        for entry in report.failures:
+            lines.append(f"- `{entry.repository.full_name}`: {entry.error or 'unknown failure'}")
     else:
         lines.extend(["", "## Checkout or Scan Failures", "", "None."])
 
@@ -419,18 +452,23 @@ def format_markdown(report: AggregateReport) -> str:
     else:
         lines.extend(["", "## Evidence Gaps", "", "None."])
 
+    delegated = [e for e in report.entries if e.repository.docs_delegated]
+    if delegated:
+        lines.extend(["", "## Delegated or Transitional Documentation", ""])
+        for entry in delegated:
+            suffix = f"; migration: {entry.repository.migration_status}" if entry.repository.migration_status else ""
+            lines.append(f"- `{entry.repository.full_name}`: `{entry.repository.documentation_authority}` -> `{entry.doc_reference}`{suffix}")
+
     return "\n".join(lines)
 
 
 def main() -> int:
     args = parse_args()
     report = build_report(args)
-
     if args.format == "json":
         print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
     else:
         print(format_markdown(report))
-
     if args.strict and not report.passes_reporting_gate:
         return 1
     return 0
