@@ -1,0 +1,150 @@
+{
+  "standard": "AES-DEV-001",
+  "standard_repository": "dlworrell/AES",
+  "standard_path": "standards/AES-DEV-001-development-principles-and-check-in-discipline.md",
+  "generated_by": "AEMS",
+  "policy": {
+    "default_required_profile": "docs/engineering/AES-DEV-001-development-principles.md",
+    "third_party_policy": "Do not rewrite upstream policy in mirrored or vendored repositories. Track local patch policy separately.",
+    "ratchet_rule": "Report development-process evidence first. Baseline gaps before introducing hard gates. Require evidence for new major work before blocking legacy repositories."
+  },
+  "repositories": [
+    {
+      "full_name": "dlworrell/AEMS",
+      "role": "enforcement-orchestrator",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "Implements adoption reporting and enforcement checks."
+    },
+    {
+      "full_name": "dlworrell/P0",
+      "role": "bootstrap-repository",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "Bootstrapping repository for project governance and early system formation."
+    },
+    {
+      "full_name": "dlworrell/repo_templates",
+      "role": "template-source",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "Provides reusable scaffolding for future repositories."
+    },
+    {
+      "full_name": "dlworrell/Catylist",
+      "role": "ecosystem-governance",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "Catalyst/Catylist governance and specification work."
+    },
+    {
+      "full_name": "dlworrell/65x02",
+      "role": "processor-and-tooling-research",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "Processor and tooling research should follow documentation-first and check-in discipline."
+    },
+    {
+      "full_name": "dlworrell/atarix",
+      "role": "system-project",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "local_profile_path": "docs/engineering/ATARIX-DEV-001-development-principles.md",
+      "notes": "Primary Atarix system repository; has an ATARIX-specific local profile."
+    },
+    {
+      "full_name": "dlworrell/BB816-MATX-PCIE",
+      "role": "hardware-platform",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "Hardware repository; requires specifications, versioned interfaces, and ADR coverage as the design matures."
+    },
+    {
+      "full_name": "dlworrell/code-noodling",
+      "role": "experimental-native-code",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": false,
+      "notes": "Experimental work should report evidence but should not be blocked before a local project profile is created."
+    },
+    {
+      "full_name": "dlworrell/engineering-docs-toolkit",
+      "role": "documentation-tooling",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "Documentation tooling should model documentation-first project discipline."
+    },
+    {
+      "full_name": "dlworrell/herkules-1934-english",
+      "role": "documentation-and-build-book",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": false,
+      "notes": "Documentation repository; report development-process evidence without overfitting hardware/software gates."
+    },
+    {
+      "full_name": "dlworrell/JAG",
+      "role": "application-project",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "Application repository; externally visible behavior and automation should be documented."
+    },
+    {
+      "full_name": "dlworrell/Just-a-Geek-LLC",
+      "role": "organization-governance",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "Organization governance should inherit ecosystem check-in and documentation discipline."
+    },
+    {
+      "full_name": "dlworrell/Rocket_demo",
+      "role": "demo-project",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": false,
+      "notes": "Demo repository; use ratcheting rather than noisy hard gates."
+    },
+    {
+      "full_name": "dlworrell/ulx3s",
+      "role": "fpga-platform",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "FPGA repository; hardware interfaces and build flows should have specifications and ADRs as the design matures."
+    },
+    {
+      "full_name": "dlworrell/Vega816",
+      "role": "system-or-hardware-project",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "notes": "System/hardware repository; requires development-process evidence and architecture traceability."
+    },
+    {
+      "full_name": "dlworrell/cglm",
+      "role": "third-party-c-library",
+      "ownership": "third-party-mirror-or-fork",
+      "expected_profile": false,
+      "profile_required": false,
+      "notes": "Do not rewrite upstream policy. Track local patches separately."
+    },
+    {
+      "full_name": "dlworrell/CLK",
+      "role": "third-party-emulator",
+      "ownership": "third-party-mirror-or-fork",
+      "expected_profile": false,
+      "profile_required": false,
+      "notes": "Do not rewrite upstream policy. Track local patches separately."
+    }
+  ]
+}
