@@ -82,16 +82,18 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
-      "documentation_authority": "transitional",
+      "documentation_authority": "delegated",
       "documentation_repository": "dlworrell/atarix",
       "documentation_paths": [
         "docs/architecture",
         "docs/specs",
         "docs/adr",
-        "docs/engineering"
+        "docs/engineering",
+        "docs/cpu-test-suite-integration-v1.md",
+        "tests/cpu/README.md"
       ],
-      "migration_status": "centralized-in-atarix-pending-split",
-      "notes": "Processor and tooling research should follow documentation-first and check-in discipline."
+      "migration_status": "atarix-local-do-not-migrate",
+      "notes": "65x02 material is ATARIX-local support and integration documentation unless later reclassified."
     },
     {
       "full_name": "dlworrell/atarix",
@@ -214,16 +216,16 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
-      "documentation_authority": "transitional",
+      "documentation_authority": "delegated",
       "documentation_repository": "dlworrell/atarix",
       "documentation_paths": [
-        "docs/architecture",
-        "docs/specs",
-        "docs/adr",
-        "docs/engineering"
+        "docs/ulx3s-backplane-controller.md",
+        "docs/adr/ADR-0001-ulx3s-selection.md",
+        "docs/fpga-fabric.md",
+        "docs/hardware.md"
       ],
-      "migration_status": "centralized-in-atarix-pending-split",
-      "notes": "FPGA repository; authoritative docs are currently centralized in ATARIX until ownership is split."
+      "migration_status": "atarix-local-do-not-migrate",
+      "notes": "ULX3S material is ATARIX-local support and integration documentation unless later reclassified."
     },
     {
       "full_name": "dlworrell/Vega816",
@@ -231,16 +233,15 @@
       "ownership": "project-owned",
       "expected_profile": true,
       "profile_required": true,
-      "documentation_authority": "transitional",
+      "documentation_authority": "delegated",
       "documentation_repository": "dlworrell/atarix",
       "documentation_paths": [
-        "docs/architecture",
-        "docs/specs",
-        "docs/adr",
-        "docs/engineering"
+        "docs/vega816-analysis.md",
+        "docs/design-rationale-history-v1.md",
+        "docs/cpu-card-architecture-v1.md"
       ],
-      "migration_status": "centralized-in-atarix-pending-split",
-      "notes": "System/hardware repository; authoritative docs are currently centralized in ATARIX until ownership is split."
+      "migration_status": "atarix-local-do-not-migrate",
+      "notes": "Vega816 material is ATARIX-local lineage, rationale, and integration documentation unless later reclassified."
     },
     {
       "full_name": "dlworrell/cglm",
