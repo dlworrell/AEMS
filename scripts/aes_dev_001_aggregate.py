@@ -53,6 +53,11 @@ class RepositoryEntry:
     def docs_delegated(self) -> bool:
         return self.documentation_authority in {"delegated", "transitional"}
 
+    def has_doc_path(self, *paths: str) -> bool:
+        declared = {path.strip("/") for path in self.documentation_paths}
+        wanted = {path.strip("/") for path in paths}
+        return bool(declared & wanted)
+
 
 @dataclass
 class AggregateEntry:
@@ -128,6 +133,81 @@ class AggregateEntry:
         return self.repository.documentation_authority not in {"delegated", "transitional", "external"}
 
     @property
+    def specs_required(self) -> bool:
+        if not self.local_doc_gaps_apply or not self.repository.project_owned:
+            return False
+        no_spec_roles = {
+            "demo-project",
+            "experimental-and-test-repository",
+            "edt-validation-project",
+            "organization-administrative-reference",
+        }
+        return self.repository.role not in no_spec_roles
+
+    @property
+    def adrs_required(self) -> bool:
+        if not self.local_doc_gaps_apply or not self.repository.project_owned:
+            return False
+        adr_roles = {
+            "program-umbrella-and-managing-organization",
+            "engineering-standards-repository",
+            "project-management-and-enforcement-orchestrator",
+            "operating-system-for-target-hardware",
+            "repository-standard-template-source",
+        }
+        return self.repository.role in adr_roles
+
+    @property
+    def specs_satisfied(self) -> bool:
+        if self.specs_present:
+            return True
+        role = self.repository.role
+        if role == "engineering-standards-repository":
+            return self.repository.has_doc_path("standards")
+        if role == "project-management-and-enforcement-orchestrator":
+            return self.repository.has_doc_path("config", "scripts", "docs/engineering")
+        if role == "repository-standard-template-source":
+            return self.repository.has_doc_path("shared/docs", "shared/config")
+        if role == "organization-administrative-reference":
+            return True
+        return False
+
+    @property
+    def adrs_satisfied(self) -> bool:
+        if self.adrs_present:
+            return True
+        role = self.repository.role
+        if role == "project-management-and-enforcement-orchestrator":
+            return self.repository.has_doc_path("docs/engineering")
+        if role == "repository-standard-template-source":
+            return self.repository.has_doc_path("shared/docs")
+        return False
+
+    @property
+    def spec_status(self) -> str:
+        if not self.scanned:
+            return "n/a"
+        if self.specs_present:
+            return "true"
+        if self.specs_satisfied:
+            return "role"
+        if not self.specs_required:
+            return "n/a"
+        return "false"
+
+    @property
+    def adr_status(self) -> str:
+        if not self.scanned:
+            return "n/a"
+        if self.adrs_present:
+            return "true"
+        if self.adrs_satisfied:
+            return "role"
+        if not self.adrs_required:
+            return "n/a"
+        return "false"
+
+    @property
     def gap_names(self) -> list[str]:
         repo = self.repository
         if self.status in NON_PROJECT_STATUSES:
@@ -144,19 +224,10 @@ class AggregateEntry:
         if repo.project_owned and repo.profile_required and not self.local_profile_present:
             gaps.append("local-profile")
 
-        no_spec_roles = {"demo-project", "experimental-and-test-repository", "edt-validation-project"}
-        if self.local_doc_gaps_apply and repo.project_owned and repo.role not in no_spec_roles:
-            if not self.specs_present:
-                gaps.append("specs")
+        if self.specs_required and not self.specs_satisfied:
+            gaps.append("specs")
 
-        adr_roles = {
-            "program-umbrella-and-managing-organization",
-            "engineering-standards-repository",
-            "project-management-and-enforcement-orchestrator",
-            "operating-system-for-target-hardware",
-            "repository-standard-template-source",
-        }
-        if self.local_doc_gaps_apply and repo.project_owned and repo.role in adr_roles and not self.adrs_present:
+        if self.adrs_required and not self.adrs_satisfied:
             gaps.append("adrs")
 
         if self.local_doc_gaps_apply and self.evidence_present_count == 0:
@@ -177,6 +248,8 @@ class AggregateEntry:
             "error": self.error,
             "documentation_traceable": self.docs_traceable,
             "documentation_reference": self.doc_reference,
+            "specification_status": self.spec_status,
+            "adr_status": self.adr_status,
             "gaps": self.gap_names,
             "ready_for_ratchet": self.ready_for_ratchet,
         }
@@ -463,8 +536,8 @@ def format_markdown(report: AggregateReport) -> str:
             f"`{entry.repository.documentation_authority or 'undeclared'}` | "
             f"`{doc_ref}` | "
             f"`{entry.local_profile_present if entry.scanned else 'n/a'}` | "
-            f"`{entry.specs_present if entry.scanned else 'n/a'}` | "
-            f"`{entry.adrs_present if entry.scanned else 'n/a'}` | "
+            f"`{entry.spec_status}` | "
+            f"`{entry.adr_status}` | "
             f"`{evidence}` | "
             f"`{entry.ready_for_ratchet if entry.scanned else 'n/a'}` | "
             f"`{gaps}` |"
