@@ -87,6 +87,13 @@
       "notes": "Application repository; native components should inherit AES-SEC-001."
     },
     {
+      "full_name": "dlworrell/evo",
+      "role": "evolutionary-optimization-library",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Native C library for reproducible engineering optimization; requires secure coding, static analysis, sanitizers, and future fuzz coverage for external-input handlers."
+    },
+    {
       "full_name": "dlworrell/Just-a-Geek-LLC",
       "role": "organization-governance",
       "ownership": "project-owned",
