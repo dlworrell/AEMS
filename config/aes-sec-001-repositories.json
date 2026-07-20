@@ -122,6 +122,13 @@
       "notes": "Likely native/firmware/hardware work; requires adoption tracking."
     },
     {
+      "full_name": "dlworrell/MayaUSD2017Bridge",
+      "role": "native-cpp-compatibility-bridge",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Maya/OpenUSD bridge with native protocol parsers and plug-in ABI boundaries; requires secure profile, waiver tracking, static analysis, sanitizers, and fuzz coverage."
+    },
+    {
       "full_name": "dlworrell/cglm",
       "role": "third-party-c-library",
       "ownership": "third-party-mirror-or-fork",
