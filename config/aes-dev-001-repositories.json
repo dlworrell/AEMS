@@ -28,7 +28,10 @@
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
-      "documentation_paths": ["README.md", "docs"],
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "Catalyst/Catylist is the program umbrella and managing organization."
     },
     {
@@ -38,7 +41,10 @@
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
-      "documentation_paths": ["standards", "docs"],
+      "documentation_paths": [
+        "standards",
+        "docs"
+      ],
       "notes": "AES is the engineering standards repository for Catalyst."
     },
     {
@@ -48,7 +54,12 @@
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
-      "documentation_paths": ["docs/engineering", "docs/engineering/reports", "config", "scripts"],
+      "documentation_paths": [
+        "docs/engineering",
+        "docs/engineering/reports",
+        "config",
+        "scripts"
+      ],
       "notes": "AEMS manages projects and enforcement/reporting for everything under Catalyst."
     },
     {
@@ -58,7 +69,11 @@
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
-      "documentation_paths": ["README.md", "docs", ".github"],
+      "documentation_paths": [
+        "README.md",
+        "docs",
+        ".github"
+      ],
       "notes": "P0 executes repository preparation and Engineering Ready workflows governed by AES-002."
     },
     {
@@ -68,7 +83,13 @@
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
-      "documentation_paths": ["docs/architecture", "docs/specs", "docs/adr", "docs/engineering", "docs"],
+      "documentation_paths": [
+        "docs/architecture",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering",
+        "docs"
+      ],
       "local_profile_path": "docs/engineering/ATARIX-DEV-001-development-principles.md",
       "notes": "Atarix is the operating system for the hardware being built. Hardware-reference material inside Atarix remains local to Atarix when it supports the OS and system architecture."
     },
@@ -79,7 +100,10 @@
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
-      "documentation_paths": ["README.md", "docs"],
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "EDT is the engineering document toolkit."
     },
     {
@@ -89,7 +113,11 @@
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
-      "documentation_paths": ["shared/docs", "shared/config", "README.md"],
+      "documentation_paths": [
+        "shared/docs",
+        "shared/config",
+        "README.md"
+      ],
       "notes": "repo_templates is the repo standard that Catalyst repositories default to or start with."
     },
     {
@@ -99,7 +127,11 @@
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
-      "documentation_paths": ["README.md", "docs", ".github"],
+      "documentation_paths": [
+        "README.md",
+        "docs",
+        ".github"
+      ],
       "notes": "JAG is a Catalyst application project and must apply AES development and security discipline to code changes."
     },
     {
@@ -109,7 +141,15 @@
       "expected_profile": true,
       "profile_required": true,
       "documentation_authority": "local",
-      "documentation_paths": ["docs", "docs/adr", "docs/engineering", "include", "src", "tests", ".github/workflows"],
+      "documentation_paths": [
+        "docs",
+        "docs/adr",
+        "docs/engineering",
+        "include",
+        "src",
+        "tests",
+        ".github/workflows"
+      ],
       "notes": "EVO is the reusable Catalyst evolutionary optimization library."
     },
     {
@@ -119,7 +159,10 @@
       "expected_profile": true,
       "profile_required": false,
       "documentation_authority": "local",
-      "documentation_paths": ["README.md", "docs"],
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "Herkules 1934 English is the test project for EDT output and expectations."
     },
     {
@@ -129,7 +172,10 @@
       "expected_profile": true,
       "profile_required": false,
       "documentation_authority": "local",
-      "documentation_paths": ["README.md", "docs"],
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "code-noodling is an experimentation and testing repository."
     },
     {
@@ -139,7 +185,10 @@
       "expected_profile": true,
       "profile_required": false,
       "documentation_authority": "local",
-      "documentation_paths": ["README.md", "docs"],
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "Organization-administrative repository. It is tracked, but not part of the technical hardware/OS dependency tree."
     },
     {
@@ -149,8 +198,30 @@
       "expected_profile": true,
       "profile_required": false,
       "documentation_authority": "local",
-      "documentation_paths": ["README.md", "docs"],
+      "documentation_paths": [
+        "README.md",
+        "docs"
+      ],
       "notes": "Demo repository; use ratcheting rather than noisy hard gates."
+    },
+    {
+      "full_name": "dlworrell/MayaUSD2017Bridge",
+      "role": "maya-2017-openusd-compatibility-bridge",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "profile_required": true,
+      "documentation_authority": "local",
+      "documentation_paths": [
+        "README.md",
+        "docs/ARCHITECTURE.md",
+        "docs/specs",
+        "docs/adr",
+        "docs/engineering",
+        "docs/security",
+        "protocol"
+      ],
+      "local_profile_path": "docs/engineering/AES-DEV-001-development-principles.md",
+      "notes": "Project-owned native C++ compatibility bridge. Local adapters and protocols are governed; Pixar OpenUSD, Autodesk MayaUSD, Maya, and RenderMan remain external dependencies."
     },
     {
       "full_name": "dlworrell/cglm",
