@@ -33,15 +33,19 @@ on:
     paths:
       - 'scripts/aes_dev_001_scan.py'
       - 'scripts/aes_dev_001_aggregate.py'
+      - 'scripts/github_checkout.py'
       - 'config/aes-dev-001-repositories.json'
       - 'docs/engineering/AES-DEV-001-enforcement-plan.md'
+      - 'tests/test_ecosystem_checkout.py'
       - '.github/workflows/aes-dev-001-scan.yml'
   pull_request:
     paths:
       - 'scripts/aes_dev_001_scan.py'
       - 'scripts/aes_dev_001_aggregate.py'
+      - 'scripts/github_checkout.py'
       - 'config/aes-dev-001-repositories.json'
       - 'docs/engineering/AES-DEV-001-enforcement-plan.md'
+      - 'tests/test_ecosystem_checkout.py'
       - '.github/workflows/aes-dev-001-scan.yml'
 
 permissions:
@@ -60,6 +64,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+
+      - name: Test ecosystem checkout controls
+        run: python3 -m unittest tests.test_ecosystem_checkout -v
 
       - name: Show scanner help
         run: python3 scripts/aes_dev_001_scan.py --help
@@ -84,7 +91,7 @@ jobs:
   scan-ecosystem:
     name: Ecosystem AES-DEV-001 scan
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecosystem_scan == 'true' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.ecosystem_scan == 'true' }}
 
     steps:
       - name: Check out AEMS
@@ -99,6 +106,8 @@ jobs:
         run: python3 scripts/aes_dev_001_aggregate.py --help
 
       - name: Run ecosystem JSON scan
+        env:
+          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           args=()
           if [ "${{ inputs.include_third_party }}" = "true" ]; then
@@ -107,6 +116,8 @@ jobs:
           python3 scripts/aes_dev_001_aggregate.py --format json "${args[@]}" > aes-dev-001-ecosystem.json
 
       - name: Run ecosystem Markdown scan
+        env:
+          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           args=()
           if [ "${{ inputs.include_third_party }}" = "true" ]; then
@@ -127,9 +138,15 @@ jobs:
 
       - name: Enforce reporting gate
         if: ${{ inputs.strict == 'true' }}
+        env:
+          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           args=()
           if [ "${{ inputs.include_third_party }}" = "true" ]; then
             args+=(--include-third-party)
           fi
-          python3 scripts/aes_dev_001_aggregate.py --strict --format markdown "${args[@]}"
+          python3 scripts/aes_dev_001_aggregate.py \
+            --strict \
+            --require-github-token \
+            --format markdown \
+            "${args[@]}"

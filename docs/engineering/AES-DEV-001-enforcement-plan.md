@@ -1,8 +1,8 @@
 # AES-DEV-001 Enforcement Plan
 
-Status: Initial
+Status: Active
 Owner: AEMS
-Issue: #7
+Issues: #7, #12
 
 ## Purpose
 
@@ -98,6 +98,42 @@ python3 scripts/aes_dev_001_aggregate.py --format markdown
 ```
 
 The initial reporting gate fails only on checkout or scanner failure. Evidence gaps are reported, not hard failures.
+
+### Private Repository Authentication
+
+The aggregate runner accepts an optional token from the environment variable
+named by `--github-token-env`. Its default is:
+
+```text
+AEMS_ECOSYSTEM_TOKEN
+```
+
+The token is encoded into a process-local Git HTTP authorization header. It is
+not embedded in a clone URL, command output, report, or retained artifact. Git
+terminal prompting is disabled so a missing credential fails deterministically.
+
+For a strict trusted run:
+
+```sh
+AEMS_ECOSYSTEM_TOKEN=... \
+  python3 scripts/aes_dev_001_aggregate.py \
+    --strict \
+    --require-github-token \
+    --format markdown
+```
+
+Use a fine-grained token with read-only `Contents` access only to the
+project-owned repositories in the manifest. The workflow reads the
+`AEMS_ECOSYSTEM_TOKEN` Actions secret on trusted `push` and
+`workflow_dispatch` events.
+
+Pull-request jobs intentionally receive no cross-repository token. They still
+run the ecosystem reporting path, but strict ecosystem enforcement remains a
+trusted manual operation. This prevents pull-request code from reading the
+credential or using it to access other private repositories.
+
+The ecosystem job runs automatically for pull requests and pushes. A manual
+dispatch skips it only when `ecosystem_scan=false`.
 
 ## Repository Manifest
 
