@@ -68,6 +68,128 @@ llvm-bolt lookup_engine \
 
 This pipeline is a research candidate, not yet a project standard.
 
+## Host Tooling Versus 65C816 Target Code
+
+BOLT, native compiler PGO, `perf`, and ELF relocation analysis apply to modern
+host tools, emulators, builders, and analysis programs. They do not apply
+directly to the final 65C816 kernel image.
+
+The target equivalent is a measured layout discipline implemented before or
+during linking:
+
+- explicit hot, warm, and cold segments;
+- bank-local placement of common call paths and their data;
+- deliberate use of short calls within a program bank and long calls only
+  across a measured boundary;
+- explicit direct-page ownership and lifetime;
+- explicit stack reservations in bank 0;
+- stable serialized layouts separated from execution structures; and
+- map-file and image analysis retained with benchmark evidence.
+
+No host optimization result may be cited as evidence for target improvement.
+Host and target measurements require separate artifacts, commands, and
+conclusions.
+
+## 65C816 Execution Constraints
+
+The W65C816S presents a 24-bit address space through separate program-bank and
+data-bank state. The program counter remains bank-local; ordinary branches and
+short subroutine calls therefore do not replace deliberate cross-bank
+placement. The data bank affects ordinary data references, while stack,
+direct-page, and interrupt behavior retain bank-0 constraints.
+
+The layout model must account for:
+
+- program-bank boundaries and the cost and correctness of `JSL`/`RTL` or long
+  jump paths;
+- data-bank state at every public entry point and interrupt boundary;
+- direct page residing in bank 0, with ownership explicit for tasks,
+  interrupt handlers, and kernel services;
+- stack and interrupt entry in bank 0;
+- accumulator and index widths controlled by M and X state;
+- callable interfaces that document required processor mode, register widths,
+  data bank, direct page, and clobbers;
+- `MVN`/`MVP` changing the data-bank register as a visible side effect;
+- serialized 24-bit pointers or offsets never being mistaken for a host C
+  pointer; and
+- emulator cycle counts being calibrated against target-hardware observations
+  before they support a final performance claim.
+
+Every assembly module should either establish its required M/X and bank state
+or declare those preconditions in a mechanically checkable interface
+convention. A benchmark that enters with undocumented processor state is not
+reproducible evidence.
+
+## Candidate 65C816 Toolchains
+
+Toolchain selection remains an experiment. AEMS records comparable evidence;
+Atarix owns the final target-toolchain and kernel-layout decision.
+
+| Candidate | Current 65C816 surface | Appropriate evaluation role | Required qualification |
+|---|---|---|---|
+| `ca65` / `ld65` | `ca65` accepts 65816 assembly and `ld65` provides configurable segments and memory areas | Assembly-first reference pipeline and linker-layout experiments | Do not describe the `cc65` C compiler as a native 65C816 C solution without separate evidence; verify emitted modes, bank placement, relocation behavior, map output, and debugger/emulator integration |
+| WDC tools | WDC supplies a 65C816 assembler, linker, librarian, and WDC816 C compiler family | Vendor-reference ABI, object, and C-code-generation comparison | Record exact edition, host support, license, optimization settings, object format, diagnostics, and reproducible installation inputs |
+| `vbcc` 65816 | Current distribution lists a 65816 compiler, assembler, linker, libraries, and simulator/SNES/Apple IIgs surfaces | Retargetable C and assembly comparison | Pin the distribution/source revision, define the Atarix memory model and runtime, and measure generated code rather than inferring quality from target availability |
+| `llvm-mos` | Current Clang documentation exposes `--target=mos` and `-mcpu=mosw65816` with a freestanding C surface | Modern IR-based experimental compiler, diagnostics, and differential-code-generation candidate | Pin the revision; treat the backend and ABI as evolving; prove instruction, relocation, bank, M/X-state, and runtime behavior with focused tests |
+| Calypsi | Current toolchain lists a WDC 65816 target, ISO C99-oriented compiler, debugger, and target support packages | Independent commercial/closed-source comparison and debugger reference | Record version, host constraints, hobby/commercial license boundary, ABI, runtime, reproducibility limits, and whether retained binaries can be rebuilt later |
+| `64tass` and related assemblers | Assembly-only 65xx tools can provide independent encoding and image comparisons | Differential assembly, fixture generation, and minimal bring-up | Pin exact version and syntax mode; do not infer linker, ABI, C, or whole-program optimization support from opcode support |
+
+The comparison must not collapse “accepts 65816 opcodes,” “generates 65816 C,”
+“links a banked kernel image,” and “supports the Atarix ABI” into one claim.
+Each is a separate capability with separate evidence.
+
+## Target Benchmark and Evidence Matrix
+
+Before any layout or toolchain choice becomes architecture, compare at least
+these target workloads:
+
+1. same-bank leaf call and return;
+2. cross-bank call and return;
+3. direct-page versus absolute and long data access;
+4. fixed-size copy within a bank and across banks;
+5. hash lookup with hit, short-collision, miss, and malformed-input paths;
+6. interrupt entry, service, and return under the declared M/X and bank
+   convention;
+7. serialized-record decode into a host-native target structure; and
+8. representative kernel service dispatch.
+
+For every candidate, retain:
+
+- source revision and toolchain archive or immutable provenance;
+- compiler, assembler, linker, librarian, and emulator versions;
+- complete command lines and configuration files;
+- ABI, calling convention, integer model, pointer model, and structure-layout
+  declarations;
+- binary image, symbol/map file, section and bank placement, and digest;
+- static instruction bytes and size;
+- emulator cycles with emulator identity and configuration;
+- target hardware, clock, wait-state, memory, and measurement method;
+- correctness, boundary, and negative test results;
+- differences from the reference implementation; and
+- a conclusion limited to the measured workload.
+
+Evidence should compare correctness first, then code size, cycle count, bank
+crossings, direct-page pressure, stack high-water mark, and build
+reproducibility. A compiler that wins one microbenchmark but cannot express or
+verify the kernel ABI does not win the toolchain decision.
+
+## Architecture Disposition
+
+This AEMS note remains the research registry and evidence contract.
+
+Material should move into Atarix only after a reviewed target decision:
+
+- the selected toolchain, ABI, memory model, and bank convention belong in an
+  Atarix architecture specification or ADR;
+- kernel linker scripts and target benchmarks belong in Atarix;
+- measured evidence belongs with the producing Atarix commit and may be
+  indexed by AEMS; and
+- comparative experiments that have not been adopted remain here or in the
+  repository that ran them.
+
+Moving a conclusion does not require deleting this note. This note preserves
+the alternatives, evidence requirements, and provenance of the decision.
+
 ## Native PGO Alternative
 
 Compiler-native PGO should also be evaluated.
@@ -229,6 +351,22 @@ The optimization path may advance from research to standard only if:
 
 ## Research Conclusion
 
-This optimization path is promising for lookup-heavy AEMS-adjacent tooling, but it must remain evidence-gated.
+This optimization path is promising for lookup-heavy AEMS-adjacent host
+tooling and for bank-aware 65C816 target layout, but those are separate
+experiments and must remain evidence-gated.
 
-The project should first define the data model, serialization boundaries, correctness tests, and benchmark workload. Only then should PGO, LTO, or BOLT be promoted from experiment to standard build procedure.
+The project should first define the data model, serialization boundaries,
+correctness tests, target ABI, processor-state convention, and benchmark
+workload. Only then should host PGO/LTO/BOLT or a target toolchain/layout
+technique be promoted from experiment to an adopted build procedure.
+
+## Primary References
+
+- WDC, [W65C816S data sheet](https://www.westerndesigncenter.com/wdc/documentation/w65c816s.pdf).
+- WDC, [65xx software development tools](https://www.westerndesigncenter.com/wdc/tools.cfm).
+- cc65 project, [ca65 users guide](https://cc65.github.io/doc/ca65.html).
+- cc65 project, [ld65 users guide](https://cc65.github.io/doc/ld65.html).
+- vbcc project, [portable ISO C compiler and 65816 target](https://www.compilers.de/vbcc.html).
+- llvm-mos, [C compiler target documentation](https://llvm-mos.org/wiki/C_compiler).
+- Calypsi, [toolchain targets and licensing](https://www.calypsi.cc/).
+- 64tass project, [cross-assembler distribution](https://sourceforge.net/projects/tass64/).
