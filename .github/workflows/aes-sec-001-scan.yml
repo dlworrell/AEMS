@@ -209,7 +209,7 @@ jobs:
 
       - name: Run ecosystem scan as JSON
         env:
-          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
+          AEMS_ECOSYSTEM_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           EXTRA_ARGS=()
           if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
@@ -229,7 +229,7 @@ jobs:
 
       - name: Run ecosystem scan as Markdown
         env:
-          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
+          AEMS_ECOSYSTEM_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           EXTRA_ARGS=()
           if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
@@ -260,9 +260,9 @@ jobs:
           if-no-files-found: error
 
       - name: Enforce ecosystem strict gate
-        if: ${{ github.event.inputs.strict == 'true' }}
+        if: ${{ (github.event_name != 'workflow_dispatch' || github.event.inputs.strict == 'true') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         env:
-          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
+          AEMS_ECOSYSTEM_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           EXTRA_ARGS=()
           if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then

@@ -107,7 +107,7 @@ jobs:
 
       - name: Run ecosystem JSON scan
         env:
-          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
+          AEMS_ECOSYSTEM_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           args=()
           if [ "${{ inputs.include_third_party }}" = "true" ]; then
@@ -117,7 +117,7 @@ jobs:
 
       - name: Run ecosystem Markdown scan
         env:
-          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
+          AEMS_ECOSYSTEM_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           args=()
           if [ "${{ inputs.include_third_party }}" = "true" ]; then
@@ -137,9 +137,9 @@ jobs:
             aes-dev-001-ecosystem.md
 
       - name: Enforce reporting gate
-        if: ${{ inputs.strict == 'true' }}
+        if: ${{ (github.event_name != 'workflow_dispatch' || inputs.strict == 'true') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         env:
-          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
+          AEMS_ECOSYSTEM_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           args=()
           if [ "${{ inputs.include_third_party }}" = "true" ]; then
