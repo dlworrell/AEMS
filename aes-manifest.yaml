@@ -1,0 +1,58 @@
+manifest_version: 1.0.0
+schema_version: 1
+
+repository:
+  id: AEMS
+  name: AEMS
+  full_name: dlworrell/AEMS
+  owner: dlworrell
+  role: project-management-and-enforcement-orchestrator
+  ownership: project-owned
+  lifecycle: active
+  primary_branch: main
+  issue_tracker: https://github.com/dlworrell/AEMS/issues
+
+documentation:
+  authority: local
+  roots:
+    - docs
+    - research
+    - schemas
+    - examples
+
+governance:
+  authority_repository: dlworrell/Catylist
+  standards_repository: dlworrell/AES
+  dependency_direction:
+    upstream:
+      - dlworrell/Catylist
+      - dlworrell/AES
+    downstream:
+      - governed-repositories
+
+standards:
+  applicable:
+    - AES-002
+    - AES-003
+    - AES-DEV-001
+    - AES-SEC-001
+    - AES-SEC-002
+
+project_zero:
+  state: CERTIFICATION
+  certification:
+    status: candidate
+    evidence: docs/engineering/reports/AEMS-P0-001-certification-candidate.md
+  accepted_deferrals: []
+
+automation:
+  enabled_modules:
+    - inventory
+    - manifest-validation
+    - issue-graph
+
+evidence:
+  output_root: build/aems/project-zero
+  formats:
+    - json
+    - markdown

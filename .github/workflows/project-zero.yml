@@ -1,0 +1,87 @@
+name: Project Zero Evidence
+
+on:
+  pull_request:
+    paths:
+      - "aems/**"
+      - "aes-manifest.yaml"
+      - "docs/architecture/artifact-and-traceability-model.md"
+      - "docs/engineering/reports/AEMS-P0-*.md"
+      - "examples/traceability/**"
+      - "schemas/aems-traceability-v1.schema.json"
+      - "scripts/aems_*.py"
+      - "scripts/validate_traceability.py"
+      - "tests/test_inventory.py"
+      - "tests/test_issue_graph.py"
+      - "tests/test_project_zero.py"
+      - "tests/test_structured.py"
+      - "tests/test_traceability.py"
+      - ".github/workflows/project-zero.yml"
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  evidence:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@v4
+
+      - name: Check out Atarix integration fixture
+        uses: actions/checkout@v4
+        with:
+          repository: dlworrell/atarix
+          path: integration/atarix
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run deterministic unit tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Validate traceability example
+        run: |
+          mkdir -p build/aems/project-zero
+          python3 scripts/validate_traceability.py \
+            examples/traceability/project-zero-engine.json \
+            > build/aems/project-zero/traceability.md
+
+      - name: Generate AEMS Project Zero evidence
+        run: |
+          python3 scripts/aems_project_zero.py . \
+            --output build/aems/project-zero
+          python3 -c 'import json; data=json.load(open("build/aems/project-zero/assessment.json", encoding="utf-8")); assert data["current_state"] == "CERTIFICATION"; assert data["declared_state"] == "CERTIFICATION"'
+
+      - name: Generate Atarix inventory integration evidence
+        run: |
+          python3 scripts/aems_repository_inventory.py integration/atarix \
+            --repository dlworrell/atarix \
+            --format json \
+            --output build/aems/project-zero/atarix-inventory.json
+          python3 scripts/aems_repository_inventory.py integration/atarix \
+            --repository dlworrell/atarix \
+            --format markdown \
+            --output build/aems/project-zero/atarix-inventory.md
+
+      - name: Add assessment to job summary
+        run: cat build/aems/project-zero/assessment.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-zero-${{ github.run_id }}
+          path: build/aems/project-zero/
+          if-no-files-found: error
+          retention-days: 30
