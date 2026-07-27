@@ -1,0 +1,61 @@
+name: AES-SEC-001 fast governance scan
+description: Run the centrally maintained AEMS banned-API and adoption scanner.
+
+inputs:
+  scan-root:
+    description: Repository path to scan.
+    required: false
+    default: "."
+  repository:
+    description: Repository name recorded in generated evidence.
+    required: false
+    default: ""
+  include-dangerous-primitives:
+    description: Report review-required native primitives in addition to bans.
+    required: false
+    default: "true"
+  strict:
+    description: Fail on missing adoption evidence or AES-banned APIs.
+    required: false
+    default: "true"
+  output-directory:
+    description: Directory for JSON and Markdown evidence.
+    required: false
+    default: "build/aems/aes-sec-001"
+
+runs:
+  using: composite
+  steps:
+    - name: Run AES-SEC-001 scanner
+      shell: bash
+      env:
+        AEMS_SCAN_ROOT: ${{ inputs.scan-root }}
+        AEMS_REPOSITORY: ${{ inputs.repository }}
+        AEMS_INCLUDE_DANGEROUS: ${{ inputs.include-dangerous-primitives }}
+        AEMS_STRICT: ${{ inputs.strict }}
+        AEMS_OUTPUT_DIRECTORY: ${{ inputs.output-directory }}
+      run: |
+        scanner="$GITHUB_ACTION_PATH/../../../scripts/aes_sec_001_scan.py"
+        repository="$AEMS_REPOSITORY"
+        if [[ -z "$repository" ]]; then
+          repository="$GITHUB_REPOSITORY"
+        fi
+
+        args=(
+          "$AEMS_SCAN_ROOT"
+          --repo-name "$repository"
+        )
+        if [[ "$AEMS_INCLUDE_DANGEROUS" == "true" ]]; then
+          args+=(--include-dangerous-primitives)
+        fi
+
+        mkdir -p "$AEMS_OUTPUT_DIRECTORY"
+        python3 "$scanner" "${args[@]}" --format json \
+          > "$AEMS_OUTPUT_DIRECTORY/report.json"
+        python3 "$scanner" "${args[@]}" --format markdown \
+          > "$AEMS_OUTPUT_DIRECTORY/report.md"
+
+        if [[ "$AEMS_STRICT" == "true" ]]; then
+          args+=(--strict)
+        fi
+        python3 "$scanner" "${args[@]}" --format github

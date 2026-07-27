@@ -444,8 +444,8 @@ def format_markdown(report: AggregateReport) -> str:
             "",
             "These are not gate failures. They identify native-code operations that need review, wrapper decisions, or documented invariants.",
             "",
-            "| Repository | Symbol | Path | Line |",
-            "|---|---|---|---:|",
+            "| Repository | Symbol | Path | Line | Remediation |",
+            "|---|---|---|---:|---|",
         ])
         for entry in report.entries:
             for finding in entry.findings:
@@ -456,7 +456,8 @@ def format_markdown(report: AggregateReport) -> str:
                     f"`{entry.repository.full_name}` | "
                     f"`{finding_value(finding, 'symbol')}` | "
                     f"`{finding_value(finding, 'path')}` | "
-                    f"{finding_value(finding, 'line')} |"
+                    f"{finding_value(finding, 'line')} | "
+                    f"{finding_value(finding, 'remediation')} |"
                 )
     else:
         lines.extend(["", "## Review-Required Findings", "", "None."])
@@ -509,8 +510,8 @@ def format_repository_markdown(entry: AggregateEntry) -> str:
                 "",
                 "## Findings",
                 "",
-                "| Severity | Symbol | Path | Line |",
-                "|---|---|---|---:|",
+                "| Severity | Symbol | Path | Line | Remediation |",
+                "|---|---|---|---:|---|",
             ]
         )
         for finding in findings:
@@ -519,7 +520,8 @@ def format_repository_markdown(entry: AggregateEntry) -> str:
                 f"`{finding_value(finding, 'severity')}` | "
                 f"`{finding_value(finding, 'symbol')}` | "
                 f"`{finding_value(finding, 'path')}` | "
-                f"{finding_value(finding, 'line')} |"
+                f"{finding_value(finding, 'line')} | "
+                f"{finding_value(finding, 'remediation')} |"
             )
     else:
         lines.extend(["", "## Findings", "", "None."])

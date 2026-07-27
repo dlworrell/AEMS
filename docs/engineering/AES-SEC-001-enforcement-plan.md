@@ -2,7 +2,7 @@
 
 Status: Implemented reporting ratchet
 Owner: AEMS
-Issues: #6, #12
+Issues: #6, #12, #14
 
 ## Purpose
 
@@ -225,9 +225,14 @@ that the declared bounded command completed successfully.
 
 ## Review-Required Primitive Review
 
-By default, the scanner reports only APIs banned by AES-SEC-001.
+By default, the scanner reports only APIs banned by AES-SEC-001. It removes
+C/C++ comments, string literals, and character literals from the detection
+surface while preserving source line numbers. Synthetic sources under
+`tests/fixtures/` and `examples/fixtures/` are excluded from governed-code
+findings.
 
-To also report dangerous-but-sometimes-necessary primitives such as `memcpy`, `malloc`, `free`, and `snprintf`, run:
+To also report dangerous-but-sometimes-necessary primitives such as `memcpy`,
+`malloc`, `free`, `snprintf`, `strncpy`, `strncat`, and `memset`, run:
 
 ```sh
 python3 scripts/aes_sec_001_scan.py . --include-dangerous-primitives --format markdown
@@ -242,7 +247,62 @@ ecosystem_scan=true
 include_third_party=false
 ```
 
-Those results are review-required findings, not automatic failures unless a local repository profile elevates them. The aggregate Markdown report includes both a per-repository review finding count and a detailed review-required findings table.
+Those results are review-required findings, not automatic failures unless a
+local repository profile elevates them. The pull-request and push workflows
+enable this reporting mode by default. The aggregate Markdown report includes
+both a per-repository review finding count and a detailed review-required
+findings table.
+
+Every finding carries remediation guidance in JSON, Markdown, and GitHub
+annotation output. `memset` guidance distinguishes bounded ordinary
+initialization from secret erasure. Secret erasure should use
+`explicit_bzero`, `memset_s` where supported, or an approved
+non-optimizable wrapper; ordinary initialization is not itself a banned
+operation.
+
+## Distributed Fast Governance Control
+
+AEMS publishes a composite action:
+
+```text
+.github/actions/aes-sec-001/action.yml
+```
+
+and a reusable workflow:
+
+```text
+.github/workflows/aes-sec-001-distributed.yml
+```
+
+Downstream repositories use the minimal caller template at:
+
+```text
+templates/workflows/aes-sec-001-governance.yml
+```
+
+The central action emits JSON and Markdown evidence plus GitHub annotations.
+Strict mode blocks missing adoption evidence and APIs currently classified as
+banned by AES-SEC-001. Review-required primitives remain warnings.
+
+The canonical Clang-Tidy configuration is:
+
+```text
+.clang-tidy
+```
+
+Its distributable copy is:
+
+```text
+templates/native/.clang-tidy
+```
+
+The configuration enables the fully qualified
+`clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling`
+checker. That broad checker remains reporting-only because Clang also applies
+it to AES review-required primitives such as `memcpy`, `snprintf`, and
+ordinary `memset`. High-confidence analyzer and bug-prone checks are promoted
+to errors, while exact AES API bans remain the responsibility of the AEMS
+scanner.
 
 ## Operational Signal Rules
 
@@ -314,8 +374,7 @@ Remaining ratchets are deliberately narrower:
   through repository-owned changes;
 - classify review-required primitives by wrapper, invariant, or planned
   replacement;
-- improve source parsing around comments, generated code, and local waiver
-  markers; and
+- baseline Clang-Tidy reporting before promoting additional diagnostics; and
 - baseline newly enrolled repositories before enabling a blocking gate.
 
 ## Engineering Rule

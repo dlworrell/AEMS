@@ -178,7 +178,16 @@ set(CMAKE_C_CLANG_TIDY clang-tidy)
                 "waiver_log_present": True,
                 "native_file_count": 2,
                 "build_surface_count": 1,
-                "findings": [],
+                "findings": [
+                    {
+                        "severity": "review-required",
+                        "symbol": "memset",
+                        "path": "src/example.c",
+                        "line": 7,
+                        "text": "memset(example, 0, sizeof(*example));",
+                        "remediation": "Prove the bound or use secure erasure.",
+                    }
+                ],
                 "summary": {"passes_minimum_adoption_gate": True},
             },
         )
@@ -202,6 +211,7 @@ set(CMAKE_C_CLANG_TIDY clang-tidy)
         markdown = (output / "example__native.md").read_text()
         self.assertIn("`c17-library`", markdown)
         self.assertIn("Gate passes: `True`", markdown)
+        self.assertIn("Prove the bound or use secure erasure.", markdown)
 
 
 if __name__ == "__main__":

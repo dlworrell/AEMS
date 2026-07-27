@@ -1,6 +1,20 @@
 {
   "schema_version": "1.0.0",
   "standard": "AES-SEC-001",
+  "clang_tidy_baseline": {
+    "canonical_path": ".clang-tidy",
+    "template_path": "templates/native/.clang-tidy",
+    "blocking_checks": [
+      "bugprone-infinite-loop",
+      "bugprone-string-constructor",
+      "clang-analyzer-security.insecureAPI.strcpy",
+      "clang-analyzer-security.insecureAPI.gets"
+    ],
+    "reporting_checks": [
+      "clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling"
+    ],
+    "notes": "The broad deprecated-buffer checker also reports AES review-required primitives such as memcpy, snprintf, and ordinary memset; exact banned-API enforcement remains in scripts/aes_sec_001_scan.py."
+  },
   "profiles": {
     "c17-kernel": {
       "languages": [
