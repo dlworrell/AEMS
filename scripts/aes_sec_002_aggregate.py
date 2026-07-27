@@ -179,11 +179,45 @@ def _clone(repository: str, destination: Path) -> None:
 
 
 def _classification_report(entry: dict[str, Any]) -> ScanReport:
-    return scan(
-        Path("."),
+    applicability = str(entry.get("applicability", "not-yet-classified"))
+    rationale = str(entry.get("rationale", ""))
+    report = ScanReport(
         repository=str(entry["full_name"]),
-        entry=entry,
+        root="not-scanned",
+        applicability=applicability,
+        rationale=rationale,
+        source_revision=None,
+        platforms=sorted(str(value) for value in entry.get("platforms", [])),
+        languages=sorted(str(value) for value in entry.get("languages", [])),
+        profile_path=str(
+            entry.get(
+                "profile_path",
+                "docs/engineering/AES-SEC-002-boundaries.md",
+            )
+        ),
     )
+    if applicability == "out-of-scope":
+        report.findings.append(
+            EvidenceFinding(
+                rule_id="AES-SEC-002-SCOPE-001",
+                status="not-applicable",
+                severity="informational",
+                message=f"Repository is out of scope: {rationale}",
+            )
+        )
+    else:
+        report.findings.append(
+            EvidenceFinding(
+                rule_id="AES-SEC-002-SCOPE-001",
+                status="untested",
+                severity="review",
+                message=(
+                    "Applicability classification remains open: "
+                    f"{rationale}"
+                ),
+            )
+        )
+    return report
 
 
 def _untested_in_scope_report(entry: dict[str, Any]) -> ScanReport:

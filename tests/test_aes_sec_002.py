@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from aes_sec_002_scan import scan
+from aes_sec_002_aggregate import build_report
 
 
 def entry() -> dict[str, object]:
@@ -107,6 +109,23 @@ class AesSec002Tests(unittest.TestCase):
         self.assertEqual(open_report.result, "CLASSIFICATION_REQUIRED")
         self.assertEqual(open_report.count("untested"), 1)
         self.assertEqual(len(open_report.findings), 1)
+
+    def test_classification_baseline_does_not_claim_a_source_checkout(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        report = build_report(
+            SimpleNamespace(
+                config=str(root / "config" / "aes-sec-002-repositories.json"),
+                source_map=None,
+                work_dir=None,
+                scan_in_scope=False,
+                keep_work_dir=False,
+            )
+        )
+        self.assertEqual(len(report.entries), 21)
+        for aggregate_entry in report.entries:
+            local = aggregate_entry.report or {}
+            self.assertEqual(local.get("root"), "not-scanned")
+            self.assertIsNone(local.get("source_revision"))
 
 
 if __name__ == "__main__":
