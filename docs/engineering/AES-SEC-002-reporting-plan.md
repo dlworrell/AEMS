@@ -1,8 +1,8 @@
 # AES-SEC-002 Reporting Plan
 
-Status: Initial reporting implementation  
-Owner: AEMS  
-Issue: #10  
+Status: Initial reporting implementation
+Owner: AEMS
+Issue: #10
 Upstream standard: `dlworrell/AES/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md`
 
 ## Purpose

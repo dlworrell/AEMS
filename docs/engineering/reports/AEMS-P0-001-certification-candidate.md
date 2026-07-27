@@ -1,8 +1,8 @@
 # AEMS-P0-001 Project Zero Certification Candidate
 
-Status: Candidate  
-Owner: AEMS  
-Governing standards: AES-002, AES-003  
+Status: Candidate
+Owner: AEMS
+Governing standards: AES-002, AES-003
 Issue set: AEMS #1, #3, #4, #5
 
 ## Claim

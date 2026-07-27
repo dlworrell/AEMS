@@ -1,8 +1,8 @@
 # AEMS Artifact and Traceability Model
 
-Status: Draft implementation contract  
-Owner: AEMS  
-Issue: #1  
+Status: Draft implementation contract
+Owner: AEMS
+Issue: #1
 Upstream authority: Catylist, AES-002, AES-003, CAN-130
 
 ## Purpose
