@@ -13,6 +13,12 @@ from pathlib import Path
 from typing import Any
 
 from aes_dev_001_scan import Dev001Report, scan
+from github_checkout import (
+    DEFAULT_GITHUB_TOKEN_ENV,
+    git_clone_environment,
+    redact_git_error,
+    resolve_github_token,
+)
 
 DEFAULT_MANIFEST = Path("config/aes-dev-001-repositories.json")
 DOC_AUTH_VALUES = {"local", "delegated", "transitional", "external"}
@@ -375,6 +381,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--strict", action="store_true")
     parser.add_argument("--keep-work-dir", action="store_true")
     parser.add_argument("--max-hits", type=int, default=5)
+    parser.add_argument(
+        "--github-token-env",
+        default=DEFAULT_GITHUB_TOKEN_ENV,
+        help=(
+            "Environment variable containing an optional GitHub token for "
+            "private project-owned repositories."
+        ),
+    )
+    parser.add_argument(
+        "--require-github-token",
+        action="store_true",
+        help="Fail before the aggregate scan when --github-token-env is unset or empty.",
+    )
     return parser.parse_args()
 
 
@@ -418,7 +437,12 @@ def clone_url(full_name: str) -> str:
     return f"https://github.com/{full_name}.git"
 
 
-def run_git_clone(full_name: str, destination: Path) -> None:
+def run_git_clone(
+    full_name: str,
+    destination: Path,
+    github_token: str | None = None,
+    github_token_env: str = DEFAULT_GITHUB_TOKEN_ENV,
+) -> None:
     if destination.exists():
         shutil.rmtree(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -428,6 +452,10 @@ def run_git_clone(full_name: str, destination: Path) -> None:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        env=git_clone_environment(
+            github_token,
+            token_env_name=github_token_env,
+        ),
     )
 
 
@@ -437,17 +465,35 @@ def non_project_status(entry: RepositoryEntry) -> str:
     return "not-scanned-third-party"
 
 
-def scan_entry(entry: RepositoryEntry, work_dir: Path, include_external: bool, max_hits: int) -> AggregateEntry:
+def scan_entry(
+    entry: RepositoryEntry,
+    work_dir: Path,
+    include_external: bool,
+    max_hits: int,
+    github_token: str | None = None,
+    github_token_env: str = DEFAULT_GITHUB_TOKEN_ENV,
+) -> AggregateEntry:
     if not entry.project_owned and not include_external:
         return AggregateEntry(repository=entry, status=non_project_status(entry))
 
     destination = checkout_dir_for(work_dir, entry.full_name)
     try:
-        run_git_clone(entry.full_name, destination)
+        run_git_clone(
+            entry.full_name,
+            destination,
+            github_token,
+            github_token_env,
+        )
     except FileNotFoundError:
         return AggregateEntry(entry, "checkout-failed", str(destination), error="git executable was not found")
     except subprocess.CalledProcessError as exc:
-        return AggregateEntry(entry, "checkout-failed", str(destination), error=(exc.stderr or str(exc))[:1000])
+        error = redact_git_error(exc.stderr or str(exc), github_token)
+        return AggregateEntry(
+            entry,
+            "checkout-failed",
+            str(destination),
+            error=error[:1000],
+        )
 
     try:
         scan_report: Dev001Report = scan(destination, entry.full_name, max_hits=max_hits)
@@ -461,6 +507,16 @@ def build_report(args: argparse.Namespace) -> AggregateReport:
     manifest = load_manifest(Path(args.manifest))
     entries = repository_entries(manifest)
     include_external = bool(args.include_external or args.include_third_party)
+    token_env = str(
+        getattr(args, "github_token_env", DEFAULT_GITHUB_TOKEN_ENV)
+    )
+    try:
+        github_token = resolve_github_token(
+            token_env,
+            required=bool(getattr(args, "require_github_token", False)),
+        )
+    except ValueError as exc:
+        raise SystemExit(f"error: {exc}") from exc
     temporary_dir: tempfile.TemporaryDirectory[str] | None = None
 
     if args.work_dir is None:
@@ -477,7 +533,16 @@ def build_report(args: argparse.Namespace) -> AggregateReport:
             standard_path=str(manifest.get("standard_path", "")),
         )
         for entry in entries:
-            report.entries.append(scan_entry(entry, work_dir, include_external, args.max_hits))
+            report.entries.append(
+                scan_entry(
+                    entry,
+                    work_dir,
+                    include_external,
+                    args.max_hits,
+                    github_token,
+                    token_env,
+                )
+            )
         return report
     finally:
         if temporary_dir is not None and not args.keep_work_dir:

@@ -20,6 +20,12 @@ from pathlib import Path
 from typing import Any
 
 from aes_sec_001_scan import ScanReport, scan
+from github_checkout import (
+    DEFAULT_GITHUB_TOKEN_ENV,
+    git_clone_environment,
+    redact_git_error,
+    resolve_github_token,
+)
 
 DEFAULT_MANIFEST = Path("config/aes-sec-001-repositories.json")
 
@@ -187,6 +193,19 @@ def parse_args() -> argparse.Namespace:
             "entry into this directory."
         ),
     )
+    parser.add_argument(
+        "--github-token-env",
+        default=DEFAULT_GITHUB_TOKEN_ENV,
+        help=(
+            "Environment variable containing an optional GitHub token for "
+            "private project-owned repositories."
+        ),
+    )
+    parser.add_argument(
+        "--require-github-token",
+        action="store_true",
+        help="Fail before the aggregate scan when --github-token-env is unset or empty.",
+    )
     return parser.parse_args()
 
 
@@ -227,7 +246,12 @@ def clone_url(full_name: str) -> str:
     return f"https://github.com/{full_name}.git"
 
 
-def run_git_clone(full_name: str, destination: Path) -> None:
+def run_git_clone(
+    full_name: str,
+    destination: Path,
+    github_token: str | None = None,
+    github_token_env: str = DEFAULT_GITHUB_TOKEN_ENV,
+) -> None:
     if destination.exists():
         shutil.rmtree(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -240,7 +264,17 @@ def run_git_clone(full_name: str, destination: Path) -> None:
         clone_url(full_name),
         str(destination),
     ]
-    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    subprocess.run(
+        cmd,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=git_clone_environment(
+            github_token,
+            token_env_name=github_token_env,
+        ),
+    )
 
 
 def scan_entry(
@@ -248,13 +282,20 @@ def scan_entry(
     work_dir: Path,
     include_dangerous_primitives: bool,
     include_third_party: bool,
+    github_token: str | None = None,
+    github_token_env: str = DEFAULT_GITHUB_TOKEN_ENV,
 ) -> AggregateEntry:
     if entry.ownership != "project-owned" and not include_third_party:
         return AggregateEntry(repository=entry, status="not-scanned-third-party")
 
     destination = checkout_dir_for(work_dir, entry.full_name)
     try:
-        run_git_clone(entry.full_name, destination)
+        run_git_clone(
+            entry.full_name,
+            destination,
+            github_token,
+            github_token_env,
+        )
     except FileNotFoundError:
         return AggregateEntry(
             repository=entry,
@@ -264,6 +305,7 @@ def scan_entry(
         )
     except subprocess.CalledProcessError as exc:
         stderr = exc.stderr.strip() if exc.stderr else str(exc)
+        stderr = redact_git_error(stderr, github_token)
         return AggregateEntry(
             repository=entry,
             status="checkout-failed",
@@ -293,6 +335,16 @@ def build_report(args: argparse.Namespace) -> AggregateReport:
     manifest_path = Path(args.manifest)
     manifest = load_manifest(manifest_path)
     entries = repository_entries(manifest)
+    token_env = str(
+        getattr(args, "github_token_env", DEFAULT_GITHUB_TOKEN_ENV)
+    )
+    try:
+        github_token = resolve_github_token(
+            token_env,
+            required=bool(getattr(args, "require_github_token", False)),
+        )
+    except ValueError as exc:
+        raise SystemExit(f"error: {exc}") from exc
 
     temporary_dir: tempfile.TemporaryDirectory[str] | None = None
     if args.work_dir is None:
@@ -315,6 +367,8 @@ def build_report(args: argparse.Namespace) -> AggregateReport:
                     work_dir,
                     args.include_dangerous_primitives,
                     args.include_third_party,
+                    github_token,
+                    token_env,
                 )
             )
         return aggregate

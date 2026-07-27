@@ -2,7 +2,7 @@
 
 Status: Implemented reporting ratchet
 Owner: AEMS
-Issue: #6
+Issues: #6, #12
 
 ## Purpose
 
@@ -114,6 +114,39 @@ python3 scripts/aes_sec_001_aggregate.py --strict --format markdown
 ```
 
 The strict aggregate gate fails only when an expected project-owned repository fails its expected adoption gate or cannot be scanned.
+
+### Private Repository Authentication
+
+The aggregate runner shares the credential-safe checkout implementation used
+by AES-DEV-001. By default, it reads an optional token from:
+
+```text
+AEMS_ECOSYSTEM_TOKEN
+```
+
+The token is carried in a process-local Git HTTP authorization header rather
+than a clone URL and is redacted from checkout errors. Git terminal prompting
+is disabled.
+
+For a strict trusted run:
+
+```sh
+AEMS_ECOSYSTEM_TOKEN=... \
+  python3 scripts/aes_sec_001_aggregate.py \
+    --strict \
+    --require-github-token \
+    --format markdown
+```
+
+The token should be fine-grained and limited to read-only `Contents` access for
+the project-owned repositories in the manifest. GitHub Actions reads the
+`AEMS_ECOSYSTEM_TOKEN` secret only for trusted `push` and
+`workflow_dispatch` events.
+
+Pull-request ecosystem scans run without the cross-repository credential and
+remain report-only. Strict ecosystem enforcement is limited to trusted manual
+dispatch. A manual dispatch skips the ecosystem job only when
+`ecosystem_scan=false`.
 
 ## GitHub Actions
 
