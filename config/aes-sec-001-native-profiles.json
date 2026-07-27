@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0.0",
+  "standard": "AES-SEC-001",
+  "profiles": {
+    "c17-kernel": {
+      "languages": [
+        "c17",
+        "assembly"
+      ],
+      "warning_sets": {
+        "clang": [
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror=implicit-function-declaration",
+          "-Werror=incompatible-pointer-types",
+          "-Werror=return-type",
+          "-Wconversion",
+          "-Wsign-conversion"
+        ],
+        "gcc": [
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror=implicit-function-declaration",
+          "-Werror=incompatible-pointer-types",
+          "-Werror=return-type",
+          "-Wconversion",
+          "-Wsign-conversion"
+        ]
+      },
+      "static_analysis": [
+        "clang-tidy",
+        "scan-build"
+      ],
+      "sanitizers": [
+        "address",
+        "undefined"
+      ],
+      "fuzzing": "required for externally controlled parsers and decoders",
+      "notes": "Target-only 65C816 objects may need separate warnings and simulation evidence; host-supported native tests retain the available analyzer and sanitizer gates."
+    },
+    "c17-library": {
+      "languages": [
+        "c17"
+      ],
+      "warning_sets": {
+        "clang": [
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror=implicit-function-declaration",
+          "-Werror=incompatible-pointer-types",
+          "-Werror=return-type",
+          "-Wconversion",
+          "-Wsign-conversion",
+          "-Wshadow"
+        ],
+        "gcc": [
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror=implicit-function-declaration",
+          "-Werror=incompatible-pointer-types",
+          "-Werror=return-type",
+          "-Wconversion",
+          "-Wsign-conversion",
+          "-Wshadow"
+        ]
+      },
+      "static_analysis": [
+        "clang-tidy",
+        "scan-build"
+      ],
+      "sanitizers": [
+        "address",
+        "undefined"
+      ],
+      "fuzzing": "required for externally controlled inputs"
+    },
+    "cpp17-bridge": {
+      "languages": [
+        "c++17"
+      ],
+      "warning_sets": {
+        "clang": [
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror=return-type",
+          "-Wconversion",
+          "-Wsign-conversion",
+          "-Wshadow",
+          "-Wnon-virtual-dtor"
+        ],
+        "gcc": [
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror=return-type",
+          "-Wconversion",
+          "-Wsign-conversion",
+          "-Wshadow",
+          "-Wnon-virtual-dtor"
+        ],
+        "msvc": [
+          "/W4",
+          "/permissive-"
+        ]
+      },
+      "static_analysis": [
+        "clang-tidy",
+        "CodeQL"
+      ],
+      "sanitizers": [
+        "address",
+        "undefined"
+      ],
+      "fuzzing": "required for framed protocols, package readers, and external parsers",
+      "notes": "Compiler and platform exclusions must be evidence-backed; Apple, Linux, and Windows results remain distinct."
+    },
+    "experimental-native": {
+      "languages": [
+        "c",
+        "c++",
+        "cuda"
+      ],
+      "warning_sets": {
+        "host-clang-gcc": [
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror=return-type"
+        ],
+        "nvcc-host": [
+          "-Xcompiler=-Wall,-Wextra"
+        ]
+      },
+      "static_analysis": [
+        "clang-tidy where the translation unit is supported"
+      ],
+      "sanitizers": [
+        "address",
+        "undefined"
+      ],
+      "fuzzing": "required only when an experiment accepts untrusted or externally controlled input",
+      "notes": "Experimental status changes the ratchet stage, not the ban on AES-SEC-001 prohibited APIs."
+    }
+  }
+}

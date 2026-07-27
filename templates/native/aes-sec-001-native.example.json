@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "profile": "c17-library",
+  "control_commands": [
+    {
+      "id": "warning-build",
+      "kind": "warnings",
+      "command": [
+        "cmake",
+        "--build",
+        "build/warnings"
+      ],
+      "timeout_seconds": 120
+    },
+    {
+      "id": "clang-tidy",
+      "kind": "static-analysis",
+      "command": [
+        "cmake",
+        "--build",
+        "build/analysis",
+        "--target",
+        "clang-tidy"
+      ],
+      "timeout_seconds": 180
+    },
+    {
+      "id": "sanitizer-tests",
+      "kind": "sanitizer-test",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build/sanitizers",
+        "--output-on-failure"
+      ],
+      "timeout_seconds": 180
+    }
+  ],
+  "fuzz_targets": [
+    {
+      "id": "parser-smoke",
+      "command": [
+        "build/fuzz/parser",
+        "-runs=100"
+      ],
+      "timeout_seconds": 60
+    }
+  ]
+}
