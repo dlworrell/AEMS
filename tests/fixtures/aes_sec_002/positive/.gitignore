@@ -1,0 +1,10 @@
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+*.db
+*.sqlite
+*.sqlite3
+*.sqlcipher

@@ -1,0 +1,7 @@
+name: Apple
+jobs:
+  apple:
+    runs-on: macos-15
+    steps:
+      - run: cc -Wl,-z,relro app.c
+      - run: readelf -W -l App
