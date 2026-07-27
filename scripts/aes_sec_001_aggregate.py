@@ -36,6 +36,7 @@ class RepositoryEntry:
     role: str
     ownership: str
     expected_profile: bool
+    native_profile: str | None = None
     notes: str = ""
 
 
@@ -185,6 +186,14 @@ def parse_args() -> argparse.Namespace:
         help="Do not delete the temporary work directory after the run.",
     )
     parser.add_argument(
+        "--per-repository-dir",
+        default=None,
+        help=(
+            "Write one JSON and one Markdown evidence report per manifest "
+            "entry into this directory."
+        ),
+    )
+    parser.add_argument(
         "--github-token-env",
         default=DEFAULT_GITHUB_TOKEN_ENV,
         help=(
@@ -218,6 +227,11 @@ def repository_entries(manifest: dict[str, Any]) -> list[RepositoryEntry]:
                 role=str(item.get("role", "unknown")),
                 ownership=str(item.get("ownership", "unknown")),
                 expected_profile=bool(item.get("expected_profile", False)),
+                native_profile=(
+                    str(item["native_profile"])
+                    if item.get("native_profile")
+                    else None
+                ),
                 notes=str(item.get("notes", "")),
             )
         )
@@ -389,8 +403,8 @@ def format_markdown(report: AggregateReport) -> str:
         "",
         "## Repository Results",
         "",
-        "| Repository | Role | Ownership | Status | Class | Profile | Waiver Log | Banned Findings | Review Findings | Gate |",
-        "|---|---|---|---|---|---:|---:|---:|---:|---:|",
+        "| Repository | Role | Ownership | Native profile | Status | Class | Local policy | Waiver log | Banned | Review | Gate |",
+        "|---|---|---|---|---|---|---:|---:|---:|---:|---:|",
     ]
 
     for entry in report.entries:
@@ -405,6 +419,7 @@ def format_markdown(report: AggregateReport) -> str:
             f"`{entry.repository.full_name}` | "
             f"`{entry.repository.role}` | "
             f"`{entry.repository.ownership}` | "
+            f"`{entry.repository.native_profile or 'n/a'}` | "
             f"`{entry.status}` | "
             f"`{classification}` | "
             f"`{profile}` | "
@@ -449,9 +464,95 @@ def format_markdown(report: AggregateReport) -> str:
     return "\n".join(lines)
 
 
+def report_stem(full_name: str) -> str:
+    return full_name.replace("/", "__")
+
+
+def format_repository_markdown(entry: AggregateEntry) -> str:
+    scan_data = entry.scan or {}
+    summary = scan_data.get("summary", {}) if isinstance(scan_data, dict) else {}
+    findings = entry.findings
+    lines = [
+        f"# AES-SEC-001 Repository Report: `{entry.repository.full_name}`",
+        "",
+        f"- Role: `{entry.repository.role}`",
+        f"- Ownership: `{entry.repository.ownership}`",
+        f"- Native profile: `{entry.repository.native_profile or 'not assigned'}`",
+        f"- Scan status: `{entry.status}`",
+        f"- Expected adoption gate: `{entry.expected_to_pass_gate}`",
+        f"- Gate passes: `{entry.passes_expected_gate}`",
+        f"- Banned findings: `{entry.banned_finding_count}`",
+        f"- Review-required findings: `{entry.review_required_finding_count}`",
+    ]
+    if entry.repository.notes:
+        lines.append(f"- Manifest note: {entry.repository.notes}")
+    if entry.error:
+        lines.append(f"- Error: `{entry.error}`")
+    if scan_data:
+        lines.extend(
+            [
+                "",
+                "## Scan evidence",
+                "",
+                f"- Classification: `{scan_data.get('classification', 'n/a')}`",
+                f"- Local secure policy: `{scan_data.get('secure_profile_present', 'n/a')}`",
+                f"- Waiver log: `{scan_data.get('waiver_log_present', 'n/a')}`",
+                f"- Native files: `{scan_data.get('native_file_count', 0)}`",
+                f"- Build surfaces: `{scan_data.get('build_surface_count', 0)}`",
+                "- Minimum adoption gate: "
+                f"`{summary.get('passes_minimum_adoption_gate', 'n/a')}`",
+            ]
+        )
+    if findings:
+        lines.extend(
+            [
+                "",
+                "## Findings",
+                "",
+                "| Severity | Symbol | Path | Line |",
+                "|---|---|---|---:|",
+            ]
+        )
+        for finding in findings:
+            lines.append(
+                "| "
+                f"`{finding_value(finding, 'severity')}` | "
+                f"`{finding_value(finding, 'symbol')}` | "
+                f"`{finding_value(finding, 'path')}` | "
+                f"{finding_value(finding, 'line')} |"
+            )
+    else:
+        lines.extend(["", "## Findings", "", "None."])
+    return "\n".join(lines) + "\n"
+
+
+def write_repository_reports(
+    report: AggregateReport, output_dir: Path
+) -> list[Path]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    for entry in report.entries:
+        stem = report_stem(entry.repository.full_name)
+        json_path = output_dir / f"{stem}.json"
+        markdown_path = output_dir / f"{stem}.md"
+        json_path.write_text(
+            json.dumps(entry.to_dict(), indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        markdown_path.write_text(
+            format_repository_markdown(entry),
+            encoding="utf-8",
+        )
+        written.extend((json_path, markdown_path))
+    return written
+
+
 def main() -> int:
     args = parse_args()
     report = build_report(args)
+
+    if args.per_repository_dir:
+        write_repository_reports(report, Path(args.per_repository_dir))
 
     if args.format == "json":
         print(json.dumps(report.to_dict(), indent=2, sort_keys=True))

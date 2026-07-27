@@ -38,31 +38,40 @@
       "notes": "Catalyst/Catylist governance and specification work."
     },
     {
-      "full_name": "dlworrell/65x02",
-      "role": "processor-and-tooling-research",
+      "full_name": "dlworrell/AES",
+      "role": "engineering-standards-authority",
       "ownership": "project-owned",
       "expected_profile": true,
-      "notes": "Native-code and firmware risk likely as the project matures."
+      "notes": "Owns AES-SEC-001 and retains a local adoption profile for repository tooling."
+    },
+    {
+      "full_name": "dlworrell/65x02",
+      "role": "processor-and-tooling-research",
+      "ownership": "external-reference",
+      "expected_profile": false,
+      "notes": "External/reference material used by Atarix. Do not rewrite as project-owned Catalyst code."
     },
     {
       "full_name": "dlworrell/atarix",
       "role": "system-project",
       "ownership": "project-owned",
       "expected_profile": true,
+      "native_profile": "c17-kernel",
       "notes": "Primary Atarix system repository."
     },
     {
       "full_name": "dlworrell/BB816-MATX-PCIE",
       "role": "hardware-platform",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "notes": "Hardware repository; host tooling and firmware should inherit AES-SEC-001."
+      "ownership": "external-reference",
+      "expected_profile": false,
+      "notes": "External/reference hardware material used by Atarix."
     },
     {
       "full_name": "dlworrell/code-noodling",
       "role": "experimental-native-code",
       "ownership": "project-owned",
       "expected_profile": true,
+      "native_profile": "experimental-native",
       "notes": "Experimental C/C++/CUDA/native-code work should be scanned but may use ratcheting."
     },
     {
@@ -91,6 +100,7 @@
       "role": "evolutionary-optimization-library",
       "ownership": "project-owned",
       "expected_profile": true,
+      "native_profile": "c17-library",
       "notes": "Native C library for reproducible engineering optimization; requires secure coding, static analysis, sanitizers, and future fuzz coverage for external-input handlers."
     },
     {
@@ -110,22 +120,23 @@
     {
       "full_name": "dlworrell/ulx3s",
       "role": "fpga-platform",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "notes": "FPGA repository; host tooling and firmware should inherit AES-SEC-001."
+      "ownership": "external-reference",
+      "expected_profile": false,
+      "notes": "External/reference FPGA platform used by Atarix."
     },
     {
       "full_name": "dlworrell/Vega816",
       "role": "system-or-hardware-project",
-      "ownership": "project-owned",
-      "expected_profile": true,
-      "notes": "Likely native/firmware/hardware work; requires adoption tracking."
+      "ownership": "external-reference",
+      "expected_profile": false,
+      "notes": "External/reference system and hardware material used by Atarix."
     },
     {
       "full_name": "dlworrell/MayaUSD2017Bridge",
       "role": "native-cpp-compatibility-bridge",
       "ownership": "project-owned",
       "expected_profile": true,
+      "native_profile": "cpp17-bridge",
       "notes": "Maya/OpenUSD bridge with native protocol parsers and plug-in ABI boundaries; requires secure profile, waiver tracking, static analysis, sanitizers, and fuzz coverage."
     },
     {

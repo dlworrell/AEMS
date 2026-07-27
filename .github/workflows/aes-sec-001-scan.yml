@@ -28,8 +28,13 @@ on:
       - "docs/engineering/AES-SEC-001-enforcement-plan.md"
       - "scripts/aes_sec_001_scan.py"
       - "scripts/aes_sec_001_aggregate.py"
+      - "scripts/aes_sec_001_native.py"
       - "scripts/github_checkout.py"
       - "config/aes-sec-001-repositories.json"
+      - "config/aes-sec-001-native-profiles.json"
+      - "templates/native/**"
+      - "templates/workflows/aes-sec-001-native.yml"
+      - "tests/test_aes_sec_001_native.py"
       - "tests/test_ecosystem_checkout.py"
       - ".github/workflows/aes-sec-001-scan.yml"
   push:
@@ -95,7 +100,12 @@ jobs:
         run: python3 -m unittest tests.test_ecosystem_checkout -v
 
       - name: Show scanner help
-        run: python3 scripts/aes_sec_001_scan.py --help
+        run: |
+          python3 scripts/aes_sec_001_scan.py --help
+          python3 scripts/aes_sec_001_native.py --help
+
+      - name: Test native-control tooling
+        run: python3 -m unittest tests.test_aes_sec_001_native -v
 
       - name: Run AES-SEC-001 scanner as JSON
         run: |
@@ -123,6 +133,17 @@ jobs:
             "${EXTRA_ARGS[@]}" \
             > aes-sec-001-scan.md
 
+      - name: Discover local native-control evidence
+        run: |
+          python3 scripts/aes_sec_001_native.py . \
+            --repo-name "${{ github.repository }}" \
+            --format json \
+            > aes-sec-001-native.json
+          python3 scripts/aes_sec_001_native.py . \
+            --repo-name "${{ github.repository }}" \
+            --format markdown \
+            > aes-sec-001-native.md
+
       - name: Add report to job summary
         run: cat aes-sec-001-scan.md >> "$GITHUB_STEP_SUMMARY"
 
@@ -133,6 +154,8 @@ jobs:
           path: |
             aes-sec-001-scan.json
             aes-sec-001-scan.md
+            aes-sec-001-native.json
+            aes-sec-001-native.md
           if-no-files-found: error
 
       - name: Enforce strict gate
@@ -180,6 +203,7 @@ jobs:
           python3 scripts/aes_sec_001_aggregate.py \
             --manifest config/aes-sec-001-repositories.json \
             --work-dir "$RUNNER_TEMP/aes-sec-001-checkouts" \
+            --per-repository-dir aes-sec-001-repositories \
             --format json \
             "${EXTRA_ARGS[@]}" \
             > aes-sec-001-ecosystem.json
@@ -213,6 +237,7 @@ jobs:
           path: |
             aes-sec-001-ecosystem.json
             aes-sec-001-ecosystem.md
+            aes-sec-001-repositories/
           if-no-files-found: error
 
       - name: Enforce ecosystem strict gate

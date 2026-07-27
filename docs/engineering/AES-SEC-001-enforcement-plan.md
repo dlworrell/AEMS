@@ -1,14 +1,15 @@
 # AES-SEC-001 Enforcement Plan
 
-Status: Active
+Status: Implemented reporting ratchet
 Owner: AEMS
 Issues: #6, #12
 
 ## Purpose
 
-This document describes the next enforcement layer for `AES-SEC-001: Secure C and C++ Coding Rules`.
+This document describes the implemented enforcement layer for `AES-SEC-001: Secure C and C++ Coding Rules`.
 
-The policy now exists in AES and local adoption markers exist in the first wave of project repositories. AEMS is responsible for turning that policy into repeatable evidence.
+The policy exists in AES. AEMS turns it into repeatable adoption, source,
+native-control, and ecosystem evidence.
 
 ## Enforcement Model
 
@@ -19,7 +20,10 @@ AEMS enforcement proceeds in four stages:
 3. Detect adoption and operational safety signals.
 4. Report violations, waivers, and follow-up work.
 
-The initial scanner is local-checkout based. The aggregate runner reads the repository manifest, checks out the listed repositories, runs the local scanner against each checkout, and writes one ecosystem report.
+The local scanners are checkout based. The aggregate runner reads the
+repository manifest, checks out governed repositories, runs the adoption
+scanner, writes an ecosystem report, and can emit one JSON and one Markdown
+report for each manifest entry.
 
 ## Local Scanner
 
@@ -84,6 +88,7 @@ For each manifest entry, it records:
 - waiver log status;
 - banned finding count;
 - review-required finding count;
+- assigned native-control profile; and
 - minimum adoption gate result.
 
 By default, third-party mirror/fork repositories are listed but not scanned. Use `--include-third-party` when third-party inventory evidence is needed.
@@ -92,6 +97,14 @@ Manual use from AEMS:
 
 ```sh
 python3 scripts/aes_sec_001_aggregate.py --format markdown
+```
+
+To retain repository-scoped evidence:
+
+```sh
+python3 scripts/aes_sec_001_aggregate.py \
+  --format json \
+  --per-repository-dir build/aes-sec-001/repositories
 ```
 
 Strict aggregate use:
@@ -154,6 +167,62 @@ Manual dispatch also supports an optional ecosystem scan:
 
 Workflow reports are uploaded before strict gate enforcement so that failed strict runs still leave reviewable JSON and Markdown artifacts.
 
+## Native-Control Profiles and Presets
+
+The profile catalogue is:
+
+```text
+config/aes-sec-001-native-profiles.json
+```
+
+It assigns language-appropriate warning, static-analysis, sanitizer, and
+fuzzing expectations. Current profile identifiers are:
+
+- `c17-kernel`;
+- `c17-library`;
+- `cpp17-bridge`; and
+- `experimental-native`.
+
+Profiles describe control intent. A repository must still attach the selected
+flags and tools to its own build targets and preserve the resulting evidence.
+
+Reusable, opt-in presets are:
+
+```text
+templates/native/aes-sec-001-cmake.cmake
+templates/native/aes-sec-001.mk
+templates/native/aes-sec-001-meson.ini
+templates/native/aes-sec-001-native.example.json
+templates/workflows/aes-sec-001-native.yml
+```
+
+The presets apply to project-owned code and supported host tests. They do not
+silently rewrite upstream, vendored, target-only, or toolchain-incompatible
+code.
+
+## Native-Control Discovery and Fuzz Smoke
+
+The native-control helper is:
+
+```text
+scripts/aes_sec_001_native.py
+```
+
+It reports discovered build systems and operational warning,
+static-analysis, sanitizer, and fuzz-harness signals. With `--run-controls`,
+it runs explicitly declared `warnings`, `static-analysis`, and
+`sanitizer-test` commands. With `--smoke`, it runs only explicitly declared
+fuzz targets. Both are configured in:
+
+```text
+.aems/aes-sec-001-native.json
+```
+
+Commands are argument arrays, run without a shell, use bounded timeouts, and
+retain stdout, stderr, exit status, category, and target identity. Discovery
+does not claim runtime coverage. A passing control or smoke target proves only
+that the declared bounded command completed successfully.
+
 ## Review-Required Primitive Review
 
 By default, the scanner reports only APIs banned by AES-SEC-001.
@@ -210,6 +279,10 @@ It identifies project-owned repositories, template repositories, documentation/g
 
 Third-party mirrors must not be rewritten as if they were project-owned code. Local patches to mirrors should be tracked separately.
 
+External/reference repositories are also inventoried without being treated as
+governed project code. Reclassification requires a Catylist ownership
+decision, followed by a manifest change and new baseline evidence.
+
 ## Minimum Adoption Gate
 
 A repository passes the minimum adoption gate when:
@@ -220,18 +293,30 @@ A repository passes the minimum adoption gate when:
 
 This is deliberately weaker than final compliance. It establishes a non-noisy first enforcement layer.
 
-## Future Work
+## Implemented Baseline and Remaining Ratchets
 
-AEMS still needs these follow-up pieces:
+The first clean adoption baseline is retained at:
 
-- preserve the passing aggregate baseline as a durable project artifact;
-- report adoption status back into each repository;
-- CI workflow templates for native-code repositories;
-- CodeQL or equivalent static-analysis workflow templates;
-- sanitizer build presets for CMake, Make, and Meson projects;
-- fuzz-harness discovery and smoke-test execution;
-- review-required primitive classification by wrapper, invariant, or planned replacement;
-- banned API detection that understands comments, generated code, vendored code, and local waiver markers more precisely.
+```text
+docs/engineering/reports/AES-SEC-001-ecosystem-baseline-2026-07-06.md
+```
+
+The profile/control implementation and current ownership corrections are
+reconciled at:
+
+```text
+docs/engineering/reports/AES-SEC-001-control-profile-rollup-2026-07-26.md
+```
+
+Remaining ratchets are deliberately narrower:
+
+- adopt the selected profile and workflow in each active native repository
+  through repository-owned changes;
+- classify review-required primitives by wrapper, invariant, or planned
+  replacement;
+- improve source parsing around comments, generated code, and local waiver
+  markers; and
+- baseline newly enrolled repositories before enabling a blocking gate.
 
 ## Engineering Rule
 

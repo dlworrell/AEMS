@@ -1,0 +1,7 @@
+name: Apple
+jobs:
+  apple:
+    runs-on: macos-15
+    steps:
+      - run: xcodebuild -showBuildSettings
+      - run: otool -hv App

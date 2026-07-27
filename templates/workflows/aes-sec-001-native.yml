@@ -1,0 +1,61 @@
+name: AES-SEC-001 Native Controls
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-controls:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install native analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang clang-tidy clang-tools
+
+      - name: Report AES-SEC-001 adoption and native controls
+        run: |
+          python3 scripts/aes_sec_001_scan.py . --strict --format json \
+            > aes-sec-001-scan.json
+          python3 scripts/aes_sec_001_native.py . --format json \
+            > aes-sec-001-native.json
+
+      - name: Run repository-owned warning, analysis, and sanitizer commands
+        run: |
+          python3 scripts/aes_sec_001_native.py . \
+            --run-controls \
+            --target-config .aems/aes-sec-001-native.json \
+            --format json \
+            > aes-sec-001-controls.json
+
+      - name: Run configured fuzz smoke targets
+        run: |
+          python3 scripts/aes_sec_001_native.py . \
+            --smoke \
+            --target-config .aems/aes-sec-001-native.json \
+            --format json \
+            > aes-sec-001-smoke.json
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-sec-001-native-${{ github.run_id }}
+          path: |
+            aes-sec-001-scan.json
+            aes-sec-001-native.json
+            aes-sec-001-controls.json
+            aes-sec-001-smoke.json
+          if-no-files-found: warn

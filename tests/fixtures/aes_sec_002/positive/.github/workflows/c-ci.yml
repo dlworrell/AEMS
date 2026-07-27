@@ -1,0 +1,7 @@
+name: C
+jobs:
+  c:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: cc -fstack-protector-strong -D_FORTIFY_SOURCE=3 -fPIE -pie -Wl,-z,relro,-z,now -Wl,-z,noexecstack app.c
+      - run: readelf -W -l app

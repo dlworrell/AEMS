@@ -1,0 +1,92 @@
+name: AES-SEC-002 Reporting
+
+on:
+  pull_request:
+    paths:
+      - "config/aes-sec-002-repositories.json"
+      - "docs/engineering/AES-SEC-002-reporting-plan.md"
+      - "docs/engineering/reports/AES-SEC-002-*.md"
+      - "scripts/aes_sec_002_scan.py"
+      - "scripts/aes_sec_002_aggregate.py"
+      - "tests/fixtures/aes_sec_002/**"
+      - "tests/test_aes_sec_002.py"
+      - ".github/workflows/aes-sec-002-report.yml"
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      scan_in_scope:
+        description: "Attempt source scans for in-scope repositories; inaccessible checkouts remain untested."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  reporting:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Prove synthetic detectors
+        run: python3 -m unittest discover -s tests -p 'test_aes_sec_002.py' -v
+
+      - name: Report AEMS non-applicability
+        run: |
+          python3 scripts/aes_sec_002_scan.py . \
+            --repo-name "${{ github.repository }}" \
+            --format json \
+            > aes-sec-002-local.json
+          python3 scripts/aes_sec_002_scan.py . \
+            --repo-name "${{ github.repository }}" \
+            --format markdown \
+            > aes-sec-002-local.md
+
+      - name: Build ecosystem applicability baseline
+        run: |
+          EXTRA_ARGS=()
+          if [[ "${{ github.event.inputs.scan_in_scope || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--scan-in-scope")
+          fi
+          python3 scripts/aes_sec_002_aggregate.py \
+            "${EXTRA_ARGS[@]}" \
+            --format json \
+            --output aes-sec-002-ecosystem.json
+          python3 scripts/aes_sec_002_aggregate.py \
+            "${EXTRA_ARGS[@]}" \
+            --format markdown \
+            --output aes-sec-002-ecosystem.md
+
+      - name: Add reports to job summary
+        run: |
+          cat aes-sec-002-local.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n' >> "$GITHUB_STEP_SUMMARY"
+          cat aes-sec-002-ecosystem.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reporting evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-sec-002-reporting-${{ github.run_id }}
+          path: |
+            aes-sec-002-local.json
+            aes-sec-002-local.md
+            aes-sec-002-ecosystem.json
+            aes-sec-002-ecosystem.md
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,1004 @@
+{
+  "baseline_date": "2026-07-26",
+  "blocking_enforcement": false,
+  "entries": [
+    {
+      "applicability": "in-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "The current implementation crosses Swift 6 and C, owns SQLCipher key material, imports encrypted catalogues, and supports Linux/ELF plus Apple/Mach-O targets.",
+      "report": {
+        "applicability": "in-scope",
+        "applicability_rationale": "The current implementation crosses Swift 6 and C, owns SQLCipher key material, imports encrypted catalogues, and supports Linux/ELF plus Apple/Mach-O targets.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is classified in scope, but source scanning was not requested for this applicability-only run.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "review",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "untested"
+          }
+        ],
+        "languages": [
+          "c17",
+          "swift-6"
+        ],
+        "mode": "reporting",
+        "platforms": [
+          "apple-macho",
+          "linux-elf"
+        ],
+        "profile_path": "docs/engineering/SECURITY-BOUNDARIES.md",
+        "repository": "dlworrell/audiblebooks",
+        "result": "REPORTED",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 0,
+          "present": 0,
+          "untested": 1,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/audiblebooks",
+      "role": "initial-proving-implementation",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "not-yet-classified",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "The implemented foundation is a C++ process bridge with no safe-language FFI, key lifecycle, or encrypted store. Planned M1 scene bridge packages may carry confidential production data, so applicability must be reassessed when translation and staging land.",
+      "report": {
+        "applicability": "not-yet-classified",
+        "applicability_rationale": "The implemented foundation is a C++ process bridge with no safe-language FFI, key lifecycle, or encrypted store. Planned M1 scene bridge packages may carry confidential production data, so applicability must be reassessed when translation and staging land.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Applicability classification remains open: The implemented foundation is a C++ process bridge with no safe-language FFI, key lifecycle, or encrypted store. Planned M1 scene bridge packages may carry confidential production data, so applicability must be reassessed when translation and staging land.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "review",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "untested"
+          }
+        ],
+        "languages": [
+          "c++17",
+          "python-2.7-probe"
+        ],
+        "mode": "reporting",
+        "platforms": [
+          "apple-macho",
+          "linux-elf",
+          "windows-pe"
+        ],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/MayaUSD2017Bridge",
+        "result": "CLASSIFICATION_REQUIRED",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 0,
+          "present": 0,
+          "untested": 1,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/MayaUSD2017Bridge",
+      "role": "native-cpp-compatibility-bridge",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "not-yet-classified",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "Application architecture, language boundaries, secret material, and confidential local-storage behavior have not yet been inventoried against AES-SEC-002.",
+      "report": {
+        "applicability": "not-yet-classified",
+        "applicability_rationale": "Application architecture, language boundaries, secret material, and confidential local-storage behavior have not yet been inventoried against AES-SEC-002.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Applicability classification remains open: Application architecture, language boundaries, secret material, and confidential local-storage behavior have not yet been inventoried against AES-SEC-002.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "review",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "untested"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/JAG",
+        "result": "CLASSIFICATION_REQUIRED",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 0,
+          "present": 0,
+          "untested": 1,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/JAG",
+      "role": "application-project",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "AEMS currently consists of Python reporting tools and documentation; it has no memory-safe/native ABI, secret lifecycle, or confidential encrypted local store.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "AEMS currently consists of Python reporting tools and documentation; it has no memory-safe/native ABI, secret lifecycle, or confidential encrypted local store.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: AEMS currently consists of Python reporting tools and documentation; it has no memory-safe/native ABI, secret lifecycle, or confidential encrypted local store.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/AEMS",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/AEMS",
+      "role": "enforcement-orchestrator",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "Catylist is governance and schema tooling without a safe/native ABI, secret lifecycle, or confidential encrypted local store.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "Catylist is governance and schema tooling without a safe/native ABI, secret lifecycle, or confidential encrypted local store.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: Catylist is governance and schema tooling without a safe/native ABI, secret lifecycle, or confidential encrypted local store.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/Catylist",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/Catylist",
+      "role": "ecosystem-governance",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "AES owns the standard but does not currently implement an application boundary covered by it.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "AES owns the standard but does not currently implement an application boundary covered by it.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: AES owns the standard but does not currently implement an application boundary covered by it.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/AES",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/AES",
+      "role": "engineering-standards-authority",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "P0 currently contains bootstrap documentation and no covered ABI, secret, or encrypted-storage boundary.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "P0 currently contains bootstrap documentation and no covered ABI, secret, or encrypted-storage boundary.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: P0 currently contains bootstrap documentation and no covered ABI, secret, or encrypted-storage boundary.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/P0",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/P0",
+      "role": "bootstrap-repository",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "Repository templates may distribute future controls but do not themselves implement a covered application boundary.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "Repository templates may distribute future controls but do not themselves implement a covered application boundary.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: Repository templates may distribute future controls but do not themselves implement a covered application boundary.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/repo_templates",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/repo_templates",
+      "role": "template-source",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "Current Atarix code is native C/RTL without a memory-safe-language FFI, application secret lifecycle, or encrypted confidential local store; AES-SEC-001 remains applicable.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "Current Atarix code is native C/RTL without a memory-safe-language FFI, application secret lifecycle, or encrypted confidential local store; AES-SEC-001 remains applicable.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: Current Atarix code is native C/RTL without a memory-safe-language FFI, application secret lifecycle, or encrypted confidential local store; AES-SEC-001 remains applicable.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/atarix",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/atarix",
+      "role": "system-project",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "EVO is a native library with no currently declared safe/native ABI consumer, secret lifecycle, or encrypted store.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "EVO is a native library with no currently declared safe/native ABI consumer, secret lifecycle, or encrypted store.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: EVO is a native library with no currently declared safe/native ABI consumer, secret lifecycle, or encrypted store.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/evo",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/evo",
+      "role": "evolutionary-optimization-library",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "Experimental native programs are covered by AES-SEC-001; no AES-SEC-002 boundary is currently declared.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "Experimental native programs are covered by AES-SEC-001; no AES-SEC-002 boundary is currently declared.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: Experimental native programs are covered by AES-SEC-001; no AES-SEC-002 boundary is currently declared.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/code-noodling",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/code-noodling",
+      "role": "experimental-native-code",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "The documentation toolchain has no declared safe/native ABI, secret lifecycle, or encrypted confidential local store.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "The documentation toolchain has no declared safe/native ABI, secret lifecycle, or encrypted confidential local store.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: The documentation toolchain has no declared safe/native ABI, secret lifecycle, or encrypted confidential local store.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/engineering-docs-toolkit",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/engineering-docs-toolkit",
+      "role": "documentation-tooling",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "The publication project has no declared safe/native ABI, secret lifecycle, or encrypted confidential local store.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "The publication project has no declared safe/native ABI, secret lifecycle, or encrypted confidential local store.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: The publication project has no declared safe/native ABI, secret lifecycle, or encrypted confidential local store.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/herkules-1934-english",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/herkules-1934-english",
+      "role": "documentation-and-build-book",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "The administrative repository has no covered application implementation.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "The administrative repository has no covered application implementation.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: The administrative repository has no covered application implementation.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/Just-a-Geek-LLC",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/Just-a-Geek-LLC",
+      "role": "organization-governance",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "project-owned",
+      "rationale": "No safe/native ABI, secret lifecycle, or confidential encrypted local store is declared in the current demo.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "No safe/native ABI, secret lifecycle, or confidential encrypted local store is declared in the current demo.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: No safe/native ABI, secret lifecycle, or confidential encrypted local store is declared in the current demo.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/Rocket_demo",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/Rocket_demo",
+      "role": "demo-project",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "external-reference",
+      "rationale": "External/reference processor material is not a Catalyst-owned application boundary.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "External/reference processor material is not a Catalyst-owned application boundary.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: External/reference processor material is not a Catalyst-owned application boundary.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/65x02",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/65x02",
+      "role": "processor-and-tooling-reference",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "external-reference",
+      "rationale": "External/reference hardware material is not a Catalyst-owned application boundary.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "External/reference hardware material is not a Catalyst-owned application boundary.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: External/reference hardware material is not a Catalyst-owned application boundary.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/BB816-MATX-PCIE",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/BB816-MATX-PCIE",
+      "role": "hardware-platform-reference",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "external-reference",
+      "rationale": "External/reference FPGA material is not a Catalyst-owned application boundary.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "External/reference FPGA material is not a Catalyst-owned application boundary.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: External/reference FPGA material is not a Catalyst-owned application boundary.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/ulx3s",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/ulx3s",
+      "role": "fpga-platform-reference",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "external-reference",
+      "rationale": "External/reference system material is not a Catalyst-owned application boundary.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "External/reference system material is not a Catalyst-owned application boundary.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: External/reference system material is not a Catalyst-owned application boundary.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/Vega816",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/Vega816",
+      "role": "system-hardware-reference",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "third-party-mirror-or-fork",
+      "rationale": "A third-party C-library mirror is not rewritten as a Catalyst application boundary.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "A third-party C-library mirror is not rewritten as a Catalyst application boundary.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: A third-party C-library mirror is not rewritten as a Catalyst application boundary.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/cglm",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/cglm",
+      "role": "third-party-c-library",
+      "source": null,
+      "status": "classification-only"
+    },
+    {
+      "applicability": "out-of-scope",
+      "error": null,
+      "ownership": "third-party-mirror-or-fork",
+      "rationale": "A third-party emulator mirror is not rewritten as a Catalyst application boundary.",
+      "report": {
+        "applicability": "out-of-scope",
+        "applicability_rationale": "A third-party emulator mirror is not rewritten as a Catalyst application boundary.",
+        "findings": [
+          {
+            "domain": "Applicability",
+            "evidence": [],
+            "evidence_path": "none",
+            "message": "Repository is out of scope: A third-party emulator mirror is not rewritten as a Catalyst application boundary.",
+            "rule_id": "AES-SEC-002-SCOPE-001",
+            "severity": "informational",
+            "standard": "AES-SEC-002",
+            "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+            "standard_url": "https://github.com/dlworrell/AES/blob/main/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#purpose",
+            "status": "not-applicable"
+          }
+        ],
+        "languages": [],
+        "mode": "reporting",
+        "platforms": [],
+        "profile_path": "docs/engineering/AES-SEC-002-boundaries.md",
+        "repository": "dlworrell/CLK",
+        "result": "NOT_APPLICABLE",
+        "root": "not-scanned",
+        "schema_version": "1.0.0",
+        "source_revision": null,
+        "standard": "AES-SEC-002",
+        "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+        "summary": {
+          "absent-evidence": 0,
+          "not-applicable": 1,
+          "present": 0,
+          "untested": 0,
+          "violation": 0
+        }
+      },
+      "repository": "dlworrell/CLK",
+      "role": "third-party-emulator",
+      "source": null,
+      "status": "classification-only"
+    }
+  ],
+  "mode": "reporting",
+  "owner": "AEMS",
+  "schema_version": "1.0.0",
+  "standard": "AES-SEC-002",
+  "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+  "standard_repository": "dlworrell/AES",
+  "summary": {
+    "absent_evidence_count": 0,
+    "classification_only_count": 21,
+    "in_scope_count": 1,
+    "not_applicable_finding_count": 18,
+    "not_yet_classified_count": 2,
+    "out_of_scope_count": 18,
+    "repository_count": 21,
+    "scanned_count": 0,
+    "untested_checkout_count": 0,
+    "untested_finding_count": 3,
+    "violation_count": 0
+  }
+}

@@ -1,0 +1,206 @@
+{
+  "standard": "AES-SEC-002",
+  "standard_repository": "dlworrell/AES",
+  "standard_path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+  "mode": "reporting",
+  "baseline_date": "2026-07-26",
+  "owner": "AEMS",
+  "policy": {
+    "applicability_values": [
+      "in-scope",
+      "out-of-scope",
+      "not-yet-classified"
+    ],
+    "blocking_enforcement": false,
+    "ratchet_prerequisites": [
+      "retained baseline",
+      "affected-repository migration window",
+      "operational waiver representation",
+      "reviewed high-signal detectors",
+      "separate Catylist and AES policy decision"
+    ],
+    "third_party_policy": "Inventory external references and mirrors, but do not impose project-owned policy changes."
+  },
+  "repositories": [
+    {
+      "full_name": "dlworrell/audiblebooks",
+      "role": "initial-proving-implementation",
+      "ownership": "project-owned",
+      "applicability": "in-scope",
+      "rationale": "The current implementation crosses Swift 6 and C, owns SQLCipher key material, imports encrypted catalogues, and supports Linux/ELF plus Apple/Mach-O targets.",
+      "languages": [
+        "c17",
+        "swift-6"
+      ],
+      "platforms": [
+        "apple-macho",
+        "linux-elf"
+      ],
+      "profile_path": "docs/engineering/SECURITY-BOUNDARIES.md",
+      "waiver_path": "docs/engineering/SECURITY-BOUNDARIES.md",
+      "bridge_paths": [
+        "src/apple/App/CatalogueClient.swift"
+      ],
+      "ffi_symbol_prefixes": [
+        "ab_"
+      ],
+      "secret_material": true,
+      "history_migration": "deferred",
+      "evidence": [
+        "https://github.com/dlworrell/audiblebooks/pull/8",
+        "https://github.com/dlworrell/audiblebooks/blob/feature/private-encrypted-restore-20260726/docs/evidence/SECURITY-BOUNDARY-001.md"
+      ]
+    },
+    {
+      "full_name": "dlworrell/MayaUSD2017Bridge",
+      "role": "native-cpp-compatibility-bridge",
+      "ownership": "project-owned",
+      "applicability": "not-yet-classified",
+      "rationale": "The implemented foundation is a C++ process bridge with no safe-language FFI, key lifecycle, or encrypted store. Planned M1 scene bridge packages may carry confidential production data, so applicability must be reassessed when translation and staging land.",
+      "languages": [
+        "c++17",
+        "python-2.7-probe"
+      ],
+      "platforms": [
+        "apple-macho",
+        "linux-elf",
+        "windows-pe"
+      ],
+      "classification_trigger": "M1 scene import/export or any persisted bridge package"
+    },
+    {
+      "full_name": "dlworrell/JAG",
+      "role": "application-project",
+      "ownership": "project-owned",
+      "applicability": "not-yet-classified",
+      "rationale": "Application architecture, language boundaries, secret material, and confidential local-storage behavior have not yet been inventoried against AES-SEC-002.",
+      "classification_trigger": "documented application boundary and storage inventory"
+    },
+    {
+      "full_name": "dlworrell/AEMS",
+      "role": "enforcement-orchestrator",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "AEMS currently consists of Python reporting tools and documentation; it has no memory-safe/native ABI, secret lifecycle, or confidential encrypted local store."
+    },
+    {
+      "full_name": "dlworrell/Catylist",
+      "role": "ecosystem-governance",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "Catylist is governance and schema tooling without a safe/native ABI, secret lifecycle, or confidential encrypted local store."
+    },
+    {
+      "full_name": "dlworrell/AES",
+      "role": "engineering-standards-authority",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "AES owns the standard but does not currently implement an application boundary covered by it."
+    },
+    {
+      "full_name": "dlworrell/P0",
+      "role": "bootstrap-repository",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "P0 currently contains bootstrap documentation and no covered ABI, secret, or encrypted-storage boundary."
+    },
+    {
+      "full_name": "dlworrell/repo_templates",
+      "role": "template-source",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "Repository templates may distribute future controls but do not themselves implement a covered application boundary."
+    },
+    {
+      "full_name": "dlworrell/atarix",
+      "role": "system-project",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "Current Atarix code is native C/RTL without a memory-safe-language FFI, application secret lifecycle, or encrypted confidential local store; AES-SEC-001 remains applicable."
+    },
+    {
+      "full_name": "dlworrell/evo",
+      "role": "evolutionary-optimization-library",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "EVO is a native library with no currently declared safe/native ABI consumer, secret lifecycle, or encrypted store."
+    },
+    {
+      "full_name": "dlworrell/code-noodling",
+      "role": "experimental-native-code",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "Experimental native programs are covered by AES-SEC-001; no AES-SEC-002 boundary is currently declared."
+    },
+    {
+      "full_name": "dlworrell/engineering-docs-toolkit",
+      "role": "documentation-tooling",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "The documentation toolchain has no declared safe/native ABI, secret lifecycle, or encrypted confidential local store."
+    },
+    {
+      "full_name": "dlworrell/herkules-1934-english",
+      "role": "documentation-and-build-book",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "The publication project has no declared safe/native ABI, secret lifecycle, or encrypted confidential local store."
+    },
+    {
+      "full_name": "dlworrell/Just-a-Geek-LLC",
+      "role": "organization-governance",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "The administrative repository has no covered application implementation."
+    },
+    {
+      "full_name": "dlworrell/Rocket_demo",
+      "role": "demo-project",
+      "ownership": "project-owned",
+      "applicability": "out-of-scope",
+      "rationale": "No safe/native ABI, secret lifecycle, or confidential encrypted local store is declared in the current demo."
+    },
+    {
+      "full_name": "dlworrell/65x02",
+      "role": "processor-and-tooling-reference",
+      "ownership": "external-reference",
+      "applicability": "out-of-scope",
+      "rationale": "External/reference processor material is not a Catalyst-owned application boundary."
+    },
+    {
+      "full_name": "dlworrell/BB816-MATX-PCIE",
+      "role": "hardware-platform-reference",
+      "ownership": "external-reference",
+      "applicability": "out-of-scope",
+      "rationale": "External/reference hardware material is not a Catalyst-owned application boundary."
+    },
+    {
+      "full_name": "dlworrell/ulx3s",
+      "role": "fpga-platform-reference",
+      "ownership": "external-reference",
+      "applicability": "out-of-scope",
+      "rationale": "External/reference FPGA material is not a Catalyst-owned application boundary."
+    },
+    {
+      "full_name": "dlworrell/Vega816",
+      "role": "system-hardware-reference",
+      "ownership": "external-reference",
+      "applicability": "out-of-scope",
+      "rationale": "External/reference system material is not a Catalyst-owned application boundary."
+    },
+    {
+      "full_name": "dlworrell/cglm",
+      "role": "third-party-c-library",
+      "ownership": "third-party-mirror-or-fork",
+      "applicability": "out-of-scope",
+      "rationale": "A third-party C-library mirror is not rewritten as a Catalyst application boundary."
+    },
+    {
+      "full_name": "dlworrell/CLK",
+      "role": "third-party-emulator",
+      "ownership": "third-party-mirror-or-fork",
+      "applicability": "out-of-scope",
+      "rationale": "A third-party emulator mirror is not rewritten as a Catalyst application boundary."
+    }
+  ]
+}

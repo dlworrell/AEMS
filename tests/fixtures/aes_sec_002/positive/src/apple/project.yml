@@ -1,0 +1,9 @@
+settings:
+  SWIFT_VERSION: 6.0
+  SWIFT_STRICT_CONCURRENCY: complete
+  ENABLE_APP_SANDBOX: YES
+  ENABLE_HARDENED_RUNTIME: YES
+  ENABLE_USER_SELECTED_FILES: readonly
+dependencies:
+  SQLCipher:
+    exactVersion: 4.17.0

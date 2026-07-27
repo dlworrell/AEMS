@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "graph_id": "AEMS-P0-TRACE-001",
+  "owner_repository": "dlworrell/AEMS",
+  "nodes": [
+    {
+      "id": "artifact:dlworrell/Catylist:CAT-001",
+      "artifact_class": "governance",
+      "title": "Catalyst engineering ecosystem authority",
+      "repository": "dlworrell/Catylist",
+      "url": "https://github.com/dlworrell/Catylist/blob/main/docs/architecture/CAT-001-Catalyst-System-Architecture.md",
+      "authority": "canonical",
+      "status": "adopted"
+    },
+    {
+      "id": "artifact:dlworrell/AES:AES-002",
+      "artifact_class": "standard",
+      "title": "Project Zero Standard",
+      "repository": "dlworrell/AES",
+      "url": "https://github.com/dlworrell/AES/blob/main/docs/standards/AES-002-project-zero-standard.md",
+      "authority": "canonical",
+      "status": "draft-complete"
+    },
+    {
+      "id": "issue:dlworrell/AEMS#3",
+      "artifact_class": "issue",
+      "title": "Implement Project Zero state-machine engine",
+      "repository": "dlworrell/AEMS",
+      "url": "https://github.com/dlworrell/AEMS/issues/3",
+      "authority": "reference",
+      "status": "open"
+    },
+    {
+      "id": "file:dlworrell/AEMS@main:scripts/aems_project_zero.py",
+      "artifact_class": "implementation",
+      "title": "AEMS Project Zero command",
+      "repository": "dlworrell/AEMS",
+      "path": "scripts/aems_project_zero.py",
+      "authority": "canonical",
+      "status": "implemented"
+    },
+    {
+      "id": "file:dlworrell/AEMS@main:tests/test_project_zero.py",
+      "artifact_class": "test",
+      "title": "Project Zero deterministic lifecycle tests",
+      "repository": "dlworrell/AEMS",
+      "path": "tests/test_project_zero.py",
+      "authority": "canonical",
+      "status": "implemented"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel:AEMS-P0-TRACE-001:0001",
+      "type": "governs",
+      "source": "artifact:dlworrell/Catylist:CAT-001",
+      "target": "artifact:dlworrell/AES:AES-002"
+    },
+    {
+      "id": "rel:AEMS-P0-TRACE-001:0002",
+      "type": "tracks",
+      "source": "issue:dlworrell/AEMS#3",
+      "target": "artifact:dlworrell/AES:AES-002"
+    },
+    {
+      "id": "rel:AEMS-P0-TRACE-001:0003",
+      "type": "implements",
+      "source": "file:dlworrell/AEMS@main:scripts/aems_project_zero.py",
+      "target": "artifact:dlworrell/AES:AES-002"
+    },
+    {
+      "id": "rel:AEMS-P0-TRACE-001:0004",
+      "type": "verifies",
+      "source": "file:dlworrell/AEMS@main:tests/test_project_zero.py",
+      "target": "file:dlworrell/AEMS@main:scripts/aems_project_zero.py"
+    }
+  ]
+}
