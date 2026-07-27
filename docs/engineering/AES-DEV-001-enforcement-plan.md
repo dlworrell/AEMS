@@ -1,12 +1,12 @@
 # AES-DEV-001 Enforcement Plan
 
-Status: Initial
+Status: Clean reporting ratchet established
 Owner: AEMS
 Issue: #7
 
 ## Purpose
 
-This document describes the first enforcement layer for `AES-DEV-001: Development Principles and Check-In Discipline`.
+This document describes the implemented enforcement layer for `AES-DEV-001: Development Principles and Check-In Discipline`.
 
 AES-DEV-001 applies across project-owned repositories. It covers development process, architecture governance, documentation-first discipline, curl-style check-in behavior, observability, recovery, ADRs, and authority-model documentation.
 
@@ -22,7 +22,9 @@ AEMS enforcement proceeds in five stages:
 4. Report gaps without blocking legacy work.
 5. Preserve a first ecosystem baseline and ratchet future changes toward required evidence.
 
-The first scanner is evidence-oriented. It does not attempt to prove architectural correctness.
+The scanner is evidence-oriented. It does not attempt to prove architectural
+correctness. The corrected Catalyst-tree baseline currently reports zero
+evidence gaps.
 
 ## Local Scanner
 
@@ -58,7 +60,8 @@ JSON output:
 python3 scripts/aes_dev_001_scan.py . --repo-name dlworrell/AEMS --format json
 ```
 
-Strict mode exists only for future ratcheting. In the initial phase it should not be used to block legacy repositories for missing evidence.
+Strict mode exists for deliberate future ratcheting. The clean reporting
+baseline does not retroactively block legacy repositories.
 
 ## Aggregate Runner
 
@@ -97,7 +100,8 @@ Manual use from AEMS:
 python3 scripts/aes_dev_001_aggregate.py --format markdown
 ```
 
-The initial reporting gate fails only on checkout or scanner failure. Evidence gaps are reported, not hard failures.
+The reporting gate fails only on checkout or scanner failure. Evidence gaps
+are reported separately from infrastructure failures.
 
 ## Repository Manifest
 
@@ -130,7 +134,11 @@ A repository's authoritative development, specification, and ADR documentation m
 - `transitional`: currently centralized elsewhere pending later migration;
 - `external`: owned by an upstream third-party project.
 
-The current ecosystem is intentionally transitional. Much of the project architecture documentation still lives in `dlworrell/atarix`. That should be recorded as delegated or transitional documentation authority rather than misreported as ordinary missing documentation.
+The former transitional inventory has been reconciled. Atarix architecture
+remains owned by `dlworrell/atarix`; AEMS owns enforcement and evidence;
+AES owns standards; and other project repositories own their local
+specifications and decisions according to the manifest. No bulk document move
+is authorized by this plan.
 
 The first ratchet rule is therefore:
 
@@ -172,19 +180,36 @@ dlworrell/atarix/docs/engineering/ATARIX-DEV-001-development-principles.md
 
 Local profiles extend the ecosystem standard. They should not weaken it without an ADR or waiver.
 
-## Minimum Initial Reporting Gate
+## Current Reporting Gate
 
-The initial AEMS reporting gate passes when:
+The AEMS reporting gate passes when:
 
 - repositories can be checked out;
 - scans complete;
 - report artifacts are produced.
 
-Evidence gaps do not initially fail the gate.
+Evidence gaps remain visible and do not automatically fail the gate. The
+retained clean baseline is the reference point for reviewing new gaps.
+
+## Retained Evidence
+
+The implemented state is supported by:
+
+```text
+docs/engineering/reports/AES-DEV-001-role-aware-baseline-2026-07-06.md
+docs/engineering/reports/AES-DEV-001-local-profile-adoption-2026-07-06.md
+docs/engineering/reports/AES-DEV-001-clean-ratchet-2026-07-06.md
+docs/engineering/reports/AES-DEV-001-migration-decision-rollup-2026-07-06.md
+docs/engineering/reports/AES-DEV-001-issue-7-closure-2026-07-26.md
+```
+
+Together these artifacts record ownership correction, role-aware scanning,
+required profile adoption, zero outstanding evidence gaps, and the decision
+to leave already-correct documents with their repository owners.
 
 ## Future Ratchet
 
-AEMS should later ratchet toward stronger enforcement:
+AEMS may ratchet toward stronger enforcement when the signal is stable:
 
 1. Require documentation authority declarations in project-owned repositories.
 2. Require local development profiles in project-owned repositories where the manifest says they are required.
