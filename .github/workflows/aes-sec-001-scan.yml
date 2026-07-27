@@ -28,7 +28,9 @@ on:
       - "docs/engineering/AES-SEC-001-enforcement-plan.md"
       - "scripts/aes_sec_001_scan.py"
       - "scripts/aes_sec_001_aggregate.py"
+      - "scripts/github_checkout.py"
       - "config/aes-sec-001-repositories.json"
+      - "tests/test_ecosystem_checkout.py"
       - ".github/workflows/aes-sec-001-scan.yml"
   push:
     branches:
@@ -89,6 +91,9 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Test ecosystem checkout controls
+        run: python3 -m unittest tests.test_ecosystem_checkout -v
+
       - name: Show scanner help
         run: python3 scripts/aes_sec_001_scan.py --help
 
@@ -146,7 +151,7 @@ jobs:
   scan-ecosystem:
     name: Scan ecosystem manifest
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ecosystem_scan == 'true' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.ecosystem_scan == 'true' }}
 
     steps:
       - name: Check out AEMS
@@ -161,6 +166,8 @@ jobs:
         run: python3 scripts/aes_sec_001_aggregate.py --help
 
       - name: Run ecosystem scan as JSON
+        env:
+          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           EXTRA_ARGS=()
           if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
@@ -178,6 +185,8 @@ jobs:
             > aes-sec-001-ecosystem.json
 
       - name: Run ecosystem scan as Markdown
+        env:
+          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           EXTRA_ARGS=()
           if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
@@ -208,6 +217,8 @@ jobs:
 
       - name: Enforce ecosystem strict gate
         if: ${{ github.event.inputs.strict == 'true' }}
+        env:
+          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           EXTRA_ARGS=()
           if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
@@ -221,4 +232,5 @@ jobs:
             --manifest config/aes-sec-001-repositories.json \
             --work-dir "$RUNNER_TEMP/aes-sec-001-checkouts" \
             --strict \
+            --require-github-token \
             "${EXTRA_ARGS[@]}"
