@@ -193,16 +193,27 @@ class GitHubCheckoutTests(unittest.TestCase):
                     workflow,
                 )
                 self.assertIn(
-                    "github.event_name != 'pull_request' && "
-                    "secrets.AEMS_ECOSYSTEM_TOKEN || ''",
+                    "(github.event_name != 'pull_request' || "
+                    "github.event.pull_request.head.repo.full_name == "
+                    "github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || ''",
                     workflow,
                 )
                 self.assertEqual(
                     workflow.count(
-                        "github.event_name != 'pull_request' && "
-                        "secrets.AEMS_ECOSYSTEM_TOKEN || ''"
+                        "(github.event_name != 'pull_request' || "
+                        "github.event.pull_request.head.repo.full_name == "
+                        "github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || ''"
                     ),
                     3,
+                )
+                self.assertIn(
+                    "github.event_name != 'workflow_dispatch' ||",
+                    workflow,
+                )
+                self.assertIn(
+                    "github.event.pull_request.head.repo.full_name == "
+                    "github.repository",
+                    workflow,
                 )
                 self.assertIn("--require-github-token", workflow)
                 self.assertIn(

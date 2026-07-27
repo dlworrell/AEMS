@@ -104,12 +104,55 @@ BANNED_APIS = {
 DANGEROUS_PRIMITIVES = {
     "memcpy",
     "memmove",
+    "memset",
     "strncpy",
+    "strncat",
     "snprintf",
     "malloc",
     "calloc",
     "realloc",
     "free",
+}
+
+API_REMEDIATIONS = {
+    "gets": "Use fgets with the destination capacity and validate truncation.",
+    "strcpy": (
+        "Use an explicit-length copy, a reviewed bounded wrapper, or strlcpy "
+        "where that non-standard interface is available."
+    ),
+    "strcat": (
+        "Track remaining capacity explicitly and use a reviewed bounded append "
+        "wrapper or strlcat where available."
+    ),
+    "sprintf": "Use snprintf and check its return value for truncation.",
+    "vsprintf": "Use vsnprintf and check its return value for truncation.",
+    "atoi": "Use strtol or strtoul with end-pointer, range, and error checks.",
+    "atol": "Use strtol with end-pointer, range, and error checks.",
+    "atoll": "Use strtoll with end-pointer, range, and error checks.",
+    "tmpnam": "Use a race-safe temporary-file API such as mkstemp.",
+    "mktemp": "Use mkstemp or an equivalent race-safe temporary-file API.",
+    "system": "Use an argument-vector process API and reject untrusted commands.",
+    "popen": "Use an argument-vector process API with explicit pipe ownership.",
+    "memcpy": "Use only after proving source, destination, and byte-count bounds.",
+    "memmove": "Use only after proving source, destination, and byte-count bounds.",
+    "memset": (
+        "For ordinary initialization, prove the destination bound. For secret "
+        "erasure, use explicit_bzero, memset_s where supported, or an approved "
+        "non-optimizable wrapper."
+    ),
+    "strncpy": (
+        "Do not treat strncpy as a safe string copy; use explicit bounds and "
+        "termination, memcpy for fixed-size data, or a reviewed wrapper."
+    ),
+    "strncat": (
+        "Track the destination capacity and current length explicitly; use a "
+        "reviewed bounded append wrapper or strlcat where available."
+    ),
+    "snprintf": "Check the return value and handle truncation explicitly.",
+    "malloc": "Check size arithmetic and the allocation result before use.",
+    "calloc": "Check element-count arithmetic and the allocation result before use.",
+    "realloc": "Use a temporary pointer and preserve the original allocation on failure.",
+    "free": "Centralize ownership and prevent double-free or use-after-free paths.",
 }
 
 DEFAULT_EXCLUDED_DIRS = {
@@ -131,6 +174,11 @@ DEFAULT_EXCLUDED_DIRS = {
     "__pycache__",
 }
 
+DEFAULT_EXCLUDED_PATH_PREFIXES = {
+    "examples/fixtures",
+    "tests/fixtures",
+}
+
 GENERATED_REPORT_NAMES = {
     "aes-sec-001-scan.json",
     "aes-sec-001-scan.md",
@@ -146,6 +194,7 @@ class ApiFinding:
     symbol: str
     severity: str
     text: str
+    remediation: str
 
 
 @dataclass
@@ -228,7 +277,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--format",
-        choices=("json", "markdown"),
+        choices=("json", "markdown", "github"),
         default="json",
         help="Report format. Defaults to json.",
     )
@@ -252,6 +301,12 @@ def iter_files(root: Path) -> Iterable[Path]:
         rel = path.relative_to(root)
         rel_parts = rel.parts
         if any(part in DEFAULT_EXCLUDED_DIRS for part in rel_parts[:-1]):
+            continue
+        rel_text = rel.as_posix()
+        if any(
+            rel_text == prefix or rel_text.startswith(f"{prefix}/")
+            for prefix in DEFAULT_EXCLUDED_PATH_PREFIXES
+        ):
             continue
         if rel.name in GENERATED_REPORT_NAMES:
             continue
@@ -387,12 +442,90 @@ def line_has_banned_scan_exemption(line: str) -> bool:
     return "aes-sec-001: allow" in lowered or "aes-sec-001 waiver" in lowered
 
 
+def strip_c_comments_and_literals(text: str) -> str:
+    """Replace comments and literals with spaces while preserving line numbers."""
+
+    result: list[str] = []
+    state = "code"
+    index = 0
+
+    while index < len(text):
+        char = text[index]
+        next_char = text[index + 1] if index + 1 < len(text) else ""
+
+        if state == "code":
+            if char == "/" and next_char == "/":
+                result.extend((" ", " "))
+                index += 2
+                state = "line-comment"
+                continue
+            if char == "/" and next_char == "*":
+                result.extend((" ", " "))
+                index += 2
+                state = "block-comment"
+                continue
+            if char == '"':
+                result.append(" ")
+                index += 1
+                state = "string"
+                continue
+            if char == "'":
+                result.append(" ")
+                index += 1
+                state = "character"
+                continue
+            result.append(char)
+            index += 1
+            continue
+
+        if char == "\n":
+            result.append("\n")
+            index += 1
+            if state == "line-comment":
+                state = "code"
+            continue
+
+        if state == "line-comment":
+            result.append(" ")
+            index += 1
+            continue
+
+        if state == "block-comment":
+            if char == "*" and next_char == "/":
+                result.extend((" ", " "))
+                index += 2
+                state = "code"
+            else:
+                result.append(" ")
+                index += 1
+            continue
+
+        if state in {"string", "character"}:
+            terminator = '"' if state == "string" else "'"
+            if char == "\\":
+                result.append(" ")
+                index += 1
+                if index < len(text):
+                    escaped = text[index]
+                    result.append("\n" if escaped == "\n" else " ")
+                    index += 1
+                continue
+            result.append(" ")
+            index += 1
+            if char == terminator:
+                state = "code"
+            continue
+
+    return "".join(result)
+
+
 def scan_source_for_apis(
     root: Path, path: Path, include_dangerous_primitives: bool
 ) -> list[ApiFinding]:
     text = read_text_lossy(path)
     if text is None:
         return []
+    code = strip_c_comments_and_literals(text)
 
     symbols = set(BANNED_APIS)
     if include_dangerous_primitives:
@@ -404,13 +537,15 @@ def scan_source_for_apis(
     findings: list[ApiFinding] = []
     rel = path.relative_to(root).as_posix()
 
-    for line_number, line in enumerate(text.splitlines(), start=1):
-        stripped = line.strip()
-        if not stripped or stripped.startswith("//") or stripped.startswith("*"):
+    raw_lines = text.splitlines()
+    code_lines = code.splitlines()
+    for line_number, code_line in enumerate(code_lines, start=1):
+        if not code_line.strip():
             continue
-        if line_has_banned_scan_exemption(line):
+        raw_line = raw_lines[line_number - 1]
+        if line_has_banned_scan_exemption(raw_line):
             continue
-        for match in pattern.finditer(line):
+        for match in pattern.finditer(code_line):
             symbol = match.group(1)
             severity = "banned" if symbol in BANNED_APIS else "review-required"
             findings.append(
@@ -419,7 +554,8 @@ def scan_source_for_apis(
                     line=line_number,
                     symbol=symbol,
                     severity=severity,
-                    text=stripped[:240],
+                    text=raw_line.strip()[:240],
+                    remediation=API_REMEDIATIONS[symbol],
                 )
             )
     return findings
@@ -495,16 +631,56 @@ def format_markdown(report: ScanReport) -> str:
     ]
 
     if report.findings:
-        lines.extend(["## Findings", "", "| Severity | Symbol | Path | Line |", "|---|---:|---|---:|"])
+        lines.extend(
+            [
+                "## Findings",
+                "",
+                "| Severity | Symbol | Path | Line | Remediation |",
+                "|---|---:|---|---:|---|",
+            ]
+        )
         for finding in report.findings:
             lines.append(
-                f"| `{finding.severity}` | `{finding.symbol}` | `{finding.path}` | {finding.line} |"
+                f"| `{finding.severity}` | `{finding.symbol}` | "
+                f"`{finding.path}` | {finding.line} | {finding.remediation} |"
             )
         lines.append("")
     else:
         lines.extend(["## Findings", "", "No banned API findings were detected.", ""])
 
     return "\n".join(lines)
+
+
+def github_escape_data(value: str) -> str:
+    return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+
+def github_escape_property(value: str) -> str:
+    return (
+        github_escape_data(value)
+        .replace(":", "%3A")
+        .replace(",", "%2C")
+    )
+
+
+def format_github(report: ScanReport) -> str:
+    if not report.findings:
+        return "::notice title=AES-SEC-001::No banned or review-required API findings."
+
+    annotations: list[str] = []
+    for finding in report.findings:
+        level = "error" if finding.severity == "banned" else "warning"
+        title = github_escape_property(
+            f"AES-SEC-001 {finding.severity}: {finding.symbol}"
+        )
+        message = github_escape_data(
+            f"{finding.symbol} detected. Remedy: {finding.remediation}"
+        )
+        annotations.append(
+            f"::{level} file={github_escape_property(finding.path)},"
+            f"line={finding.line},title={title}::{message}"
+        )
+    return "\n".join(annotations)
 
 
 def main() -> int:
@@ -518,8 +694,10 @@ def main() -> int:
 
     if args.format == "json":
         print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
-    else:
+    elif args.format == "markdown":
         print(format_markdown(report))
+    else:
+        print(format_github(report))
 
     if args.strict and not report.passes_minimum_adoption_gate:
         return 1

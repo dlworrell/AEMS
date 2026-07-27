@@ -41,8 +41,8 @@
       "full_name": "dlworrell/AES",
       "role": "engineering-standards-authority",
       "ownership": "project-owned",
-      "expected_profile": true,
-      "notes": "Owns AES-SEC-001 and retains a local adoption profile for repository tooling."
+      "expected_profile": false,
+      "notes": "Owns AES-SEC-001 but has no native-code or native-build surface; a local secure-C profile is not required."
     },
     {
       "full_name": "dlworrell/65x02",

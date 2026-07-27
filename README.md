@@ -100,6 +100,13 @@ python3 scripts/aes_sec_001_native.py /path/to/repository \
   --target-config .aems/aes-sec-001-native.json
 ```
 
+Adopt the distributed fast governance control by copying
+`templates/native/.clang-tidy` to the repository root and
+`templates/workflows/aes-sec-001-governance.yml` to `.github/workflows/`.
+The caller uses AEMS's centrally maintained reusable workflow and emits
+review-required primitives as warnings while retaining the adopted banned-API
+gate.
+
 Build the non-blocking AES-SEC-002 applicability report:
 
 ```sh
@@ -143,6 +150,9 @@ are not scanned by default.
 - `scripts/aes_sec_001_aggregate.py`: ecosystem security report runner;
 - `scripts/aes_sec_001_native.py`: native control discovery and explicit
   control/fuzz execution;
+- `.clang-tidy`, `.github/actions/aes-sec-001/`, and
+  `.github/workflows/aes-sec-001-distributed.yml`: the distributed
+  Clang-Tidy and fast banned-API governance control;
 - `scripts/aes_sec_002_scan.py` and `scripts/aes_sec_002_aggregate.py`:
   non-blocking applicability and detector reports;
 - `templates/`: opt-in native build and workflow presets;

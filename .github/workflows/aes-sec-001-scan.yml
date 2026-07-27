@@ -26,6 +26,7 @@ on:
       - "docs/engineering/SECURE-C-CXX.md"
       - "docs/engineering/AES-SEC-001-waivers.md"
       - "docs/engineering/AES-SEC-001-enforcement-plan.md"
+      - ".clang-tidy"
       - "scripts/aes_sec_001_scan.py"
       - "scripts/aes_sec_001_aggregate.py"
       - "scripts/aes_sec_001_native.py"
@@ -34,8 +35,12 @@ on:
       - "config/aes-sec-001-native-profiles.json"
       - "templates/native/**"
       - "templates/workflows/aes-sec-001-native.yml"
+      - "templates/workflows/aes-sec-001-governance.yml"
+      - "tests/test_aes_sec_001_scan.py"
       - "tests/test_aes_sec_001_native.py"
       - "tests/test_ecosystem_checkout.py"
+      - ".github/actions/aes-sec-001/action.yml"
+      - ".github/workflows/aes-sec-001-distributed.yml"
       - ".github/workflows/aes-sec-001-scan.yml"
   push:
     branches:
@@ -45,7 +50,7 @@ on:
       include_dangerous_primitives:
         description: "Also report review-required dangerous primitives such as memcpy/malloc/free/snprintf."
         required: false
-        default: "false"
+        default: "true"
         type: choice
         options:
           - "false"
@@ -96,8 +101,22 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Install Clang-Tidy
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang-tidy
+
+      - name: Validate distributed Clang-Tidy configurations
+        run: |
+          cmp .clang-tidy templates/native/.clang-tidy
+          clang-tidy --verify-config --config-file=.clang-tidy
+          clang-tidy --verify-config --config-file=templates/native/.clang-tidy
+
       - name: Test ecosystem checkout controls
         run: python3 -m unittest tests.test_ecosystem_checkout -v
+
+      - name: Test banned-API filtering
+        run: python3 -m unittest tests.test_aes_sec_001_scan -v
 
       - name: Show scanner help
         run: |
@@ -110,7 +129,7 @@ jobs:
       - name: Run AES-SEC-001 scanner as JSON
         run: |
           EXTRA_ARGS=()
-          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-dangerous-primitives")
           fi
 
@@ -123,7 +142,7 @@ jobs:
       - name: Run AES-SEC-001 scanner as Markdown
         run: |
           EXTRA_ARGS=()
-          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-dangerous-primitives")
           fi
 
@@ -162,7 +181,7 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.strict == 'true' }}
         run: |
           EXTRA_ARGS=()
-          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-dangerous-primitives")
           fi
 
@@ -190,10 +209,10 @@ jobs:
 
       - name: Run ecosystem scan as JSON
         env:
-          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
+          AEMS_ECOSYSTEM_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           EXTRA_ARGS=()
-          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-dangerous-primitives")
           fi
           if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
@@ -210,10 +229,10 @@ jobs:
 
       - name: Run ecosystem scan as Markdown
         env:
-          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
+          AEMS_ECOSYSTEM_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           EXTRA_ARGS=()
-          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-dangerous-primitives")
           fi
           if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
@@ -241,12 +260,12 @@ jobs:
           if-no-files-found: error
 
       - name: Enforce ecosystem strict gate
-        if: ${{ github.event.inputs.strict == 'true' }}
+        if: ${{ (github.event_name != 'workflow_dispatch' || github.event.inputs.strict == 'true') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         env:
-          AEMS_ECOSYSTEM_TOKEN: ${{ github.event_name != 'pull_request' && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
+          AEMS_ECOSYSTEM_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.AEMS_ECOSYSTEM_TOKEN || '' }}
         run: |
           EXTRA_ARGS=()
-          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-dangerous-primitives")
           fi
           if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
