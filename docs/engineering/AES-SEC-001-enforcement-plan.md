@@ -327,6 +327,46 @@ docs/engineering/AES-SEC-001-waivers.md
 
 This file must exist even when there are no approved waivers. An empty waiver log should say that no waivers are currently approved.
 
+## Review-Disposition Ledger
+
+Review-required primitives are tracked separately from waivers at:
+
+```text
+docs/engineering/AES-SEC-001-review-dispositions.json
+```
+
+The versioned format is defined by:
+
+```text
+schemas/aes-sec-001-review-dispositions-v1.schema.json
+```
+
+Each scanner finding has two deterministic identities:
+
+- `finding_id` identifies the repository path, symbol, and symbol occurrence.
+  It remains stable when unrelated lines move.
+- `source_fingerprint` covers the normalized call expression. Whitespace and
+  comments do not change it, but a changed call invalidates the prior review.
+
+A disposition records the repository, symbol, path, evidence locator,
+classification, rationale, applicable invariant, evidence, owner, reviewer,
+review date, reassessment date, and any resolution commit. The permitted
+classifications are `approved-invariant`, `wrapper-required`,
+`replacement-planned`, `fix-required`, and `resolved`.
+
+The scanner reports current totals plus reviewed, unresolved, new,
+source-drifted, and stale counts. `--strict-review-ratchet` enables the local
+blocking gate. The aggregate equivalent is `--enforce-review-ratchet`.
+Both remain opt-in until the retained ecosystem baseline is dispositioned.
+`unresolved` is the blocking total and includes the `new` and
+`source-drifted` subsets; `stale` counts tracked non-resolved entries whose
+finding is no longer present.
+
+An approved disposition documents why a review-required operation conforms or
+what work remains. It does not suppress the finding, create a waiver, or
+convert the operation into a banned API. A true exception to an AES rule must
+still use the waiver process.
+
 ## Repository Manifest
 
 The repository manifest is:
@@ -368,12 +408,21 @@ reconciled at:
 docs/engineering/reports/AES-SEC-001-control-profile-rollup-2026-07-26.md
 ```
 
+The first expanded review-required inventory is retained at:
+
+```text
+docs/engineering/reports/AES-SEC-001-review-required-baseline-2026-07-27.md
+```
+
 Remaining ratchets are deliberately narrower:
 
 - adopt the selected profile and workflow in each active native repository
   through repository-owned changes;
-- classify review-required primitives by wrapper, invariant, or planned
-  replacement;
+- migrate the retained review-required primitives into repository-owned
+  disposition ledgers, in the order `evo`, `code-noodling`, `audiblebooks`,
+  then `atarix`;
+- enable `--strict-review-ratchet` only after that migration is complete, so
+  new, unresolved, source-drifted, or stale findings block;
 - baseline Clang-Tidy reporting before promoting additional diagnostics; and
 - baseline newly enrolled repositories before enabling a blocking gate.
 
