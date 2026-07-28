@@ -19,15 +19,30 @@ standard Python 3 interpreter is available.
 from __future__ import annotations
 
 import argparse
+import bisect
+import hashlib
 import json
 import re
 import sys
+from collections import Counter
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 from typing import Iterable
 
 SECURE_PROFILE_PATH = Path("docs/engineering/SECURE-C-CXX.md")
 DEFAULT_WAIVER_PATH = Path("docs/engineering/AES-SEC-001-waivers.md")
+DEFAULT_REVIEW_DISPOSITIONS_PATH = Path(
+    "docs/engineering/AES-SEC-001-review-dispositions.json"
+)
+REVIEW_DISPOSITION_SCHEMA_VERSION = "1.0.0"
+REVIEW_DISPOSITION_CLASSES = {
+    "approved-invariant",
+    "wrapper-required",
+    "replacement-planned",
+    "fix-required",
+    "resolved",
+}
 
 NATIVE_SOURCE_EXTENSIONS = {
     ".c",
@@ -195,6 +210,76 @@ class ApiFinding:
     severity: str
     text: str
     remediation: str
+    finding_id: str
+    source_fingerprint: str
+    disposition_status: str | None = None
+    disposition_classification: str | None = None
+
+
+@dataclass(frozen=True)
+class ReviewLedgerFinding:
+    finding_id: str
+    source_fingerprint: str
+    path: str
+    line: int
+    symbol: str
+
+
+@dataclass(frozen=True)
+class ReviewDisposition:
+    finding_id: str
+    source_fingerprint: str
+    path: str
+    line: int
+    symbol: str
+    classification: str
+
+
+@dataclass
+class ReviewDispositionLedger:
+    path: str
+    present: bool
+    schema_version: str | None = None
+    repository: str | None = None
+    baseline: dict[str, ReviewLedgerFinding] = field(default_factory=dict)
+    dispositions: dict[str, ReviewDisposition] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class ReviewDispositionSummary:
+    path: str
+    present: bool
+    evaluated: bool
+    schema_version: str | None
+    baseline_count: int
+    disposition_count: int
+    total: int
+    reviewed: int
+    unresolved: int
+    new: int
+    source_drifted: int
+    stale: int
+
+    @property
+    def passes_ratchet(self) -> bool:
+        return not self.evaluated or (self.unresolved == 0 and self.stale == 0)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "path": self.path,
+            "present": self.present,
+            "evaluated": self.evaluated,
+            "schema_version": self.schema_version,
+            "baseline_count": self.baseline_count,
+            "disposition_count": self.disposition_count,
+            "total": self.total,
+            "reviewed": self.reviewed,
+            "unresolved": self.unresolved,
+            "new": self.new,
+            "source_drifted": self.source_drifted,
+            "stale": self.stale,
+            "passes_ratchet": self.passes_ratchet,
+        }
 
 
 @dataclass
@@ -212,6 +297,7 @@ class ScanReport:
     fuzz_signals: list[str] = field(default_factory=list)
     waiver_signals: list[str] = field(default_factory=list)
     findings: list[ApiFinding] = field(default_factory=list)
+    review_dispositions: ReviewDispositionSummary | None = None
 
     @property
     def has_native_code(self) -> bool:
@@ -233,6 +319,13 @@ class ScanReport:
             and not self.has_banned_api_findings
         )
 
+    @property
+    def passes_review_ratchet(self) -> bool:
+        return (
+            self.review_dispositions is None
+            or self.review_dispositions.passes_ratchet
+        )
+
     def to_dict(self) -> dict[str, object]:
         return {
             "repository": self.repository,
@@ -251,11 +344,17 @@ class ScanReport:
             "fuzz_signals": self.fuzz_signals,
             "waiver_signals": self.waiver_signals,
             "findings": [finding.__dict__ for finding in self.findings],
+            "review_dispositions": (
+                self.review_dispositions.to_dict()
+                if self.review_dispositions is not None
+                else None
+            ),
             "summary": {
                 "has_native_code": self.has_native_code,
                 "has_banned_api_findings": self.has_banned_api_findings,
                 "requires_secure_profile": self.requires_secure_profile,
                 "passes_minimum_adoption_gate": self.passes_minimum_adoption_gate,
+                "passes_review_ratchet": self.passes_review_ratchet,
             },
         }
 
@@ -290,6 +389,15 @@ def parse_args() -> argparse.Namespace:
         "--include-dangerous-primitives",
         action="store_true",
         help="Also report dangerous primitives that require review but are not outright banned.",
+    )
+    parser.add_argument(
+        "--strict-review-ratchet",
+        action="store_true",
+        help=(
+            "Exit non-zero when review-required findings are new, unresolved, "
+            "source-drifted, or have stale ledger entries. This is opt-in "
+            "during baseline migration."
+        ),
     )
     return parser.parse_args()
 
@@ -519,6 +627,440 @@ def strip_c_comments_and_literals(text: str) -> str:
     return "".join(result)
 
 
+def normalize_call_source(text: str) -> str:
+    """Return a whitespace/comment-insensitive representation of one call."""
+
+    result: list[str] = []
+    state = "code"
+    index = 0
+
+    while index < len(text):
+        char = text[index]
+        next_char = text[index + 1] if index + 1 < len(text) else ""
+
+        if state == "code":
+            if char.isspace():
+                index += 1
+                continue
+            if char == "/" and next_char == "/":
+                index += 2
+                state = "line-comment"
+                continue
+            if char == "/" and next_char == "*":
+                index += 2
+                state = "block-comment"
+                continue
+            result.append(char)
+            index += 1
+            if char == '"':
+                state = "string"
+            elif char == "'":
+                state = "character"
+            continue
+
+        if state == "line-comment":
+            index += 1
+            if char == "\n":
+                state = "code"
+            continue
+
+        if state == "block-comment":
+            if char == "*" and next_char == "/":
+                index += 2
+                state = "code"
+            else:
+                index += 1
+            continue
+
+        result.append(char)
+        index += 1
+        if char == "\\" and index < len(text):
+            result.append(text[index])
+            index += 1
+            continue
+        terminator = '"' if state == "string" else "'"
+        if char == terminator:
+            state = "code"
+
+    return "".join(result)
+
+
+def call_end_offset(code: str, open_parenthesis: int) -> int:
+    """Return the offset immediately after the balanced call expression."""
+
+    depth = 0
+    for index in range(open_parenthesis, len(code)):
+        char = code[index]
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return index + 1
+    return open_parenthesis + 1
+
+
+def digest(parts: Iterable[str]) -> str:
+    payload = "\0".join(parts).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def review_finding_identity(
+    path: str,
+    symbol: str,
+    symbol_ordinal: int,
+    normalized_call: str,
+) -> tuple[str, str]:
+    finding_id = "aes-sec-001:" + digest(
+        ("review-finding-v1", path, symbol, str(symbol_ordinal))
+    )
+    source_fingerprint = "sha256:" + digest(
+        ("review-source-v1", path, symbol, normalized_call)
+    )
+    return finding_id, source_fingerprint
+
+
+def require_mapping(value: object, label: str) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} must be a JSON object")
+    return value
+
+
+def require_string(
+    value: object,
+    label: str,
+    *,
+    allow_none: bool = False,
+) -> str | None:
+    if value is None and allow_none:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{label} must be a non-empty string")
+    return value
+
+
+def require_line(value: object, label: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+        raise ValueError(f"{label} must be a positive integer")
+    return value
+
+
+def require_date(
+    value: object,
+    label: str,
+    *,
+    allow_none: bool = False,
+) -> str | None:
+    text = require_string(value, label, allow_none=allow_none)
+    if text is None:
+        return None
+    try:
+        date.fromisoformat(text)
+    except ValueError as exc:
+        raise ValueError(f"{label} must be an ISO 8601 date") from exc
+    return text
+
+
+def validate_fingerprint(value: object, label: str, prefix: str) -> str:
+    fingerprint = require_string(value, label)
+    assert fingerprint is not None
+    expected_length = len(prefix) + 64
+    if (
+        not fingerprint.startswith(prefix)
+        or len(fingerprint) != expected_length
+        or not re.fullmatch(r"[0-9a-f]{64}", fingerprint[len(prefix) :])
+    ):
+        raise ValueError(f"{label} must use {prefix}<64 lowercase hex characters>")
+    return fingerprint
+
+
+def parse_ledger_finding(value: object, label: str) -> ReviewLedgerFinding:
+    item = require_mapping(value, label)
+    return ReviewLedgerFinding(
+        finding_id=validate_fingerprint(
+            item.get("finding_id"),
+            f"{label}.finding_id",
+            "aes-sec-001:",
+        ),
+        source_fingerprint=validate_fingerprint(
+            item.get("source_fingerprint"),
+            f"{label}.source_fingerprint",
+            "sha256:",
+        ),
+        path=require_string(item.get("path"), f"{label}.path") or "",
+        line=require_line(item.get("line"), f"{label}.line"),
+        symbol=require_string(item.get("symbol"), f"{label}.symbol") or "",
+    )
+
+
+def parse_disposition(value: object, label: str) -> ReviewDisposition:
+    item = require_mapping(value, label)
+    finding = parse_ledger_finding(item, label)
+    classification = require_string(
+        item.get("classification"),
+        f"{label}.classification",
+    )
+    assert classification is not None
+    if classification not in REVIEW_DISPOSITION_CLASSES:
+        allowed = ", ".join(sorted(REVIEW_DISPOSITION_CLASSES))
+        raise ValueError(
+            f"{label}.classification must be one of: {allowed}"
+        )
+
+    require_string(item.get("rationale"), f"{label}.rationale")
+    invariant = require_string(
+        item.get("invariant"),
+        f"{label}.invariant",
+        allow_none=True,
+    )
+    if classification == "approved-invariant" and invariant is None:
+        raise ValueError(
+            f"{label}.invariant is required when classification is approved-invariant"
+        )
+    evidence = item.get("evidence")
+    if (
+        not isinstance(evidence, list)
+        or not evidence
+        or any(not isinstance(entry, str) or not entry.strip() for entry in evidence)
+    ):
+        raise ValueError(f"{label}.evidence must be a non-empty string array")
+    require_string(item.get("owner"), f"{label}.owner")
+    require_string(item.get("reviewer"), f"{label}.reviewer")
+    require_date(item.get("reviewed_at"), f"{label}.reviewed_at")
+    require_date(
+        item.get("reassess_after"),
+        f"{label}.reassess_after",
+        allow_none=True,
+    )
+    resolution_commit = require_string(
+        item.get("resolution_commit"),
+        f"{label}.resolution_commit",
+        allow_none=True,
+    )
+    if classification == "resolved" and resolution_commit is None:
+        raise ValueError(
+            f"{label}.resolution_commit is required when classification is resolved"
+        )
+    if resolution_commit is not None and len(resolution_commit) < 7:
+        raise ValueError(f"{label}.resolution_commit must be at least 7 characters")
+
+    return ReviewDisposition(
+        finding_id=finding.finding_id,
+        source_fingerprint=finding.source_fingerprint,
+        path=finding.path,
+        line=finding.line,
+        symbol=finding.symbol,
+        classification=classification,
+    )
+
+
+def load_review_disposition_ledger(
+    root: Path,
+    repository: str,
+) -> ReviewDispositionLedger:
+    relative_path = DEFAULT_REVIEW_DISPOSITIONS_PATH.as_posix()
+    path = root / DEFAULT_REVIEW_DISPOSITIONS_PATH
+    if not path.is_file():
+        return ReviewDispositionLedger(path=relative_path, present=False)
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise ValueError(f"failed to read {relative_path}: {exc}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid JSON in {relative_path}: {exc}") from exc
+
+    document = require_mapping(data, relative_path)
+    schema_version = require_string(
+        document.get("schema_version"),
+        f"{relative_path}.schema_version",
+    )
+    if schema_version != REVIEW_DISPOSITION_SCHEMA_VERSION:
+        raise ValueError(
+            f"{relative_path}.schema_version must be "
+            f"{REVIEW_DISPOSITION_SCHEMA_VERSION}"
+        )
+    ledger_repository = require_string(
+        document.get("repository"),
+        f"{relative_path}.repository",
+    )
+    assert ledger_repository is not None
+    repository_matches = (
+        ledger_repository == repository
+        if "/" in repository
+        else ledger_repository.rsplit("/", maxsplit=1)[-1] == repository
+    )
+    if not repository_matches:
+        raise ValueError(
+            f"{relative_path}.repository is {ledger_repository!r}, "
+            f"expected {repository!r}"
+        )
+
+    baseline_document = require_mapping(
+        document.get("baseline"),
+        f"{relative_path}.baseline",
+    )
+    require_date(
+        baseline_document.get("captured_at"),
+        f"{relative_path}.baseline.captured_at",
+    )
+    require_string(
+        baseline_document.get("source"),
+        f"{relative_path}.baseline.source",
+    )
+    baseline_values = baseline_document.get("findings")
+    if not isinstance(baseline_values, list):
+        raise ValueError(
+            f"{relative_path}.baseline.findings must be a JSON array"
+        )
+
+    disposition_values = document.get("dispositions")
+    if not isinstance(disposition_values, list):
+        raise ValueError(f"{relative_path}.dispositions must be a JSON array")
+
+    baseline: dict[str, ReviewLedgerFinding] = {}
+    for index, value in enumerate(baseline_values):
+        item = parse_ledger_finding(
+            value,
+            f"{relative_path}.baseline.findings[{index}]",
+        )
+        if item.finding_id in baseline:
+            raise ValueError(
+                f"{relative_path} has duplicate baseline finding_id "
+                f"{item.finding_id}"
+            )
+        baseline[item.finding_id] = item
+
+    dispositions: dict[str, ReviewDisposition] = {}
+    for index, value in enumerate(disposition_values):
+        item = parse_disposition(
+            value,
+            f"{relative_path}.dispositions[{index}]",
+        )
+        if item.finding_id in dispositions:
+            raise ValueError(
+                f"{relative_path} has duplicate disposition finding_id "
+                f"{item.finding_id}"
+            )
+        dispositions[item.finding_id] = item
+
+    return ReviewDispositionLedger(
+        path=relative_path,
+        present=True,
+        schema_version=schema_version,
+        repository=ledger_repository,
+        baseline=baseline,
+        dispositions=dispositions,
+    )
+
+
+def apply_review_dispositions(
+    findings: list[ApiFinding],
+    ledger: ReviewDispositionLedger,
+    *,
+    evaluated: bool,
+) -> tuple[list[ApiFinding], ReviewDispositionSummary]:
+    if not evaluated:
+        return findings, ReviewDispositionSummary(
+            path=ledger.path,
+            present=ledger.present,
+            evaluated=False,
+            schema_version=ledger.schema_version,
+            baseline_count=len(ledger.baseline),
+            disposition_count=len(ledger.dispositions),
+            total=0,
+            reviewed=0,
+            unresolved=0,
+            new=0,
+            source_drifted=0,
+            stale=0,
+        )
+
+    current_ids: set[str] = set()
+    reviewed = 0
+    new = 0
+    source_drifted = 0
+    updated: list[ApiFinding] = []
+
+    for finding in findings:
+        if finding.severity != "review-required":
+            updated.append(finding)
+            continue
+
+        current_ids.add(finding.finding_id)
+        baseline = ledger.baseline.get(finding.finding_id)
+        disposition = ledger.dispositions.get(finding.finding_id)
+        classification: str | None = None
+
+        if disposition is not None:
+            classification = disposition.classification
+            if (
+                disposition.source_fingerprint != finding.source_fingerprint
+                or disposition.path != finding.path
+                or disposition.symbol != finding.symbol
+            ):
+                status = "source-drifted"
+                source_drifted += 1
+            elif disposition.classification == "resolved":
+                status = "unresolved"
+            else:
+                status = "reviewed"
+                reviewed += 1
+        elif baseline is None:
+            status = "new"
+            new += 1
+        elif (
+            baseline.source_fingerprint != finding.source_fingerprint
+            or baseline.path != finding.path
+            or baseline.symbol != finding.symbol
+        ):
+            status = "source-drifted"
+            source_drifted += 1
+        else:
+            status = "unresolved"
+
+        updated.append(
+            ApiFinding(
+                path=finding.path,
+                line=finding.line,
+                symbol=finding.symbol,
+                severity=finding.severity,
+                text=finding.text,
+                remediation=finding.remediation,
+                finding_id=finding.finding_id,
+                source_fingerprint=finding.source_fingerprint,
+                disposition_status=status,
+                disposition_classification=classification,
+            )
+        )
+
+    total = sum(
+        1 for finding in updated if finding.severity == "review-required"
+    )
+    resolved_ids = {
+        finding_id
+        for finding_id, disposition in ledger.dispositions.items()
+        if disposition.classification == "resolved"
+    }
+    tracked_ids = (set(ledger.baseline) | set(ledger.dispositions)) - resolved_ids
+    stale = len(tracked_ids - current_ids)
+    unresolved = total - reviewed
+    return updated, ReviewDispositionSummary(
+        path=ledger.path,
+        present=ledger.present,
+        evaluated=True,
+        schema_version=ledger.schema_version,
+        baseline_count=len(ledger.baseline),
+        disposition_count=len(ledger.dispositions),
+        total=total,
+        reviewed=reviewed,
+        unresolved=unresolved,
+        new=new,
+        source_drifted=source_drifted,
+        stale=stale,
+    )
+
+
 def scan_source_for_apis(
     root: Path, path: Path, include_dangerous_primitives: bool
 ) -> list[ApiFinding]:
@@ -536,34 +1078,52 @@ def scan_source_for_apis(
     )
     findings: list[ApiFinding] = []
     rel = path.relative_to(root).as_posix()
-
     raw_lines = text.splitlines()
-    code_lines = code.splitlines()
-    for line_number, code_line in enumerate(code_lines, start=1):
-        if not code_line.strip():
-            continue
+    line_starts = [0]
+    line_starts.extend(
+        index + 1 for index, character in enumerate(code) if character == "\n"
+    )
+    symbol_ordinals: Counter[str] = Counter()
+
+    for match in pattern.finditer(code):
+        symbol = match.group(1)
+        symbol_ordinals[symbol] += 1
+        symbol_ordinal = symbol_ordinals[symbol]
+        line_number = bisect.bisect_right(line_starts, match.start())
         raw_line = raw_lines[line_number - 1]
         if line_has_banned_scan_exemption(raw_line):
             continue
-        for match in pattern.finditer(code_line):
-            symbol = match.group(1)
-            severity = "banned" if symbol in BANNED_APIS else "review-required"
-            findings.append(
-                ApiFinding(
-                    path=rel,
-                    line=line_number,
-                    symbol=symbol,
-                    severity=severity,
-                    text=raw_line.strip()[:240],
-                    remediation=API_REMEDIATIONS[symbol],
-                )
+        open_parenthesis = code.find("(", match.start(), match.end())
+        call_end = call_end_offset(code, open_parenthesis)
+        normalized_call = normalize_call_source(
+            text[match.start() : call_end]
+        )
+        finding_id, source_fingerprint = review_finding_identity(
+            rel,
+            symbol,
+            symbol_ordinal,
+            normalized_call,
+        )
+        severity = "banned" if symbol in BANNED_APIS else "review-required"
+        findings.append(
+            ApiFinding(
+                path=rel,
+                line=line_number,
+                symbol=symbol,
+                severity=severity,
+                text=raw_line.strip()[:240],
+                remediation=API_REMEDIATIONS[symbol],
+                finding_id=finding_id,
+                source_fingerprint=source_fingerprint,
             )
+        )
     return findings
 
 
 def scan(root: Path, repo_name: str | None, include_dangerous_primitives: bool) -> ScanReport:
     root = root.resolve()
     files = list(iter_files(root))
+    repository = repo_name or root.name
 
     native_files = sorted(
         path.relative_to(root).as_posix()
@@ -584,13 +1144,19 @@ def scan(root: Path, repo_name: str | None, include_dangerous_primitives: bool) 
         if path.suffix in NATIVE_SOURCE_EXTENSIONS:
             findings.extend(scan_source_for_apis(root, path, include_dangerous_primitives))
 
+    ledger = load_review_disposition_ledger(root, repository)
+    findings, review_dispositions = apply_review_dispositions(
+        findings,
+        ledger,
+        evaluated=include_dangerous_primitives,
+    )
     static_analysis, sanitizers, fuzzing, waivers = collect_signals(root, files)
 
     secure_profile_present = (root / SECURE_PROFILE_PATH).is_file()
     waiver_log_present = (root / DEFAULT_WAIVER_PATH).is_file()
 
     return ScanReport(
-        repository=repo_name or root.name,
+        repository=repository,
         root=str(root),
         classification=classify(native_files, hardware_files, build_surfaces),
         secure_profile_present=secure_profile_present,
@@ -603,6 +1169,7 @@ def scan(root: Path, repo_name: str | None, include_dangerous_primitives: bool) 
         fuzz_signals=fuzzing,
         waiver_signals=waivers,
         findings=sorted(findings, key=lambda finding: (finding.path, finding.line, finding.symbol)),
+        review_dispositions=review_dispositions,
     )
 
 
@@ -620,6 +1187,7 @@ def format_markdown(report: ScanReport) -> str:
         f"- Banned API findings: `{sum(1 for f in report.findings if f.severity == 'banned')}`",
         f"- Review-required primitive findings: `{sum(1 for f in report.findings if f.severity == 'review-required')}`",
         f"- Passes minimum adoption gate: `{data['summary']['passes_minimum_adoption_gate']}`",
+        f"- Passes review-disposition ratchet: `{data['summary']['passes_review_ratchet']}`",
         "",
         "## Operational Signals",
         "",
@@ -630,19 +1198,42 @@ def format_markdown(report: ScanReport) -> str:
         "",
     ]
 
+    review = report.review_dispositions
+    if review is not None:
+        lines.extend(
+            [
+                "## Review-Disposition Status",
+                "",
+                f"- Ledger: `{review.path}`",
+                f"- Ledger present: `{review.present}`",
+                f"- Evaluation enabled: `{review.evaluated}`",
+                f"- Baseline entries: `{review.baseline_count}`",
+                f"- Dispositions: `{review.disposition_count}`",
+                f"- Total current findings: `{review.total}`",
+                f"- Reviewed: `{review.reviewed}`",
+                f"- Unresolved: `{review.unresolved}`",
+                f"- New: `{review.new}`",
+                f"- Source-drifted: `{review.source_drifted}`",
+                f"- Stale ledger entries: `{review.stale}`",
+                "",
+            ]
+        )
+
     if report.findings:
         lines.extend(
             [
                 "## Findings",
                 "",
-                "| Severity | Symbol | Path | Line | Remediation |",
-                "|---|---:|---|---:|---|",
+                "| Severity | Symbol | Path | Line | Disposition | Finding ID | Remediation |",
+                "|---|---:|---|---:|---|---|---|",
             ]
         )
         for finding in report.findings:
             lines.append(
                 f"| `{finding.severity}` | `{finding.symbol}` | "
-                f"`{finding.path}` | {finding.line} | {finding.remediation} |"
+                f"`{finding.path}` | {finding.line} | "
+                f"`{finding.disposition_status or 'n/a'}` | "
+                f"`{finding.finding_id}` | {finding.remediation} |"
             )
         lines.append("")
     else:
@@ -674,7 +1265,14 @@ def format_github(report: ScanReport) -> str:
             f"AES-SEC-001 {finding.severity}: {finding.symbol}"
         )
         message = github_escape_data(
-            f"{finding.symbol} detected. Remedy: {finding.remediation}"
+            f"{finding.symbol} detected"
+            + (
+                f" ({finding.disposition_status})"
+                if finding.disposition_status
+                else ""
+            )
+            + f". Finding ID: {finding.finding_id}. "
+            f"Remedy: {finding.remediation}"
         )
         annotations.append(
             f"::{level} file={github_escape_property(finding.path)},"
@@ -700,6 +1298,8 @@ def main() -> int:
         print(format_github(report))
 
     if args.strict and not report.passes_minimum_adoption_gate:
+        return 1
+    if args.strict_review_ratchet and not report.passes_review_ratchet:
         return 1
     return 0
 
