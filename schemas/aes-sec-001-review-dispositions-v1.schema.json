@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dlworrell/AEMS/schemas/aes-sec-001-review-dispositions-v1.schema.json",
+  "title": "AES-SEC-001 Review Dispositions v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "repository",
+    "baseline",
+    "dispositions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$"
+    },
+    "baseline": {
+      "$ref": "#/$defs/baseline"
+    },
+    "dispositions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/disposition"
+      }
+    }
+  },
+  "$defs": {
+    "findingId": {
+      "type": "string",
+      "pattern": "^aes-sec-001:[0-9a-f]{64}$"
+    },
+    "sourceFingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "source_fingerprint",
+        "path",
+        "line",
+        "symbol"
+      ],
+      "properties": {
+        "finding_id": {
+          "$ref": "#/$defs/findingId"
+        },
+        "source_fingerprint": {
+          "$ref": "#/$defs/sourceFingerprint"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captured_at",
+        "source",
+        "findings"
+      ],
+      "properties": {
+        "captured_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        }
+      }
+    },
+    "disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "source_fingerprint",
+        "path",
+        "line",
+        "symbol",
+        "classification",
+        "rationale",
+        "invariant",
+        "evidence",
+        "owner",
+        "reviewer",
+        "reviewed_at",
+        "reassess_after",
+        "resolution_commit"
+      ],
+      "properties": {
+        "finding_id": {
+          "$ref": "#/$defs/findingId"
+        },
+        "source_fingerprint": {
+          "$ref": "#/$defs/sourceFingerprint"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        },
+        "classification": {
+          "enum": [
+            "approved-invariant",
+            "wrapper-required",
+            "replacement-planned",
+            "fix-required",
+            "resolved"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "invariant": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "reassess_after": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "resolution_commit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 7
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "classification": {
+                "const": "approved-invariant"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "invariant": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "classification": {
+                "const": "resolved"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "resolution_commit": {
+                "type": "string",
+                "minLength": 7
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
