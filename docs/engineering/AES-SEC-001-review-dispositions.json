@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0.0",
+  "repository": "dlworrell/AEMS",
+  "baseline": {
+    "captured_at": "2026-07-27",
+    "source": "AEMS local AES-SEC-001 scan after ecosystem run 30327790203",
+    "findings": []
+  },
+  "dispositions": []
+}
