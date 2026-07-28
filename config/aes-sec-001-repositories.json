@@ -5,6 +5,7 @@
   "generated_by": "AEMS",
   "policy": {
     "default_required_profile": "docs/engineering/SECURE-C-CXX.md",
+    "project_owned_future_native_policy": "Every project-owned governed repository is expected to become C-based and operate independently over time. Adopt the secure native profile before implementation exists; current absence of C or C++ is not an exemption.",
     "third_party_policy": "Do not rewrite upstream policy in mirrored or vendored repositories. Track local patch policy separately.",
     "ratchet_rule": "Existing violations may be baselined. New project-owned violations should block merge unless a waiver is recorded."
   },
@@ -41,8 +42,8 @@
       "full_name": "dlworrell/AES",
       "role": "engineering-standards-authority",
       "ownership": "project-owned",
-      "expected_profile": false,
-      "notes": "Owns AES-SEC-001 but has no native-code or native-build surface; a local secure-C profile is not required."
+      "expected_profile": true,
+      "notes": "Owns AES-SEC-001 and pre-adopts the local profile for future standalone C-based standards tooling."
     },
     {
       "full_name": "dlworrell/65x02",
@@ -75,11 +76,26 @@
       "notes": "Experimental C/C++/CUDA/native-code work should be scanned but may use ratcheting."
     },
     {
+      "full_name": "dlworrell/audiblebooks",
+      "role": "private-native-catalogue-application",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "native_profile": "c17-library",
+      "notes": "C17 catalogue core with a Swift/C boundary, SQLCipher storage, externally selected restore inputs, strict native analysis, sanitizers, and fuzz coverage."
+    },
+    {
       "full_name": "dlworrell/engineering-docs-toolkit",
       "role": "documentation-tooling",
       "ownership": "project-owned",
       "expected_profile": true,
-      "notes": "Documentation tooling may grow native helpers later."
+      "notes": "Documentation tooling is planned to become standalone C-based software and pre-adopts AES-SEC-001 before that migration."
+    },
+    {
+      "full_name": "dlworrell/EWT",
+      "role": "engineering-workbench-toolkit",
+      "ownership": "project-owned",
+      "expected_profile": true,
+      "notes": "Planned standalone C-based engineering workbench; pre-adopts AES-SEC-001 during architecture and bootstrap."
     },
     {
       "full_name": "dlworrell/herkules-1934-english",

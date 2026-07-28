@@ -247,6 +247,54 @@ void copy(char *dst, const char *src) {
             baseline["blocking_checks"],
         )
 
+    def test_manifest_pre_adopts_all_future_c_project_repositories(self) -> None:
+        manifest = json.loads(
+            (
+                ROOT / "config" / "aes-sec-001-repositories.json"
+            ).read_text(encoding="utf-8")
+        )
+        entries = {
+            entry["full_name"]: entry
+            for entry in manifest["repositories"]
+        }
+        required_project_repositories = {
+            "dlworrell/AEMS",
+            "dlworrell/P0",
+            "dlworrell/repo_templates",
+            "dlworrell/Catylist",
+            "dlworrell/AES",
+            "dlworrell/atarix",
+            "dlworrell/code-noodling",
+            "dlworrell/audiblebooks",
+            "dlworrell/engineering-docs-toolkit",
+            "dlworrell/EWT",
+            "dlworrell/herkules-1934-english",
+            "dlworrell/JAG",
+            "dlworrell/evo",
+            "dlworrell/Just-a-Geek-LLC",
+            "dlworrell/Rocket_demo",
+            "dlworrell/MayaUSD2017Bridge",
+        }
+
+        self.assertTrue(required_project_repositories.issubset(entries))
+        project_owned = {
+            name: entry
+            for name, entry in entries.items()
+            if entry["ownership"] == "project-owned"
+        }
+        self.assertEqual(set(project_owned), required_project_repositories)
+        self.assertTrue(
+            all(entry["expected_profile"] for entry in project_owned.values())
+        )
+        self.assertEqual(
+            entries["dlworrell/audiblebooks"]["native_profile"],
+            "c17-library",
+        )
+        self.assertIn(
+            "absence of C or C++ is not an exemption",
+            manifest["policy"]["project_owned_future_native_policy"],
+        )
+
     def test_distributed_workflow_uses_central_action_and_validates_policy(
         self,
     ) -> None:
