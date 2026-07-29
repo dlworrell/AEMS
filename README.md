@@ -104,8 +104,9 @@ Adopt the distributed fast governance control by copying
 `templates/native/.clang-tidy` to the repository root and
 `templates/workflows/aes-sec-001-governance.yml` to `.github/workflows/`.
 The caller uses AEMS's centrally maintained reusable workflow and emits
-review-required primitives as warnings while retaining the adopted banned-API
-gate.
+review-required primitives with their repository-owned dispositions. New,
+unresolved, source-drifted, or stale review findings block by default, while
+the adopted banned-API gate remains immediate.
 
 Build the non-blocking AES-SEC-002 applicability report:
 
@@ -188,7 +189,7 @@ conformance as proof of closure.
 - [AES-DEV-001 enforcement plan](docs/engineering/AES-DEV-001-enforcement-plan.md)
   — clean reporting ratchet
 - [AES-SEC-001 enforcement plan](docs/engineering/AES-SEC-001-enforcement-plan.md)
-  — implemented reporting ratchet
+  — implemented blocking review-disposition ratchet
 - [AES-SEC-002 reporting plan](docs/engineering/AES-SEC-002-reporting-plan.md)
   — reporting only
 - [Compliance evidence schema](docs/engineering/compliance-evidence-schema.md)
