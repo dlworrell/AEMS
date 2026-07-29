@@ -25,7 +25,10 @@ on:
       - "**/meson.build"
       - "docs/engineering/SECURE-C-CXX.md"
       - "docs/engineering/AES-SEC-001-waivers.md"
+      - "docs/engineering/AES-SEC-001-review-dispositions.json"
       - "docs/engineering/AES-SEC-001-enforcement-plan.md"
+      - "docs/engineering/reports/AES-SEC-001-review-required-baseline-2026-07-27.md"
+      - "docs/engineering/reports/AES-SEC-001-review-required-baseline-2026-07-27.json"
       - ".clang-tidy"
       - "scripts/aes_sec_001_scan.py"
       - "scripts/aes_sec_001_aggregate.py"
@@ -33,6 +36,7 @@ on:
       - "scripts/github_checkout.py"
       - "config/aes-sec-001-repositories.json"
       - "config/aes-sec-001-native-profiles.json"
+      - "schemas/aes-sec-001-review-dispositions-v1.schema.json"
       - "templates/native/**"
       - "templates/workflows/aes-sec-001-native.yml"
       - "templates/workflows/aes-sec-001-governance.yml"
@@ -63,6 +67,14 @@ on:
         options:
           - "true"
           - "false"
+      strict_review_ratchet:
+        description: "Fail on unresolved, new, source-drifted, or stale review dispositions."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
       ecosystem_scan:
         description: "Also scan all repositories listed in config/aes-sec-001-repositories.json."
         required: false
@@ -184,6 +196,9 @@ jobs:
           if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-dangerous-primitives")
           fi
+          if [[ "${{ github.event.inputs.strict_review_ratchet || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--strict-review-ratchet")
+          fi
 
           python3 scripts/aes_sec_001_scan.py . \
             --repo-name "${{ github.repository }}" \
@@ -218,6 +233,9 @@ jobs:
           if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-third-party")
           fi
+          if [[ "${{ github.event.inputs.strict_review_ratchet || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--enforce-review-ratchet")
+          fi
 
           python3 scripts/aes_sec_001_aggregate.py \
             --manifest config/aes-sec-001-repositories.json \
@@ -237,6 +255,9 @@ jobs:
           fi
           if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-third-party")
+          fi
+          if [[ "${{ github.event.inputs.strict_review_ratchet || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--enforce-review-ratchet")
           fi
 
           python3 scripts/aes_sec_001_aggregate.py \
@@ -270,6 +291,9 @@ jobs:
           fi
           if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-third-party")
+          fi
+          if [[ "${{ github.event.inputs.strict_review_ratchet || 'false' }}" == "true" ]]; then
+            EXTRA_ARGS+=("--enforce-review-ratchet")
           fi
 
           python3 scripts/aes_sec_001_aggregate.py \

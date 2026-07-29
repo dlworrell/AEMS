@@ -186,9 +186,25 @@ set(CMAKE_C_CLANG_TIDY clang-tidy)
                         "line": 7,
                         "text": "memset(example, 0, sizeof(*example));",
                         "remediation": "Prove the bound or use secure erasure.",
+                        "finding_id": "aes-sec-001:" + ("1" * 64),
+                        "source_fingerprint": "sha256:" + ("2" * 64),
+                        "disposition_status": "new",
+                        "disposition_classification": None,
                     }
                 ],
-                "summary": {"passes_minimum_adoption_gate": True},
+                "review_dispositions": {
+                    "total": 1,
+                    "reviewed": 0,
+                    "unresolved": 1,
+                    "new": 1,
+                    "source_drifted": 0,
+                    "stale": 0,
+                    "passes_ratchet": False,
+                },
+                "summary": {
+                    "passes_minimum_adoption_gate": True,
+                    "passes_review_ratchet": False,
+                },
             },
         )
         report = AggregateReport(
@@ -211,7 +227,27 @@ set(CMAKE_C_CLANG_TIDY clang-tidy)
         markdown = (output / "example__native.md").read_text()
         self.assertIn("`c17-library`", markdown)
         self.assertIn("Gate passes: `True`", markdown)
+        self.assertIn("New findings: `1`", markdown)
+        self.assertIn("Review ratchet passes: `False`", markdown)
         self.assertIn("Prove the bound or use secure erasure.", markdown)
+
+        reporting = AggregateReport(
+            standard="AES-SEC-001",
+            standard_repository="dlworrell/AES",
+            standard_path="standards/AES-SEC-001-secure-c-cpp-coding-rules.md",
+            entries=[entry],
+        )
+        enforcing = AggregateReport(
+            standard="AES-SEC-001",
+            standard_repository="dlworrell/AES",
+            standard_path="standards/AES-SEC-001-secure-c-cpp-coding-rules.md",
+            enforce_review_ratchet=True,
+            entries=[entry],
+        )
+        self.assertTrue(reporting.passes)
+        self.assertFalse(enforcing.passes)
+        self.assertEqual(enforcing.new_finding_count, 1)
+        self.assertEqual(enforcing.review_ratchet_failures, [entry])
 
 
 if __name__ == "__main__":

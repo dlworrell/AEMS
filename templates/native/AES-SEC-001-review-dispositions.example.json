@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "repository": "OWNER/REPOSITORY",
+  "baseline": {
+    "captured_at": "2026-01-01",
+    "source": "AEMS AES-SEC-001 scan artifact or repository baseline commit",
+    "findings": [
+      {
+        "finding_id": "aes-sec-001:0000000000000000000000000000000000000000000000000000000000000000",
+        "source_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "path": "src/example.c",
+        "line": 1,
+        "symbol": "memset"
+      }
+    ]
+  },
+  "dispositions": [
+    {
+      "finding_id": "aes-sec-001:0000000000000000000000000000000000000000000000000000000000000000",
+      "source_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "path": "src/example.c",
+      "line": 1,
+      "symbol": "memset",
+      "classification": "approved-invariant",
+      "rationale": "Explain why the operation conforms or why follow-up is required.",
+      "invariant": "State the bound, ownership, lifetime, truncation, or erasure invariant.",
+      "evidence": [
+        "tests/test_example.c"
+      ],
+      "owner": "repository-maintainer",
+      "reviewer": "security-reviewer",
+      "reviewed_at": "2026-01-01",
+      "reassess_after": null,
+      "resolution_commit": null
+    }
+  ]
+}

@@ -18,6 +18,10 @@ inputs:
     description: Fail on missing adoption evidence or AES-banned APIs.
     required: false
     default: "true"
+  strict-review-ratchet:
+    description: Fail on unresolved, new, source-drifted, or stale review dispositions.
+    required: false
+    default: "false"
   output-directory:
     description: Directory for JSON and Markdown evidence.
     required: false
@@ -33,6 +37,7 @@ runs:
         AEMS_REPOSITORY: ${{ inputs.repository }}
         AEMS_INCLUDE_DANGEROUS: ${{ inputs.include-dangerous-primitives }}
         AEMS_STRICT: ${{ inputs.strict }}
+        AEMS_STRICT_REVIEW_RATCHET: ${{ inputs.strict-review-ratchet }}
         AEMS_OUTPUT_DIRECTORY: ${{ inputs.output-directory }}
       run: |
         scanner="$GITHUB_ACTION_PATH/../../../scripts/aes_sec_001_scan.py"
@@ -57,5 +62,8 @@ runs:
 
         if [[ "$AEMS_STRICT" == "true" ]]; then
           args+=(--strict)
+        fi
+        if [[ "$AEMS_STRICT_REVIEW_RATCHET" == "true" ]]; then
+          args+=(--strict-review-ratchet)
         fi
         python3 "$scanner" "${args[@]}" --format github

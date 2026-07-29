@@ -13,6 +13,11 @@ on:
         required: false
         default: true
         type: boolean
+      strict_review_ratchet:
+        description: Enforce repository-local review dispositions after baseline migration.
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       include_dangerous_primitives:
@@ -24,6 +29,11 @@ on:
         description: Enforce the current AES-SEC-001 minimum adoption gate.
         required: false
         default: true
+        type: boolean
+      strict_review_ratchet:
+        description: Enforce repository-local review dispositions after baseline migration.
+        required: false
+        default: false
         type: boolean
 
 permissions:
@@ -56,6 +66,7 @@ jobs:
         with:
           include-dangerous-primitives: ${{ inputs.include_dangerous_primitives }}
           strict: ${{ inputs.strict }}
+          strict-review-ratchet: ${{ inputs.strict_review_ratchet }}
 
       - name: Upload governance evidence
         if: always()
