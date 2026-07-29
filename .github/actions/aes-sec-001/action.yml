@@ -21,7 +21,7 @@ inputs:
   strict-review-ratchet:
     description: Fail on unresolved, new, source-drifted, or stale review dispositions.
     required: false
-    default: "false"
+    default: "true"
   output-directory:
     description: Directory for JSON and Markdown evidence.
     required: false

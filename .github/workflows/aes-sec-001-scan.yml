@@ -70,11 +70,11 @@ on:
       strict_review_ratchet:
         description: "Fail on unresolved, new, source-drifted, or stale review dispositions."
         required: false
-        default: "false"
+        default: "true"
         type: choice
         options:
-          - "false"
           - "true"
+          - "false"
       ecosystem_scan:
         description: "Also scan all repositories listed in config/aes-sec-001-repositories.json."
         required: false
@@ -196,7 +196,7 @@ jobs:
           if [[ "${{ github.event.inputs.include_dangerous_primitives || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-dangerous-primitives")
           fi
-          if [[ "${{ github.event.inputs.strict_review_ratchet || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.strict_review_ratchet || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--strict-review-ratchet")
           fi
 
@@ -233,7 +233,7 @@ jobs:
           if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-third-party")
           fi
-          if [[ "${{ github.event.inputs.strict_review_ratchet || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.strict_review_ratchet || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--enforce-review-ratchet")
           fi
 
@@ -256,7 +256,7 @@ jobs:
           if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-third-party")
           fi
-          if [[ "${{ github.event.inputs.strict_review_ratchet || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.strict_review_ratchet || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--enforce-review-ratchet")
           fi
 
@@ -292,7 +292,7 @@ jobs:
           if [[ "${{ github.event.inputs.include_third_party || 'false' }}" == "true" ]]; then
             EXTRA_ARGS+=("--include-third-party")
           fi
-          if [[ "${{ github.event.inputs.strict_review_ratchet || 'false' }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.strict_review_ratchet || 'true' }}" == "true" ]]; then
             EXTRA_ARGS+=("--enforce-review-ratchet")
           fi
 

@@ -16,7 +16,7 @@ on:
       strict_review_ratchet:
         description: Enforce repository-local review dispositions after baseline migration.
         required: false
-        default: false
+        default: true
         type: boolean
   workflow_dispatch:
     inputs:
@@ -33,7 +33,7 @@ on:
       strict_review_ratchet:
         description: Enforce repository-local review dispositions after baseline migration.
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:
