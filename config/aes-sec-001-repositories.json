@@ -9,7 +9,7 @@
     "review_disposition_schema": "schemas/aes-sec-001-review-dispositions-v1.schema.json",
     "review_required_baseline": "docs/engineering/reports/AES-SEC-001-review-required-baseline-2026-07-27.md",
     "review_required_baseline_data": "docs/engineering/reports/AES-SEC-001-review-required-baseline-2026-07-27.json",
-    "review_ratchet_mode": "reporting",
+    "review_ratchet_mode": "enforced",
     "project_owned_future_native_policy": "Every project-owned governed repository is expected to become C-based and operate independently over time. Adopt the secure native profile before implementation exists; current absence of C or C++ is not an exemption.",
     "third_party_policy": "Do not rewrite upstream policy in mirrored or vendored repositories. Track local patch policy separately.",
     "ratchet_rule": "Retained review-required operations must receive repository-owned dispositions. After migration, new, unresolved, source-drifted, or stale review findings block merge; AES-banned APIs continue to block immediately."

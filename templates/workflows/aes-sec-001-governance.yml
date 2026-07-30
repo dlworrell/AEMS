@@ -16,3 +16,4 @@ jobs:
     with:
       include_dangerous_primitives: true
       strict: true
+      strict_review_ratchet: true

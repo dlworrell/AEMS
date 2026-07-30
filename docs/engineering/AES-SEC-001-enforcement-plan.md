@@ -357,7 +357,10 @@ classifications are `approved-invariant`, `wrapper-required`,
 The scanner reports current totals plus reviewed, unresolved, new,
 source-drifted, and stale counts. `--strict-review-ratchet` enables the local
 blocking gate. The aggregate equivalent is `--enforce-review-ratchet`.
-Both remain opt-in until the retained ecosystem baseline is dispositioned.
+The retained ecosystem baseline is now fully dispositioned, so both gates are
+enabled by default for pull-request and push enforcement. A manual dispatch
+may explicitly disable the ratchet for diagnostic reporting, but that opt-out
+does not change the repository policy state.
 `unresolved` is the blocking total and includes the `new` and
 `source-drifted` subsets; `stale` counts tracked non-resolved entries whose
 finding is no longer present.
@@ -414,15 +417,27 @@ The first expanded review-required inventory is retained at:
 docs/engineering/reports/AES-SEC-001-review-required-baseline-2026-07-27.md
 ```
 
+Its 56 findings are owned by repository-local ledgers:
+
+- `evo`: 2 reviewed findings, completed by
+  [PR #5](https://github.com/dlworrell/evo/pull/5);
+- `code-noodling`: 2 reviewed findings, completed by
+  [PR #4](https://github.com/dlworrell/code-noodling/pull/4);
+- `audiblebooks`: 3 reviewed findings, completed by
+  [PR #15](https://github.com/dlworrell/audiblebooks/pull/15); and
+- `atarix`: 49 reviewed findings, completed by
+  [PR #57](https://github.com/dlworrell/atarix/pull/57).
+
+The review ratchet now blocks any new, unresolved, source-drifted, or stale
+review-required finding in project-owned pull requests. AES-banned APIs remain
+immediate failures, and disposition records remain separate from waivers.
+
 Remaining ratchets are deliberately narrower:
 
 - adopt the selected profile and workflow in each active native repository
   through repository-owned changes;
-- migrate the retained review-required primitives into repository-owned
-  disposition ledgers, in the order `evo`, `code-noodling`, `audiblebooks`,
-  then `atarix`;
-- enable `--strict-review-ratchet` only after that migration is complete, so
-  new, unresolved, source-drifted, or stale findings block;
+- maintain repository-owned disposition evidence as reviewed call sites move
+  or change;
 - baseline Clang-Tidy reporting before promoting additional diagnostics; and
 - baseline newly enrolled repositories before enabling a blocking gate.
 

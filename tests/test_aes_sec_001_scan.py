@@ -557,7 +557,7 @@ void copy(char *dst, const char *src) {
         )
         self.assertEqual(
             manifest["policy"]["review_ratchet_mode"],
-            "reporting",
+            "enforced",
         )
         self.assertEqual(
             manifest["policy"]["default_review_dispositions"],
@@ -612,6 +612,9 @@ void copy(char *dst, const char *src) {
         caller = (
             ROOT / "templates" / "workflows" / "aes-sec-001-governance.yml"
         ).read_text(encoding="utf-8")
+        orchestrator = (
+            ROOT / ".github" / "workflows" / "aes-sec-001-scan.yml"
+        ).read_text(encoding="utf-8")
 
         self.assertIn("scripts/aes_sec_001_scan.py", action)
         self.assertIn("--format github", action)
@@ -624,6 +627,33 @@ void copy(char *dst, const char *src) {
             "uses: dlworrell/AEMS/.github/workflows/"
             "aes-sec-001-distributed.yml@main",
             caller,
+        )
+        self.assertIn(
+            'strict-review-ratchet:\n'
+            '    description: Fail on unresolved, new, source-drifted, or stale review dispositions.\n'
+            '    required: false\n'
+            '    default: "true"',
+            action,
+        )
+        self.assertEqual(
+            reusable.count(
+                "strict_review_ratchet:\n"
+                "        description: Enforce repository-local review dispositions after baseline migration.\n"
+                "        required: false\n"
+                "        default: true"
+            ),
+            2,
+        )
+        self.assertIn("strict_review_ratchet: true", caller)
+        self.assertNotIn(
+            "github.event.inputs.strict_review_ratchet || 'false'",
+            orchestrator,
+        )
+        self.assertEqual(
+            orchestrator.count(
+                "github.event.inputs.strict_review_ratchet || 'true'"
+            ),
+            4,
         )
 
 
