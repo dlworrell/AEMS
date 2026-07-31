@@ -17,8 +17,7 @@ AC_ARG_ENABLE(
 )
 AM_CONDITIONAL(
   [WARNINGS_AS_ERRORS],
-  [test "x$enable_warnings_as_errors" = "xyes"]
-)
+  [test "x$enable_warnings_as_errors" = "xyes"])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
