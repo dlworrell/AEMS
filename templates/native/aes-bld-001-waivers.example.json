@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "standard": "AES-BLD-001",
+  "repository": "OWNER/REPOSITORY",
+  "waivers": [
+    {
+      "requirement": "AES-BLD-001-R025",
+      "rationale": "Describe the platform-specific technical constraint.",
+      "owner": "GITHUB_OWNER",
+      "reviewer": "GITHUB_REVIEWER",
+      "compensating_validation": "Describe the host, emulator, or static validation that replaces the unavailable check.",
+      "expires_on": "YYYY-MM-DD"
+    }
+  ]
+}

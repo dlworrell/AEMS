@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "standard": "AES-BLD-001",
+  "repository": "dlworrell/AEMS",
+  "applicability": "planned-native",
+  "profile_document": "docs/engineering/AES-BLD-001-toolchain-profile.md",
+  "waiver_log": ".aems/aes-bld-001-waivers.json",
+  "authority": {
+    "repository": "dlworrell/AES",
+    "requirement_source": "standards/AES-BLD-001-native-build-toolchain-and-distribution-parity.md"
+  }
+}

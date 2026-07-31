@@ -25,6 +25,7 @@ PROJECT_ZERO_STATES = (
 )
 
 KNOWN_MODULES = {
+    "build-parity",
     "inventory",
     "manifest-validation",
     "issue-graph",

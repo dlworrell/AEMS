@@ -35,6 +35,7 @@ standards:
     - AES-002
     - AES-003
     - AES-DEV-001
+    - AES-BLD-001
     - AES-SEC-001
     - AES-SEC-002
 
@@ -47,6 +48,7 @@ project_zero:
 
 automation:
   enabled_modules:
+    - build-parity
     - inventory
     - manifest-validation
     - issue-graph

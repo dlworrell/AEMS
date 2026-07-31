@@ -1,0 +1,16 @@
+name: AES-BLD-001
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-parity:
+    uses: dlworrell/AEMS/.github/workflows/aes-bld-001-distributed.yml@main
+    with:
+      strict: true
