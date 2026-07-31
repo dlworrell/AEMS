@@ -46,6 +46,38 @@ class NativeIntegrationRegressionTests(unittest.TestCase):
 
         self.assertNotIn("| head -n 1", workflow)
 
+    def test_workflow_normalizes_root_and_nested_artifact_paths(self) -> None:
+        workflow = (
+            ROOT / ".github" / "workflows" / "aes-bld-001-distributed.yml"
+        ).read_text(encoding="utf-8")
+        normalization = (
+            "AEMS_GOVERNED_ARTIFACT_ROOT: "
+            "${{ inputs.repository_subpath == '.' && 'governed' || "
+            "format('governed/{0}', inputs.repository_subpath) }}"
+        )
+        upload_root = (
+            "path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}"
+            "/build/aems/aes-bld-001/"
+        )
+
+        self.assertIn(normalization, workflow)
+        self.assertNotIn(
+            "governed/${{ inputs.repository_subpath }}/build/",
+            workflow,
+        )
+        self.assertEqual(workflow.count(upload_root), 7)
+        for suffix in (
+            "structure/",
+            "cmake-${{ matrix.compiler }}/",
+            "autotools-${{ matrix.compiler }}/",
+            "clang-tidy/",
+            "clang-sanitizers/",
+            "install-parity/",
+            "distcheck/",
+        ):
+            with self.subTest(suffix=suffix):
+                self.assertIn(upload_root + suffix, workflow)
+
     def test_fixture_conditionals_close_without_trailing_m4_newline(
         self,
     ) -> None:

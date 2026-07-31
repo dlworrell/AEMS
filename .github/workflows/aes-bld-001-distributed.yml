@@ -43,6 +43,7 @@ env:
   AEMS_BLD_EVIDENCE: build/aems/aes-bld-001
   AEMS_LLVM_MAJOR: "18"
   AEMS_GCC_MAJOR: "13"
+  AEMS_GOVERNED_ARTIFACT_ROOT: ${{ inputs.repository_subpath == '.' && 'governed' || format('governed/{0}', inputs.repository_subpath) }}
 
 jobs:
   structure:
@@ -126,7 +127,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aes-bld-001-structure-${{ github.run_id }}-${{ github.run_attempt }}
-          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/structure/
+          path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/structure/
           if-no-files-found: error
           retention-days: 30
 
@@ -214,7 +215,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aes-bld-001-cmake-${{ matrix.compiler }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/cmake-${{ matrix.compiler }}/
+          path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/cmake-${{ matrix.compiler }}/
           if-no-files-found: error
           retention-days: 30
 
@@ -332,7 +333,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aes-bld-001-autotools-${{ matrix.compiler }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/autotools-${{ matrix.compiler }}/
+          path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/autotools-${{ matrix.compiler }}/
           if-no-files-found: error
           retention-days: 30
 
@@ -418,7 +419,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aes-bld-001-clang-tidy-${{ github.run_id }}-${{ github.run_attempt }}
-          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/clang-tidy/
+          path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/clang-tidy/
           if-no-files-found: error
           retention-days: 30
 
@@ -484,7 +485,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aes-bld-001-clang-sanitizers-${{ github.run_id }}-${{ github.run_attempt }}
-          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/clang-sanitizers/
+          path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/clang-sanitizers/
           if-no-files-found: error
           retention-days: 30
 
@@ -670,7 +671,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aes-bld-001-install-parity-${{ github.run_id }}-${{ github.run_attempt }}
-          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/install-parity/
+          path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/install-parity/
           if-no-files-found: error
           retention-days: 30
 
@@ -720,6 +721,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aes-bld-001-distcheck-${{ github.run_id }}-${{ github.run_attempt }}
-          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/distcheck/
+          path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/distcheck/
           if-no-files-found: error
           retention-days: 30
