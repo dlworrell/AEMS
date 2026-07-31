@@ -216,6 +216,39 @@ def _existing_paths(root: Path, paths: Iterable[str]) -> list[str]:
     return sorted(path for path in paths if (root / path).is_file())
 
 
+def _cmake_manifest_paths(
+    root: Path, declared_paths: Iterable[str]
+) -> tuple[Path, ...]:
+    """Return first-party CMake manifests governing declared source paths."""
+    manifests = {root / "CMakeLists.txt"}
+    for declared_path in declared_paths:
+        if not isinstance(declared_path, str):
+            continue
+        relative = Path(declared_path)
+        if relative.is_absolute() or ".." in relative.parts:
+            continue
+        parent = relative.parent
+        while parent != Path("."):
+            manifests.add(root / parent / "CMakeLists.txt")
+            parent = parent.parent
+    return tuple(sorted(path for path in manifests if path.is_file()))
+
+
+def _cmake_declares_path(
+    root: Path, manifests: Iterable[Path], declared_path: str
+) -> bool:
+    """Check a source against each manifest using its directory-relative path."""
+    source = root / declared_path
+    for manifest in manifests:
+        try:
+            relative = source.relative_to(manifest.parent).as_posix()
+        except ValueError:
+            continue
+        if relative in _text(manifest):
+            return True
+    return False
+
+
 def _tool_versions() -> dict[str, dict[str, str | None]]:
     result: dict[str, dict[str, str | None]] = {}
     for name, command in REQUIRED_TOOL_COMMANDS.items():
@@ -562,15 +595,36 @@ def validate_structure(
     )
 
     cmake_path = root / "CMakeLists.txt"
-    cmake_text = _text(cmake_path)
+    root_cmake_text = _text(cmake_path)
+    declared_cmake_paths = [
+        item
+        for item in (
+            list(production_sources)
+            if isinstance(production_sources, list)
+            else []
+        )
+        if isinstance(item, str)
+    ]
+    if isinstance(normative_tests, list):
+        declared_cmake_paths.extend(
+            test["source"]
+            for test in normative_tests
+            if isinstance(test, dict)
+            and isinstance(test.get("source"), str)
+        )
+    cmake_manifests = _cmake_manifest_paths(
+        root,
+        declared_cmake_paths,
+    )
+    cmake_text = "\n".join(_text(path) for path in cmake_manifests)
     _check(
         checks,
         "AES-BLD-001-R020",
         (
             cmake_path.is_file()
-            and "cmake_minimum_required" in cmake_text
-            and re.search(r"\bproject\s*\(", cmake_text) is not None
-            and re.search(r"\binstall\s*\(", cmake_text) is not None
+            and "cmake_minimum_required" in root_cmake_text
+            and re.search(r"\bproject\s*\(", root_cmake_text) is not None
+            and re.search(r"\binstall\s*\(", root_cmake_text) is not None
         ),
         "Root CMake project declares the project and installation.",
         "Root CMake project or required project/install declarations are missing.",
@@ -627,7 +681,11 @@ def validate_structure(
             and isinstance(test.get("source"), str)
             and (root / test["source"]).is_file()
             and isinstance(test.get("cmake"), str)
-            and test["source"] in cmake_text
+            and _cmake_declares_path(
+                root,
+                cmake_manifests,
+                test["source"],
+            )
             and test["cmake"] in cmake_text
             for test in normative_tests
         )
@@ -826,7 +884,11 @@ def validate_structure(
         and bool(production_sources)
         and all(
             isinstance(source, str)
-            and source in cmake_text
+            and _cmake_declares_path(
+                root,
+                cmake_manifests,
+                source,
+            )
             and source in automake_text
             for source in production_sources
         )
