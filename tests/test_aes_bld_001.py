@@ -104,20 +104,32 @@ class NativeIntegrationRegressionTests(unittest.TestCase):
             }
             with self.subTest(fixture=fixture.name, toolchain="clang"):
                 clang = by_name["aes-clang"]
-                self.assertEqual(clang["CMAKE_AR"], "llvm-ar")
-                self.assertEqual(clang["CMAKE_RANLIB"], "llvm-ranlib")
-                self.assertEqual(clang["CMAKE_NM"], "llvm-nm")
-                self.assertEqual(clang["CMAKE_OBJDUMP"], "llvm-objdump")
+                self.assertEqual(
+                    clang["CMAKE_AR"],
+                    "/usr/local/bin/llvm-ar",
+                )
+                self.assertEqual(
+                    clang["CMAKE_RANLIB"],
+                    "/usr/local/bin/llvm-ranlib",
+                )
+                self.assertEqual(
+                    clang["CMAKE_NM"],
+                    "/usr/local/bin/llvm-nm",
+                )
+                self.assertEqual(
+                    clang["CMAKE_OBJDUMP"],
+                    "/usr/local/bin/llvm-objdump",
+                )
                 self.assertEqual(
                     clang["CMAKE_EXE_LINKER_FLAGS"],
                     "-fuse-ld=lld",
                 )
             with self.subTest(fixture=fixture.name, toolchain="gcc"):
                 gcc = by_name["aes-gcc"]
-                self.assertEqual(gcc["CMAKE_AR"], "ar")
-                self.assertEqual(gcc["CMAKE_RANLIB"], "ranlib")
-                self.assertEqual(gcc["CMAKE_NM"], "nm")
-                self.assertEqual(gcc["CMAKE_OBJDUMP"], "objdump")
+                self.assertEqual(gcc["CMAKE_AR"], "/usr/bin/ar")
+                self.assertEqual(gcc["CMAKE_RANLIB"], "/usr/bin/ranlib")
+                self.assertEqual(gcc["CMAKE_NM"], "/usr/bin/nm")
+                self.assertEqual(gcc["CMAKE_OBJDUMP"], "/usr/bin/objdump")
                 self.assertEqual(
                     gcc["CMAKE_EXE_LINKER_FLAGS"],
                     "-fuse-ld=bfd",
