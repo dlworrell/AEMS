@@ -13,6 +13,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "clang",
+        "CMAKE_INSTALL_LIBDIR": "lib",
         "CMAKE_INSTALL_PREFIX": "/usr",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_TESTING": "ON"
@@ -25,6 +26,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_INSTALL_LIBDIR": "lib",
         "CMAKE_INSTALL_PREFIX": "/usr",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_TESTING": "ON"
@@ -37,6 +39,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "clang",
+        "CMAKE_INSTALL_LIBDIR": "lib",
         "CMAKE_INSTALL_PREFIX": "/usr",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_TESTING": "ON",

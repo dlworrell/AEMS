@@ -38,7 +38,7 @@ def check_by_id(
     return matches[0]
 
 
-class NativeWorkflowRegressionTests(unittest.TestCase):
+class NativeIntegrationRegressionTests(unittest.TestCase):
     def test_pipefail_version_capture_does_not_use_head(self) -> None:
         workflow = (
             ROOT / ".github" / "workflows" / "aes-bld-001-distributed.yml"
@@ -58,6 +58,20 @@ class NativeWorkflowRegressionTests(unittest.TestCase):
                     encoding="utf-8"
                 )
                 self.assertIn(condition, configure)
+
+    def test_reference_library_pins_declared_cmake_libdir(self) -> None:
+        presets = json.loads(
+            (FIXTURE / "CMakePresets.json").read_text(encoding="utf-8")
+        )
+        configure_presets = presets["configurePresets"]
+
+        self.assertGreater(len(configure_presets), 0)
+        for preset in configure_presets:
+            with self.subTest(preset=preset["name"]):
+                self.assertEqual(
+                    preset["cacheVariables"]["CMAKE_INSTALL_LIBDIR"],
+                    "lib",
+                )
 
 
 class StructureValidationTests(unittest.TestCase):
