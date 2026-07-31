@@ -1,0 +1,67 @@
+name: AES-BLD-001 Reference Gate
+
+on:
+  pull_request:
+    paths:
+      - ".aems/aes-bld-001*.json"
+      - ".github/workflows/aes-bld-001-*.yml"
+      - "README.md"
+      - "aes-manifest.yaml"
+      - "config/aes-bld-001-repositories.json"
+      - "docs/engineering/AES-BLD-001-*"
+      - "schemas/aes-bld-001-*"
+      - "scripts/aes_bld_001.py"
+      - "templates/native/aes-bld-001*"
+      - "templates/native/AES-BLD-001*"
+      - "templates/workflows/aes-bld-001-*"
+      - "tests/fixtures/aes_bld_001/**"
+      - "tests/test_aes_bld_001.py"
+  push:
+    branches:
+      - main
+    paths:
+      - ".aems/aes-bld-001*.json"
+      - ".github/workflows/aes-bld-001-*.yml"
+      - "README.md"
+      - "aes-manifest.yaml"
+      - "config/aes-bld-001-repositories.json"
+      - "docs/engineering/AES-BLD-001-*"
+      - "schemas/aes-bld-001-*"
+      - "scripts/aes_bld_001.py"
+      - "templates/native/aes-bld-001*"
+      - "templates/native/AES-BLD-001*"
+      - "templates/workflows/aes-bld-001-*"
+      - "tests/fixtures/aes_bld_001/**"
+      - "tests/test_aes_bld_001.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-regression:
+    name: AES-BLD-001 / Python regression
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Execute validator regression suite
+        run: python3 -m unittest tests.test_aes_bld_001 -v
+
+  reference-projects:
+    name: AES-BLD-001 / reference ${{ matrix.kind }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - kind: C library
+            path: tests/fixtures/aes_bld_001/positive
+          - kind: C application
+            path: tests/fixtures/aes_bld_001/application
+    uses: ./.github/workflows/aes-bld-001-distributed.yml
+    with:
+      repository_subpath: ${{ matrix.path }}
+      profile_path: .aems/aes-bld-001.json
+      strict: true

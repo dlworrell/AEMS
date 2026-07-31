@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0.0",
+  "standard": "AES-BLD-001",
+  "standard_repository": "dlworrell/AES",
+  "standard_path": "standards/AES-BLD-001-native-build-toolchain-and-distribution-parity.md",
+  "generated_by": "AEMS",
+  "policy": {
+    "default_profile": ".aems/aes-bld-001.json",
+    "default_profile_document": "docs/engineering/AES-BLD-001-toolchain-profile.md",
+    "default_waiver_log": ".aems/aes-bld-001-waivers.json",
+    "evidence_schema": "schemas/aes-bld-001-evidence-v1.schema.json",
+    "rollout_mode": "reporting",
+    "project_owned_future_native_policy": "Every project-owned governed repository is expected to become C-based and operate independently over time. Planned-native repositories must adopt the current template before the first native production source is merged.",
+    "third_party_policy": "External references and third-party mirrors are classified explicitly and are not scanned by default."
+  },
+  "repositories": [
+    {
+      "full_name": "dlworrell/AEMS",
+      "role": "enforcement-orchestrator",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "reference-implementation"
+    },
+    {
+      "full_name": "dlworrell/P0",
+      "role": "bootstrap-repository",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "pre-adoption"
+    },
+    {
+      "full_name": "dlworrell/repo_templates",
+      "role": "template-source",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "rollout-next"
+    },
+    {
+      "full_name": "dlworrell/Catylist",
+      "role": "ecosystem-governance",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "pre-adoption"
+    },
+    {
+      "full_name": "dlworrell/AES",
+      "role": "engineering-standards-authority",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "pre-adoption"
+    },
+    {
+      "full_name": "dlworrell/65x02",
+      "role": "processor-and-tooling-research",
+      "ownership": "external-reference",
+      "applicability": "external-reference",
+      "profile_required": false,
+      "enforcement_state": "excluded"
+    },
+    {
+      "full_name": "dlworrell/atarix",
+      "role": "system-project",
+      "ownership": "project-owned",
+      "applicability": "active-native",
+      "profile_required": true,
+      "enforcement_state": "representative-next"
+    },
+    {
+      "full_name": "dlworrell/BB816-MATX-PCIE",
+      "role": "hardware-platform",
+      "ownership": "external-reference",
+      "applicability": "external-reference",
+      "profile_required": false,
+      "enforcement_state": "excluded"
+    },
+    {
+      "full_name": "dlworrell/code-noodling",
+      "role": "experimental-native-code",
+      "ownership": "project-owned",
+      "applicability": "active-native",
+      "profile_required": true,
+      "enforcement_state": "reporting"
+    },
+    {
+      "full_name": "dlworrell/audiblebooks",
+      "role": "private-native-catalogue-application",
+      "ownership": "project-owned",
+      "applicability": "active-native",
+      "profile_required": true,
+      "enforcement_state": "reporting"
+    },
+    {
+      "full_name": "dlworrell/engineering-docs-toolkit",
+      "role": "documentation-tooling",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "pre-adoption"
+    },
+    {
+      "full_name": "dlworrell/EWT",
+      "role": "engineering-workbench-toolkit",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "pre-adoption"
+    },
+    {
+      "full_name": "dlworrell/herkules-1934-english",
+      "role": "documentation-and-build-book",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "pre-adoption"
+    },
+    {
+      "full_name": "dlworrell/JAG",
+      "role": "application-project",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "pre-adoption"
+    },
+    {
+      "full_name": "dlworrell/evo",
+      "role": "evolutionary-optimization-library",
+      "ownership": "project-owned",
+      "applicability": "active-native",
+      "profile_required": true,
+      "enforcement_state": "representative-next"
+    },
+    {
+      "full_name": "dlworrell/Just-a-Geek-LLC",
+      "role": "organization-governance",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "pre-adoption"
+    },
+    {
+      "full_name": "dlworrell/Rocket_demo",
+      "role": "demo-project",
+      "ownership": "project-owned",
+      "applicability": "planned-native",
+      "profile_required": true,
+      "enforcement_state": "pre-adoption"
+    },
+    {
+      "full_name": "dlworrell/ulx3s",
+      "role": "fpga-platform",
+      "ownership": "external-reference",
+      "applicability": "external-reference",
+      "profile_required": false,
+      "enforcement_state": "excluded"
+    },
+    {
+      "full_name": "dlworrell/Vega816",
+      "role": "system-or-hardware-project",
+      "ownership": "external-reference",
+      "applicability": "external-reference",
+      "profile_required": false,
+      "enforcement_state": "excluded"
+    },
+    {
+      "full_name": "dlworrell/MayaUSD2017Bridge",
+      "role": "native-cpp-compatibility-bridge",
+      "ownership": "project-owned",
+      "applicability": "active-native",
+      "profile_required": true,
+      "enforcement_state": "reporting"
+    },
+    {
+      "full_name": "dlworrell/cglm",
+      "role": "third-party-c-library",
+      "ownership": "third-party-mirror-or-fork",
+      "applicability": "third-party-mirror-or-fork",
+      "profile_required": false,
+      "enforcement_state": "excluded"
+    },
+    {
+      "full_name": "dlworrell/CLK",
+      "role": "third-party-emulator",
+      "ownership": "third-party-mirror-or-fork",
+      "applicability": "third-party-mirror-or-fork",
+      "profile_required": false,
+      "enforcement_state": "excluded"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+name: AES-BLD-001 Build Parity
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-parity:
+    uses: dlworrell/AEMS/.github/workflows/aes-bld-001-distributed.yml@main
+    with:
+      repository_subpath: .
+      profile_path: .aems/aes-bld-001.json
+      strict: true

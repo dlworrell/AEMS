@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "standard": "AES-BLD-001",
+  "repository": "aems/reference-c-application",
+  "waivers": []
+}

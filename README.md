@@ -30,6 +30,8 @@ AEMS currently provides:
 - local and aggregate AES-DEV-001 evidence scanners;
 - local and aggregate AES-SEC-001 adoption and banned-API scanners, native
   control profiles, opt-in build presets, and explicit fuzz smoke support;
+- AES-BLD-001 CMake/CTest/Clang and independent GNU build-parity validation,
+  reference C library/application fixtures, reusable CI, and evidence schema;
 - AES-SEC-002 applicability and detector reporting with positive and negative
   synthetic fixtures;
 - role- and ownership-aware repository inventories for both standards;
@@ -100,6 +102,33 @@ python3 scripts/aes_sec_001_native.py /path/to/repository \
   --target-config .aems/aes-sec-001-native.json
 ```
 
+Validate an AES-BLD-001 repository profile and declared build parity:
+
+```sh
+python3 scripts/aes_bld_001.py structure /path/to/repository \
+  --profile .aems/aes-bld-001.json \
+  --require-tools \
+  --strict \
+  --format markdown
+```
+
+Compare two empty-prefix staged installations:
+
+```sh
+python3 scripts/aes_bld_001.py parity \
+  /tmp/cmake-stage/usr \
+  /tmp/autotools-stage/usr \
+  --profile /path/to/repository/.aems/aes-bld-001.json \
+  --strict \
+  --format markdown
+```
+
+Downstream repositories adopt the independent eight-path build matrix by
+copying `templates/workflows/aes-bld-001-governance.yml` and adapting
+`templates/native/aes-bld-001.example.json`. The workflow deliberately starts
+the CMake, GNU, analysis, sanitizer, install-parity, and distribution jobs
+independently so one failure does not silently skip the other evidence paths.
+
 Adopt the distributed fast governance control by copying
 `templates/native/.clang-tidy` to the repository root and
 `templates/workflows/aes-sec-001-governance.yml` to `.github/workflows/`.
@@ -141,6 +170,8 @@ are not scanned by default.
   native profile assignments;
 - `config/aes-sec-002-repositories.json`: reporting-mode applicability and
   rationale;
+- `config/aes-bld-001-repositories.json`: active-native, planned-native,
+  reference, and third-party build-parity rollout inventory;
 - `scripts/aems_project_zero.py`: AES-002 lifecycle assessment and evidence;
 - `scripts/aems_repository_inventory.py`: deterministic repository inventory;
 - `scripts/aems_issue_graph.py`: typed dependency reporting and optional
@@ -151,6 +182,8 @@ are not scanned by default.
 - `scripts/aes_sec_001_aggregate.py`: ecosystem security report runner;
 - `scripts/aes_sec_001_native.py`: native control discovery and explicit
   control/fuzz execution;
+- `scripts/aes_bld_001.py`: AES-BLD-001 structure, evidence, waiver, install,
+  package-content, and public-symbol parity validation;
 - `.clang-tidy`, `.github/actions/aes-sec-001/`, and
   `.github/workflows/aes-sec-001-distributed.yml`: the distributed
   Clang-Tidy and fast banned-API governance control;
@@ -192,6 +225,8 @@ conformance as proof of closure.
   — implemented blocking review-disposition ratchet
 - [AES-SEC-002 reporting plan](docs/engineering/AES-SEC-002-reporting-plan.md)
   — reporting only
+- [AES-BLD-001 enforcement plan](docs/engineering/AES-BLD-001-enforcement-plan.md)
+  — initial reference gate
 - [Compliance evidence schema](docs/engineering/compliance-evidence-schema.md)
 - [Development profile](docs/engineering/AES-DEV-001-development-principles.md)
 - [Secure C/C++ profile](docs/engineering/SECURE-C-CXX.md)

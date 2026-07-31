@@ -1,0 +1,93 @@
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "aes-clang",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cmake-clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_INSTALL_PREFIX": "/usr",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "aes-gcc",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cmake-gcc",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_INSTALL_PREFIX": "/usr",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "aes-clang-sanitizers",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cmake-clang-sanitizers",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_INSTALL_PREFIX": "/usr",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "BUILD_TESTING": "ON",
+        "AES_FIXTURE_ENABLE_SANITIZERS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "aes-clang",
+      "configurePreset": "aes-clang"
+    },
+    {
+      "name": "aes-gcc",
+      "configurePreset": "aes-gcc"
+    },
+    {
+      "name": "aes-clang-sanitizers",
+      "configurePreset": "aes-clang-sanitizers"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "aes-clang",
+      "configurePreset": "aes-clang",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "aes-gcc",
+      "configurePreset": "aes-gcc",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "aes-clang-sanitizers",
+      "configurePreset": "aes-clang-sanitizers",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    }
+  ]
+}

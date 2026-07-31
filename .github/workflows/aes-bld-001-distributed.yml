@@ -1,0 +1,594 @@
+name: AES-BLD-001 Distributed Build Parity
+
+on:
+  workflow_call:
+    inputs:
+      repository_subpath:
+        description: Repository-relative path to the governed native project.
+        required: false
+        default: "."
+        type: string
+      profile_path:
+        description: Path to the AES-BLD-001 profile within the native project.
+        required: false
+        default: ".aems/aes-bld-001.json"
+        type: string
+      strict:
+        description: Fail jobs when AES-BLD-001 requirements are not met.
+        required: false
+        default: true
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      repository_subpath:
+        description: Repository-relative path to the governed native project.
+        required: false
+        default: "."
+        type: string
+      profile_path:
+        description: Path to the AES-BLD-001 profile within the native project.
+        required: false
+        default: ".aems/aes-bld-001.json"
+        type: string
+      strict:
+        description: Fail jobs when AES-BLD-001 requirements are not met.
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+env:
+  AEMS_BLD_EVIDENCE: build/aems/aes-bld-001
+  AEMS_LLVM_MAJOR: "18"
+  AEMS_GCC_MAJOR: "13"
+
+jobs:
+  structure:
+    name: AES-BLD-001 / structure
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out governed repository
+        uses: actions/checkout@v4
+        with:
+          path: governed
+
+      - name: Check out AEMS runtime
+        uses: actions/checkout@v4
+        with:
+          repository: dlworrell/AEMS
+          ref: main
+          path: aems-runtime
+
+      - name: Install authoritative toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            autoconf \
+            automake \
+            clang-18 \
+            clang-tidy-18 \
+            cmake \
+            gcc-13 \
+            libtool \
+            make \
+            ninja-build \
+            pkg-config
+          sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
+          sudo ln -sf /usr/bin/clang-tidy-18 /usr/local/bin/clang-tidy
+          sudo ln -sf /usr/bin/gcc-13 /usr/local/bin/gcc
+
+      - name: Validate structure and capture exact versions
+        continue-on-error: ${{ ! inputs.strict }}
+        env:
+          GOVERNED_SUBPATH: ${{ inputs.repository_subpath }}
+          PROFILE_PATH: ${{ inputs.profile_path }}
+          STRICT: ${{ inputs.strict }}
+        run: |
+          set -o pipefail
+          ROOT="$GITHUB_WORKSPACE/governed/$GOVERNED_SUBPATH"
+          SCRIPT="$GITHUB_WORKSPACE/aems-runtime/scripts/aes_bld_001.py"
+          if [[ -f "$GITHUB_WORKSPACE/governed/scripts/aes_bld_001.py" ]]; then
+            SCRIPT="$GITHUB_WORKSPACE/governed/scripts/aes_bld_001.py"
+          fi
+          OUTPUT="$ROOT/$AEMS_BLD_EVIDENCE/structure"
+          mkdir -p "$OUTPUT"
+          args=()
+          if [[ "$STRICT" == "true" ]]; then
+            args+=(--strict)
+          fi
+          python3 "$SCRIPT" structure "$ROOT" \
+            --profile "$PROFILE_PATH" \
+            --require-tools \
+            --format json \
+            --output "$OUTPUT/evidence.json" \
+            "${args[@]}"
+          python3 "$SCRIPT" evidence "$OUTPUT/evidence.json" --strict
+          python3 "$SCRIPT" structure "$ROOT" \
+            --profile "$PROFILE_PATH" \
+            --require-tools \
+            --format markdown \
+            --output "$OUTPUT/evidence.md"
+
+      - name: Upload structure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-bld-001-structure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/structure/
+          if-no-files-found: error
+          retention-days: 30
+
+  cmake:
+    name: AES-BLD-001 / CMake / ${{ matrix.compiler }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - clang
+          - gcc
+    steps:
+      - name: Check out governed repository
+        uses: actions/checkout@v4
+        with:
+          path: governed
+
+      - name: Install CMake toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            clang-18 \
+            cmake \
+            gcc-13 \
+            ninja-build
+          sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
+          sudo ln -sf /usr/bin/gcc-13 /usr/local/bin/gcc
+
+      - name: Configure, build, and execute CTest
+        continue-on-error: ${{ ! inputs.strict }}
+        env:
+          COMPILER: ${{ matrix.compiler }}
+          GOVERNED_SUBPATH: ${{ inputs.repository_subpath }}
+          PROFILE_PATH: ${{ inputs.profile_path }}
+        run: |
+          set -o pipefail
+          ROOT="$GITHUB_WORKSPACE/governed/$GOVERNED_SUBPATH"
+          PROFILE="$ROOT/$PROFILE_PATH"
+          OUTPUT="$ROOT/$AEMS_BLD_EVIDENCE/cmake-$COMPILER"
+          mkdir -p "$OUTPUT"
+          preset="$(
+            python3 -c \
+              'import json,sys; print(json.load(open(sys.argv[1]))["cmake"]["presets"][sys.argv[2]])' \
+              "$PROFILE" "$COMPILER"
+          )"
+          {
+            cmake --version
+            ctest --version
+            "$COMPILER" --version
+            ninja --version
+          } > "$OUTPUT/tool-versions.txt"
+          cd "$ROOT"
+          cmake --preset "$preset" 2>&1 | tee "$OUTPUT/configure.log"
+          cmake --build --preset "$preset" 2>&1 | tee "$OUTPUT/build.log"
+          ctest --preset "$preset" 2>&1 | tee "$OUTPUT/ctest.log"
+
+      - name: Upload CMake evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-bld-001-cmake-${{ matrix.compiler }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/cmake-${{ matrix.compiler }}/
+          if-no-files-found: error
+          retention-days: 30
+
+  autotools:
+    name: AES-BLD-001 / Autotools / ${{ matrix.compiler }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - gcc
+          - clang
+    steps:
+      - name: Check out governed repository
+        uses: actions/checkout@v4
+        with:
+          path: governed
+
+      - name: Install GNU portability toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            autoconf \
+            automake \
+            clang-18 \
+            gcc-13 \
+            libtool \
+            make \
+            pkg-config
+          sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
+          sudo ln -sf /usr/bin/gcc-13 /usr/local/bin/gcc
+
+      - name: Bootstrap, configure, build, and execute Automake tests
+        continue-on-error: ${{ ! inputs.strict }}
+        env:
+          COMPILER: ${{ matrix.compiler }}
+          GOVERNED_SUBPATH: ${{ inputs.repository_subpath }}
+        run: |
+          set -o pipefail
+          ROOT="$GITHUB_WORKSPACE/governed/$GOVERNED_SUBPATH"
+          OUTPUT="$ROOT/$AEMS_BLD_EVIDENCE/autotools-$COMPILER"
+          BUILD="$RUNNER_TEMP/aes-bld-001-autotools-$COMPILER"
+          mkdir -p "$OUTPUT" "$BUILD"
+          {
+            autoconf --version | sed -n '1p'
+            automake --version | sed -n '1p'
+            libtoolize --version | sed -n '1p'
+            make --version | sed -n '1p'
+            "$COMPILER" --version | sed -n '1p'
+          } > "$OUTPUT/tool-versions.txt"
+          (
+            cd "$ROOT"
+            autoreconf -fvi
+          ) 2>&1 | tee "$OUTPUT/bootstrap.log"
+          (
+            cd "$BUILD"
+            CC="$COMPILER" "$ROOT/configure" --prefix=/usr
+          ) 2>&1 | tee "$OUTPUT/configure.log"
+          make -C "$BUILD" --jobs=2 2>&1 | tee "$OUTPUT/build.log"
+          make -C "$BUILD" check 2>&1 | tee "$OUTPUT/check.log"
+          mapfile -t test_logs < <(
+            find "$BUILD" -name test-suite.log -type f
+          )
+          test "${#test_logs[@]}" -gt 0
+          grep -Eq '^# TOTAL:[[:space:]]+[1-9][0-9]*$' "${test_logs[@]}"
+          cp "${test_logs[@]}" "$OUTPUT/"
+
+      - name: Upload Autotools evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-bld-001-autotools-${{ matrix.compiler }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/autotools-${{ matrix.compiler }}/
+          if-no-files-found: error
+          retention-days: 30
+
+  clang-tidy:
+    name: AES-BLD-001 / clang-tidy
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out governed repository
+        uses: actions/checkout@v4
+        with:
+          path: governed
+
+      - name: Install Clang analysis toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            clang-18 \
+            clang-tidy-18 \
+            cmake \
+            ninja-build
+          sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
+          sudo ln -sf /usr/bin/clang-tidy-18 /usr/local/bin/clang-tidy
+
+      - name: Analyze declared project-owned sources
+        continue-on-error: ${{ ! inputs.strict }}
+        env:
+          GOVERNED_SUBPATH: ${{ inputs.repository_subpath }}
+          PROFILE_PATH: ${{ inputs.profile_path }}
+        run: |
+          set -o pipefail
+          ROOT="$GITHUB_WORKSPACE/governed/$GOVERNED_SUBPATH"
+          PROFILE="$ROOT/$PROFILE_PATH"
+          OUTPUT="$ROOT/$AEMS_BLD_EVIDENCE/clang-tidy"
+          mkdir -p "$OUTPUT"
+          preset="$(
+            python3 -c \
+              'import json,sys; print(json.load(open(sys.argv[1]))["cmake"]["presets"]["clang"])' \
+              "$PROFILE"
+          )"
+          binary_dir="$(
+            python3 -c \
+              'import json,sys; print(json.load(open(sys.argv[1]))["cmake"]["binary_dirs"]["clang"])' \
+              "$PROFILE"
+          )"
+          mapfile -t sources < <(
+            python3 -c \
+              'import json,sys; p=json.load(open(sys.argv[1])); print(*p["build"]["production_sources"], sep="\n")' \
+              "$PROFILE"
+          )
+          {
+            clang --version | sed -n '1p'
+            clang-tidy --version | sed -n '1p'
+          } > "$OUTPUT/tool-versions.txt"
+          clang_major="$(clang --version | sed -nE 's/.*version ([0-9]+).*/\1/p')"
+          tidy_major="$(clang-tidy --version | sed -nE 's/.*version ([0-9]+).*/\1/p')"
+          test -n "$clang_major"
+          test "$clang_major" = "$tidy_major"
+          cd "$ROOT"
+          cmake --preset "$preset" 2>&1 | tee "$OUTPUT/configure.log"
+          cmake --build --preset "$preset" 2>&1 | tee "$OUTPUT/build.log"
+          test -f "$binary_dir/compile_commands.json"
+          test "${#sources[@]}" -gt 0
+          clang-tidy \
+            -p "$binary_dir" \
+            --config-file=.clang-tidy \
+            "${sources[@]}" \
+            2>&1 | tee "$OUTPUT/clang-tidy.log"
+
+      - name: Upload Clang-Tidy evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-bld-001-clang-tidy-${{ github.run_id }}-${{ github.run_attempt }}
+          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/clang-tidy/
+          if-no-files-found: error
+          retention-days: 30
+
+  clang-sanitizers:
+    name: AES-BLD-001 / Clang ASan+UBSan
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out governed repository
+        uses: actions/checkout@v4
+        with:
+          path: governed
+
+      - name: Install Clang sanitizer toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            clang-18 \
+            cmake \
+            ninja-build
+          sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
+
+      - name: Build and execute sanitizer tests
+        continue-on-error: ${{ ! inputs.strict }}
+        env:
+          GOVERNED_SUBPATH: ${{ inputs.repository_subpath }}
+          PROFILE_PATH: ${{ inputs.profile_path }}
+        run: |
+          set -o pipefail
+          ROOT="$GITHUB_WORKSPACE/governed/$GOVERNED_SUBPATH"
+          PROFILE="$ROOT/$PROFILE_PATH"
+          OUTPUT="$ROOT/$AEMS_BLD_EVIDENCE/clang-sanitizers"
+          mkdir -p "$OUTPUT"
+          preset="$(
+            python3 -c \
+              'import json,sys; print(json.load(open(sys.argv[1]))["cmake"]["presets"]["sanitizers"])' \
+              "$PROFILE"
+          )"
+          cd "$ROOT"
+          clang --version > "$OUTPUT/tool-versions.txt"
+          cmake --preset "$preset" 2>&1 | tee "$OUTPUT/configure.log"
+          cmake --build --preset "$preset" 2>&1 | tee "$OUTPUT/build.log"
+          ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+          UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 \
+            ctest --preset "$preset" 2>&1 | tee "$OUTPUT/ctest.log"
+
+      - name: Upload sanitizer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-bld-001-clang-sanitizers-${{ github.run_id }}-${{ github.run_attempt }}
+          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/clang-sanitizers/
+          if-no-files-found: error
+          retention-days: 30
+
+  install-parity:
+    name: AES-BLD-001 / install and consumer parity
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out governed repository
+        uses: actions/checkout@v4
+        with:
+          path: governed
+
+      - name: Check out AEMS runtime
+        uses: actions/checkout@v4
+        with:
+          repository: dlworrell/AEMS
+          ref: main
+          path: aems-runtime
+
+      - name: Install parity toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            autoconf \
+            automake \
+            clang-18 \
+            cmake \
+            gcc-13 \
+            libtool \
+            make \
+            ninja-build \
+            pkg-config
+          sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
+          sudo ln -sf /usr/bin/gcc-13 /usr/local/bin/gcc
+
+      - name: Build isolated staged installations
+        continue-on-error: ${{ ! inputs.strict }}
+        env:
+          GOVERNED_SUBPATH: ${{ inputs.repository_subpath }}
+          PROFILE_PATH: ${{ inputs.profile_path }}
+          STRICT: ${{ inputs.strict }}
+        run: |
+          set -o pipefail
+          ROOT="$GITHUB_WORKSPACE/governed/$GOVERNED_SUBPATH"
+          PROFILE="$ROOT/$PROFILE_PATH"
+          SCRIPT="$GITHUB_WORKSPACE/aems-runtime/scripts/aes_bld_001.py"
+          if [[ -f "$GITHUB_WORKSPACE/governed/scripts/aes_bld_001.py" ]]; then
+            SCRIPT="$GITHUB_WORKSPACE/governed/scripts/aes_bld_001.py"
+          fi
+          OUTPUT="$ROOT/$AEMS_BLD_EVIDENCE/install-parity"
+          CMAKE_STAGE="$RUNNER_TEMP/aes-bld-001-cmake-stage"
+          AUTOTOOLS_STAGE="$RUNNER_TEMP/aes-bld-001-autotools-stage"
+          AUTOTOOLS_BUILD="$RUNNER_TEMP/aes-bld-001-autotools-install"
+          mkdir -p \
+            "$OUTPUT" \
+            "$CMAKE_STAGE" \
+            "$AUTOTOOLS_STAGE" \
+            "$AUTOTOOLS_BUILD"
+          preset="$(
+            python3 -c \
+              'import json,sys; print(json.load(open(sys.argv[1]))["cmake"]["presets"]["clang"])' \
+              "$PROFILE"
+          )"
+          binary_dir="$(
+            python3 -c \
+              'import json,sys; print(json.load(open(sys.argv[1]))["cmake"]["binary_dirs"]["clang"])' \
+              "$PROFILE"
+          )"
+          build_kind="$(
+            python3 -c \
+              'import json,sys; print(json.load(open(sys.argv[1]))["build"]["kind"])' \
+              "$PROFILE"
+          )"
+          cd "$ROOT"
+          cmake --preset "$preset" 2>&1 | tee "$OUTPUT/cmake-configure.log"
+          cmake --build --preset "$preset" 2>&1 | tee "$OUTPUT/cmake-build.log"
+          DESTDIR="$CMAKE_STAGE" \
+            cmake --install "$ROOT/$binary_dir" \
+            2>&1 | tee "$OUTPUT/cmake-install.log"
+          autoreconf -fvi 2>&1 | tee "$OUTPUT/autotools-bootstrap.log"
+          (
+            cd "$AUTOTOOLS_BUILD"
+            CC=gcc "$ROOT/configure" --prefix=/usr
+          ) 2>&1 | tee "$OUTPUT/autotools-configure.log"
+          make -C "$AUTOTOOLS_BUILD" --jobs=2 \
+            2>&1 | tee "$OUTPUT/autotools-build.log"
+          make -C "$AUTOTOOLS_BUILD" install \
+            DESTDIR="$AUTOTOOLS_STAGE" \
+            2>&1 | tee "$OUTPUT/autotools-install.log"
+          args=()
+          if [[ "$STRICT" == "true" ]]; then
+            args+=(--strict)
+          fi
+          python3 "$SCRIPT" parity \
+            "$CMAKE_STAGE/usr" \
+            "$AUTOTOOLS_STAGE/usr" \
+            --profile "$PROFILE" \
+            --format json \
+            --output "$OUTPUT/evidence.json" \
+            "${args[@]}"
+          python3 "$SCRIPT" evidence "$OUTPUT/evidence.json" --strict
+          python3 "$SCRIPT" parity \
+            "$CMAKE_STAGE/usr" \
+            "$AUTOTOOLS_STAGE/usr" \
+            --profile "$PROFILE" \
+            --format markdown \
+            --output "$OUTPUT/evidence.md"
+          if [[ "$build_kind" == "c-library" ]]; then
+            package="$(
+              python3 -c \
+                'import json,sys; print(json.load(open(sys.argv[1]))["build"]["pkg_config"]["name"])' \
+                "$PROFILE"
+            )"
+            consumer="$(
+              python3 -c \
+                'import json,sys; print(json.load(open(sys.argv[1]))["build"]["consumer_sources"][0])' \
+                "$PROFILE"
+            )"
+            for stage in "$CMAKE_STAGE" "$AUTOTOOLS_STAGE"; do
+              read -r -a cflags <<< "$(
+                PKG_CONFIG_SYSROOT_DIR="$stage" \
+                  PKG_CONFIG_LIBDIR="$stage/usr/lib/pkgconfig" \
+                  pkg-config --cflags "$package"
+              )"
+              read -r -a libs <<< "$(
+                PKG_CONFIG_SYSROOT_DIR="$stage" \
+                  PKG_CONFIG_LIBDIR="$stage/usr/lib/pkgconfig" \
+                  pkg-config --libs "$package"
+              )"
+              gcc "$consumer" "${cflags[@]}" "${libs[@]}" \
+                -o "$OUTPUT/consumer"
+              "$OUTPUT/consumer"
+            done
+          else
+            mapfile -t smoke_executables < <(
+              python3 -c \
+                'import json,sys; print(*json.load(open(sys.argv[1]))["build"]["smoke_executables"], sep="\n")' \
+                "$PROFILE"
+            )
+            test "${#smoke_executables[@]}" -gt 0
+            for stage in "$CMAKE_STAGE" "$AUTOTOOLS_STAGE"; do
+              for executable in "${smoke_executables[@]}"; do
+                "$stage/usr/$executable"
+              done
+            done
+          fi
+          make -C "$AUTOTOOLS_BUILD" uninstall \
+            DESTDIR="$AUTOTOOLS_STAGE" \
+            2>&1 | tee "$OUTPUT/autotools-uninstall.log"
+          if find "$AUTOTOOLS_STAGE" \( -type f -o -type l \) -print -quit |
+            grep -q .; then
+            echo "GNU uninstall left installed files behind" >&2
+            find "$AUTOTOOLS_STAGE" \( -type f -o -type l \) -print >&2
+            exit 1
+          fi
+
+      - name: Upload install-parity evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-bld-001-install-parity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/install-parity/
+          if-no-files-found: error
+          retention-days: 30
+
+  distcheck:
+    name: AES-BLD-001 / distcheck
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out governed repository
+        uses: actions/checkout@v4
+        with:
+          path: governed
+
+      - name: Install GNU distribution toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            autoconf \
+            automake \
+            gcc-13 \
+            libtool \
+            make
+          sudo ln -sf /usr/bin/gcc-13 /usr/local/bin/gcc
+
+      - name: Build and verify source distribution
+        continue-on-error: ${{ ! inputs.strict }}
+        env:
+          GOVERNED_SUBPATH: ${{ inputs.repository_subpath }}
+        run: |
+          set -o pipefail
+          ROOT="$GITHUB_WORKSPACE/governed/$GOVERNED_SUBPATH"
+          OUTPUT="$ROOT/$AEMS_BLD_EVIDENCE/distcheck"
+          BUILD="$RUNNER_TEMP/aes-bld-001-distcheck"
+          mkdir -p "$OUTPUT" "$BUILD"
+          (
+            cd "$ROOT"
+            autoreconf -fvi
+          ) 2>&1 | tee "$OUTPUT/bootstrap.log"
+          (
+            cd "$BUILD"
+            CC=gcc "$ROOT/configure" --prefix=/usr
+          ) 2>&1 | tee "$OUTPUT/configure.log"
+          make -C "$BUILD" distcheck \
+            2>&1 | tee "$OUTPUT/distcheck.log"
+
+      - name: Upload distribution evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aes-bld-001-distcheck-${{ github.run_id }}-${{ github.run_attempt }}
+          path: governed/${{ inputs.repository_subpath }}/build/aems/aes-bld-001/distcheck/
+          if-no-files-found: error
+          retention-days: 30

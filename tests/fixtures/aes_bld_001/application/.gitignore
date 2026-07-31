@@ -1,0 +1,13 @@
+/aclocal.m4
+/autom4te.cache/
+/build/
+/Makefile
+/build-aux/compile
+/build-aux/depcomp
+/build-aux/install-sh
+/build-aux/missing
+/build-aux/test-driver
+/config.log
+/config.status
+/configure
+/Makefile.in

@@ -1,0 +1,130 @@
+{
+  "schema_version": "1.0.0",
+  "standard": "AES-BLD-001",
+  "repository": "aems/reference-c-library",
+  "applicability": "active-native",
+  "profile_document": "docs/engineering/AES-BLD-001-toolchain-profile.md",
+  "waiver_log": ".aems/aes-bld-001-waivers.json",
+  "authority": {
+    "repository": "dlworrell/AES",
+    "requirement_source": "standards/AES-BLD-001-native-build-toolchain-and-distribution-parity.md"
+  },
+  "independent_frontends": true,
+  "no_hidden_build": true,
+  "tools": {
+    "required": [
+      "cmake",
+      "ctest",
+      "clang",
+      "clang-tidy",
+      "gcc",
+      "autoconf",
+      "automake",
+      "libtoolize",
+      "make",
+      "pkg-config"
+    ],
+    "minimum_versions": {
+      "cmake": "3.20",
+      "ctest": "matching CMake release",
+      "clang": "18",
+      "clang-tidy": "18",
+      "gcc": "13",
+      "autoconf": "2.69",
+      "automake": "1.16",
+      "libtoolize": "2.4",
+      "make": "4.0",
+      "pkg-config": "0.29"
+    }
+  },
+  "build": {
+    "kind": "c-library",
+    "language_standards": [
+      "c17"
+    ],
+    "production_sources": [
+      "src/fixture.c"
+    ],
+    "normative_tests": [
+      {
+        "id": "fixture-unit",
+        "source": "tests/test_fixture.c",
+        "cmake": "aes_fixture_test",
+        "autotools": "tests/aes_fixture_test"
+      }
+    ],
+    "consumer_sources": [
+      "consumer/consumer.c"
+    ],
+    "option_mappings": [
+      {
+        "id": "warnings-as-errors",
+        "cmake": "AES_FIXTURE_WARNINGS_AS_ERRORS",
+        "autotools": "--enable-warnings-as-errors",
+        "default": true
+      }
+    ],
+    "pkg_config": {
+      "name": "aes-fixture",
+      "path": "aes-fixture.pc.in"
+    },
+    "release_capable": true,
+    "generated_paths": [
+      "build",
+      "autom4te.cache"
+    ],
+    "offline_after_bootstrap": true
+  },
+  "cmake": {
+    "minimum_version": "3.20",
+    "binary_dirs": {
+      "clang": "build/cmake-clang",
+      "gcc": "build/cmake-gcc",
+      "sanitizers": "build/cmake-clang-sanitizers"
+    },
+    "presets": {
+      "clang": "aes-clang",
+      "gcc": "aes-gcc",
+      "sanitizers": "aes-clang-sanitizers"
+    }
+  },
+  "autotools": {
+    "bootstrap": [
+      "autoreconf",
+      "-fvi"
+    ],
+    "out_of_tree": true,
+    "compilers": [
+      "gcc",
+      "clang",
+      "make"
+    ],
+    "uninstall": true,
+    "distcheck": true
+  },
+  "parity": {
+    "expected_install_paths": [
+      "include/aes_fixture/fixture.h",
+      "lib/libaes_fixture.a",
+      "lib/pkgconfig/aes-fixture.pc"
+    ],
+    "metadata_exclusions": [
+      "lib/libaes_fixture.la"
+    ],
+    "symbol_check": true
+  },
+  "ci": {
+    "workflow": ".github/workflows/aes-bld-001.yml",
+    "jobs": [
+      "cmake-clang",
+      "cmake-gcc",
+      "autotools-gcc",
+      "autotools-clang",
+      "clang-tidy",
+      "clang-sanitizers",
+      "install-parity",
+      "distcheck"
+    ],
+    "evidence_output": "build/aems/aes-bld-001/evidence.json"
+  }
+}
