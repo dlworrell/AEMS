@@ -67,17 +67,27 @@ jobs:
           sudo apt-get install --yes \
             autoconf \
             automake \
+            binutils \
             clang-18 \
             clang-tidy-18 \
             cmake \
             gcc-13 \
             libtool \
+            lld-18 \
+            llvm-18 \
             make \
             ninja-build \
             pkg-config
           sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
           sudo ln -sf /usr/bin/clang-tidy-18 /usr/local/bin/clang-tidy
           sudo ln -sf /usr/bin/gcc-13 /usr/local/bin/gcc
+          sudo ln -sf /usr/bin/llvm-ar-18 /usr/local/bin/llvm-ar
+          sudo ln -sf /usr/bin/llvm-ranlib-18 /usr/local/bin/llvm-ranlib
+          sudo ln -sf /usr/bin/llvm-nm-18 /usr/local/bin/llvm-nm
+          sudo ln -sf /usr/bin/llvm-objdump-18 /usr/local/bin/llvm-objdump
+          sudo ln -sf /usr/bin/llvm-cov-18 /usr/local/bin/llvm-cov
+          sudo ln -sf /usr/bin/llvm-profdata-18 /usr/local/bin/llvm-profdata
+          sudo ln -sf /usr/bin/ld.lld-18 /usr/local/bin/ld.lld
 
       - name: Validate structure and capture exact versions
         continue-on-error: ${{ ! inputs.strict }}
@@ -139,12 +149,22 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes \
+            binutils \
             clang-18 \
             cmake \
             gcc-13 \
+            lld-18 \
+            llvm-18 \
             ninja-build
           sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
           sudo ln -sf /usr/bin/gcc-13 /usr/local/bin/gcc
+          sudo ln -sf /usr/bin/llvm-ar-18 /usr/local/bin/llvm-ar
+          sudo ln -sf /usr/bin/llvm-ranlib-18 /usr/local/bin/llvm-ranlib
+          sudo ln -sf /usr/bin/llvm-nm-18 /usr/local/bin/llvm-nm
+          sudo ln -sf /usr/bin/llvm-objdump-18 /usr/local/bin/llvm-objdump
+          sudo ln -sf /usr/bin/llvm-cov-18 /usr/local/bin/llvm-cov
+          sudo ln -sf /usr/bin/llvm-profdata-18 /usr/local/bin/llvm-profdata
+          sudo ln -sf /usr/bin/ld.lld-18 /usr/local/bin/ld.lld
 
       - name: Configure, build, and execute CTest
         continue-on-error: ${{ ! inputs.strict }}
@@ -168,6 +188,21 @@ jobs:
             ctest --version
             "$COMPILER" --version
             ninja --version
+            if [[ "$COMPILER" == "clang" ]]; then
+              llvm-ar --version
+              llvm-ranlib --version
+              llvm-nm --version
+              llvm-objdump --version
+              llvm-cov --version
+              llvm-profdata --version
+              ld.lld --version
+            else
+              ar --version
+              ranlib --version
+              nm --version
+              objdump --version
+              ld --version
+            fi
           } > "$OUTPUT/tool-versions.txt"
           cd "$ROOT"
           cmake --preset "$preset" 2>&1 | tee "$OUTPUT/configure.log"
@@ -204,13 +239,23 @@ jobs:
           sudo apt-get install --yes \
             autoconf \
             automake \
+            binutils \
             clang-18 \
             gcc-13 \
             libtool \
+            lld-18 \
+            llvm-18 \
             make \
             pkg-config
           sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
           sudo ln -sf /usr/bin/gcc-13 /usr/local/bin/gcc
+          sudo ln -sf /usr/bin/llvm-ar-18 /usr/local/bin/llvm-ar
+          sudo ln -sf /usr/bin/llvm-ranlib-18 /usr/local/bin/llvm-ranlib
+          sudo ln -sf /usr/bin/llvm-nm-18 /usr/local/bin/llvm-nm
+          sudo ln -sf /usr/bin/llvm-objdump-18 /usr/local/bin/llvm-objdump
+          sudo ln -sf /usr/bin/llvm-cov-18 /usr/local/bin/llvm-cov
+          sudo ln -sf /usr/bin/llvm-profdata-18 /usr/local/bin/llvm-profdata
+          sudo ln -sf /usr/bin/ld.lld-18 /usr/local/bin/ld.lld
 
       - name: Bootstrap, configure, build, and execute Automake tests
         continue-on-error: ${{ ! inputs.strict }}
@@ -229,6 +274,21 @@ jobs:
             libtoolize --version | sed -n '1p'
             make --version | sed -n '1p'
             "$COMPILER" --version | sed -n '1p'
+            if [[ "$COMPILER" == "clang" ]]; then
+              llvm-ar --version | sed -n '1p'
+              llvm-ranlib --version | sed -n '1p'
+              llvm-nm --version | sed -n '1p'
+              llvm-objdump --version | sed -n '1p'
+              llvm-cov --version | sed -n '1p'
+              llvm-profdata --version | sed -n '1p'
+              ld.lld --version | sed -n '1p'
+            else
+              ar --version | sed -n '1p'
+              ranlib --version | sed -n '1p'
+              nm --version | sed -n '1p'
+              objdump --version | sed -n '1p'
+              ld --version | sed -n '1p'
+            fi
           } > "$OUTPUT/tool-versions.txt"
           (
             cd "$ROOT"
@@ -236,7 +296,27 @@ jobs:
           ) 2>&1 | tee "$OUTPUT/bootstrap.log"
           (
             cd "$BUILD"
-            CC="$COMPILER" "$ROOT/configure" --prefix=/usr
+            configure_env=(CC="$COMPILER")
+            if [[ "$COMPILER" == "clang" ]]; then
+              configure_env+=(
+                AR=llvm-ar
+                RANLIB=llvm-ranlib
+                NM=llvm-nm
+                OBJDUMP=llvm-objdump
+                LD=ld.lld
+                "LDFLAGS=-fuse-ld=lld"
+              )
+            else
+              configure_env+=(
+                AR=ar
+                RANLIB=ranlib
+                NM=nm
+                OBJDUMP=objdump
+                LD=ld
+                "LDFLAGS=-fuse-ld=bfd"
+              )
+            fi
+            env "${configure_env[@]}" "$ROOT/configure" --prefix=/usr
           ) 2>&1 | tee "$OUTPUT/configure.log"
           make -C "$BUILD" --jobs=2 2>&1 | tee "$OUTPUT/build.log"
           make -C "$BUILD" check 2>&1 | tee "$OUTPUT/check.log"
@@ -272,9 +352,18 @@ jobs:
             clang-18 \
             clang-tidy-18 \
             cmake \
+            lld-18 \
+            llvm-18 \
             ninja-build
           sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
           sudo ln -sf /usr/bin/clang-tidy-18 /usr/local/bin/clang-tidy
+          sudo ln -sf /usr/bin/llvm-ar-18 /usr/local/bin/llvm-ar
+          sudo ln -sf /usr/bin/llvm-ranlib-18 /usr/local/bin/llvm-ranlib
+          sudo ln -sf /usr/bin/llvm-nm-18 /usr/local/bin/llvm-nm
+          sudo ln -sf /usr/bin/llvm-objdump-18 /usr/local/bin/llvm-objdump
+          sudo ln -sf /usr/bin/llvm-cov-18 /usr/local/bin/llvm-cov
+          sudo ln -sf /usr/bin/llvm-profdata-18 /usr/local/bin/llvm-profdata
+          sudo ln -sf /usr/bin/ld.lld-18 /usr/local/bin/ld.lld
 
       - name: Analyze declared project-owned sources
         continue-on-error: ${{ ! inputs.strict }}
@@ -305,6 +394,9 @@ jobs:
           {
             clang --version | sed -n '1p'
             clang-tidy --version | sed -n '1p'
+            llvm-ar --version | sed -n '1p'
+            llvm-nm --version | sed -n '1p'
+            ld.lld --version | sed -n '1p'
           } > "$OUTPUT/tool-versions.txt"
           clang_major="$(clang --version | sed -nE 's/.*version ([0-9]+).*/\1/p')"
           tidy_major="$(clang-tidy --version | sed -nE 's/.*version ([0-9]+).*/\1/p')"
@@ -345,8 +437,17 @@ jobs:
           sudo apt-get install --yes \
             clang-18 \
             cmake \
+            lld-18 \
+            llvm-18 \
             ninja-build
           sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
+          sudo ln -sf /usr/bin/llvm-ar-18 /usr/local/bin/llvm-ar
+          sudo ln -sf /usr/bin/llvm-ranlib-18 /usr/local/bin/llvm-ranlib
+          sudo ln -sf /usr/bin/llvm-nm-18 /usr/local/bin/llvm-nm
+          sudo ln -sf /usr/bin/llvm-objdump-18 /usr/local/bin/llvm-objdump
+          sudo ln -sf /usr/bin/llvm-cov-18 /usr/local/bin/llvm-cov
+          sudo ln -sf /usr/bin/llvm-profdata-18 /usr/local/bin/llvm-profdata
+          sudo ln -sf /usr/bin/ld.lld-18 /usr/local/bin/ld.lld
 
       - name: Build and execute sanitizer tests
         continue-on-error: ${{ ! inputs.strict }}
@@ -365,7 +466,13 @@ jobs:
               "$PROFILE"
           )"
           cd "$ROOT"
-          clang --version > "$OUTPUT/tool-versions.txt"
+          {
+            clang --version
+            llvm-ar --version
+            llvm-cov --version
+            llvm-profdata --version
+            ld.lld --version
+          } > "$OUTPUT/tool-versions.txt"
           cmake --preset "$preset" 2>&1 | tee "$OUTPUT/configure.log"
           cmake --build --preset "$preset" 2>&1 | tee "$OUTPUT/build.log"
           ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
@@ -403,15 +510,25 @@ jobs:
           sudo apt-get install --yes \
             autoconf \
             automake \
+            binutils \
             clang-18 \
             cmake \
             gcc-13 \
             libtool \
+            lld-18 \
+            llvm-18 \
             make \
             ninja-build \
             pkg-config
           sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
           sudo ln -sf /usr/bin/gcc-13 /usr/local/bin/gcc
+          sudo ln -sf /usr/bin/llvm-ar-18 /usr/local/bin/llvm-ar
+          sudo ln -sf /usr/bin/llvm-ranlib-18 /usr/local/bin/llvm-ranlib
+          sudo ln -sf /usr/bin/llvm-nm-18 /usr/local/bin/llvm-nm
+          sudo ln -sf /usr/bin/llvm-objdump-18 /usr/local/bin/llvm-objdump
+          sudo ln -sf /usr/bin/llvm-cov-18 /usr/local/bin/llvm-cov
+          sudo ln -sf /usr/bin/llvm-profdata-18 /usr/local/bin/llvm-profdata
+          sudo ln -sf /usr/bin/ld.lld-18 /usr/local/bin/ld.lld
 
       - name: Build isolated staged installations
         continue-on-error: ${{ ! inputs.strict }}
@@ -460,7 +577,15 @@ jobs:
           autoreconf -fvi 2>&1 | tee "$OUTPUT/autotools-bootstrap.log"
           (
             cd "$AUTOTOOLS_BUILD"
-            CC=gcc "$ROOT/configure" --prefix=/usr
+            env \
+              CC=gcc \
+              AR=ar \
+              RANLIB=ranlib \
+              NM=nm \
+              OBJDUMP=objdump \
+              LD=ld \
+              LDFLAGS=-fuse-ld=bfd \
+              "$ROOT/configure" --prefix=/usr
           ) 2>&1 | tee "$OUTPUT/autotools-configure.log"
           make -C "$AUTOTOOLS_BUILD" --jobs=2 \
             2>&1 | tee "$OUTPUT/autotools-build.log"
@@ -496,7 +621,12 @@ jobs:
                 'import json,sys; print(json.load(open(sys.argv[1]))["build"]["consumer_sources"][0])' \
                 "$PROFILE"
             )"
-            for stage in "$CMAKE_STAGE" "$AUTOTOOLS_STAGE"; do
+            stages=("$CMAKE_STAGE" "$AUTOTOOLS_STAGE")
+            compilers=(clang gcc)
+            linker_flags=(-fuse-ld=lld -fuse-ld=bfd)
+            for index in "${!stages[@]}"; do
+              stage="${stages[$index]}"
+              compiler="${compilers[$index]}"
               read -r -a cflags <<< "$(
                 PKG_CONFIG_SYSROOT_DIR="$stage" \
                   PKG_CONFIG_LIBDIR="$stage/usr/lib/pkgconfig" \
@@ -507,7 +637,8 @@ jobs:
                   PKG_CONFIG_LIBDIR="$stage/usr/lib/pkgconfig" \
                   pkg-config --libs "$package"
               )"
-              gcc "$consumer" "${cflags[@]}" "${libs[@]}" \
+              "$compiler" "${linker_flags[$index]}" \
+                "$consumer" "${cflags[@]}" "${libs[@]}" \
                 -o "$OUTPUT/consumer"
               "$OUTPUT/consumer"
             done
