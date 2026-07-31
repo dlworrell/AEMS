@@ -224,11 +224,11 @@ jobs:
           BUILD="$RUNNER_TEMP/aes-bld-001-autotools-$COMPILER"
           mkdir -p "$OUTPUT" "$BUILD"
           {
-            autoconf --version | head -n 1
-            automake --version | head -n 1
-            libtoolize --version | head -n 1
-            make --version | head -n 1
-            "$COMPILER" --version | head -n 1
+            autoconf --version | sed -n '1p'
+            automake --version | sed -n '1p'
+            libtoolize --version | sed -n '1p'
+            make --version | sed -n '1p'
+            "$COMPILER" --version | sed -n '1p'
           } > "$OUTPUT/tool-versions.txt"
           (
             cd "$ROOT"
@@ -303,11 +303,11 @@ jobs:
               "$PROFILE"
           )
           {
-            clang --version | head -n 1
-            clang-tidy --version | head -n 1
+            clang --version | sed -n '1p'
+            clang-tidy --version | sed -n '1p'
           } > "$OUTPUT/tool-versions.txt"
-          clang_major="$(clang --version | sed -nE 's/.*version ([0-9]+).*/\1/p' | head -n 1)"
-          tidy_major="$(clang-tidy --version | sed -nE 's/.*version ([0-9]+).*/\1/p' | head -n 1)"
+          clang_major="$(clang --version | sed -nE 's/.*version ([0-9]+).*/\1/p')"
+          tidy_major="$(clang-tidy --version | sed -nE 's/.*version ([0-9]+).*/\1/p')"
           test -n "$clang_major"
           test "$clang_major" = "$tidy_major"
           cd "$ROOT"

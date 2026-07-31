@@ -38,6 +38,28 @@ def check_by_id(
     return matches[0]
 
 
+class NativeWorkflowRegressionTests(unittest.TestCase):
+    def test_pipefail_version_capture_does_not_use_head(self) -> None:
+        workflow = (
+            ROOT / ".github" / "workflows" / "aes-bld-001-distributed.yml"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn("| head -n 1", workflow)
+
+    def test_fixture_conditionals_close_without_trailing_m4_newline(
+        self,
+    ) -> None:
+        condition = (
+            '[test "x$enable_warnings_as_errors" = "xyes"])'
+        )
+        for fixture in (FIXTURE, APPLICATION_FIXTURE):
+            with self.subTest(fixture=fixture.name):
+                configure = (fixture / "configure.ac").read_text(
+                    encoding="utf-8"
+                )
+                self.assertIn(condition, configure)
+
+
 class StructureValidationTests(unittest.TestCase):
     def test_aems_pre_adoption_profile_is_traceable(self) -> None:
         report = aes_bld_001.validate_structure(ROOT)
