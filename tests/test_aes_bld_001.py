@@ -73,6 +73,88 @@ class NativeIntegrationRegressionTests(unittest.TestCase):
                     "lib",
                 )
 
+    def test_reference_profiles_bind_authoritative_gnu_and_llvm_tools(
+        self,
+    ) -> None:
+        required = set(aes_bld_001.REQUIRED_TOOL_COMMANDS)
+        for fixture in (FIXTURE, APPLICATION_FIXTURE):
+            with self.subTest(fixture=fixture.name):
+                profile = json.loads(
+                    (
+                        fixture / ".aems" / "aes-bld-001.json"
+                    ).read_text(encoding="utf-8")
+                )
+                self.assertEqual(
+                    set(profile["tools"]["required"]),
+                    required,
+                )
+                self.assertEqual(
+                    profile["tools"]["bindings"],
+                    aes_bld_001.EXPECTED_TOOL_BINDINGS,
+                )
+
+    def test_reference_presets_select_matching_binary_tools(self) -> None:
+        for fixture in (FIXTURE, APPLICATION_FIXTURE):
+            presets = json.loads(
+                (fixture / "CMakePresets.json").read_text(encoding="utf-8")
+            )
+            by_name = {
+                preset["name"]: preset["cacheVariables"]
+                for preset in presets["configurePresets"]
+            }
+            with self.subTest(fixture=fixture.name, toolchain="clang"):
+                clang = by_name["aes-clang"]
+                self.assertEqual(
+                    clang["CMAKE_AR"],
+                    "/usr/local/bin/llvm-ar",
+                )
+                self.assertEqual(
+                    clang["CMAKE_RANLIB"],
+                    "/usr/local/bin/llvm-ranlib",
+                )
+                self.assertEqual(
+                    clang["CMAKE_NM"],
+                    "/usr/local/bin/llvm-nm",
+                )
+                self.assertEqual(
+                    clang["CMAKE_OBJDUMP"],
+                    "/usr/local/bin/llvm-objdump",
+                )
+                self.assertEqual(
+                    clang["CMAKE_EXE_LINKER_FLAGS"],
+                    "-fuse-ld=lld",
+                )
+            with self.subTest(fixture=fixture.name, toolchain="gcc"):
+                gcc = by_name["aes-gcc"]
+                self.assertEqual(gcc["CMAKE_AR"], "/usr/bin/ar")
+                self.assertEqual(gcc["CMAKE_RANLIB"], "/usr/bin/ranlib")
+                self.assertEqual(gcc["CMAKE_NM"], "/usr/bin/nm")
+                self.assertEqual(gcc["CMAKE_OBJDUMP"], "/usr/bin/objdump")
+                self.assertEqual(
+                    gcc["CMAKE_EXE_LINKER_FLAGS"],
+                    "-fuse-ld=bfd",
+                )
+
+    def test_workflow_installs_and_exposes_llvm_18_suite(self) -> None:
+        workflow = (
+            ROOT / ".github" / "workflows" / "aes-bld-001-distributed.yml"
+        ).read_text(encoding="utf-8")
+
+        for token in (
+            "llvm-18",
+            "lld-18",
+            "/usr/bin/llvm-ar-18",
+            "/usr/bin/llvm-ranlib-18",
+            "/usr/bin/llvm-nm-18",
+            "/usr/bin/llvm-objdump-18",
+            "/usr/bin/llvm-cov-18",
+            "/usr/bin/llvm-profdata-18",
+            "/usr/bin/ld.lld-18",
+            "LDFLAGS=-fuse-ld=lld",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, workflow)
+
 
 class StructureValidationTests(unittest.TestCase):
     def test_aems_pre_adoption_profile_is_traceable(self) -> None:
@@ -109,6 +191,49 @@ class StructureValidationTests(unittest.TestCase):
         self.assertEqual(
             check_by_id(report, "AES-BLD-001-R045").status,
             "not-applicable",
+        )
+
+    def test_nested_cmake_test_manifest_is_traced(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "fixture"
+            shutil.copytree(FIXTURE, root)
+            cmake_path = root / "CMakeLists.txt"
+            cmake_text = cmake_path.read_text(encoding="utf-8")
+            test_block_start = cmake_text.index("if(BUILD_TESTING)")
+            install_block_start = cmake_text.index(
+                "\n\nset(prefix",
+                test_block_start,
+            )
+            cmake_path.write_text(
+                (
+                    cmake_text[:test_block_start]
+                    + "if(BUILD_TESTING)\n"
+                    + "  add_subdirectory(tests)\n"
+                    + "endif()"
+                    + cmake_text[install_block_start:]
+                ),
+                encoding="utf-8",
+            )
+            (root / "tests" / "CMakeLists.txt").write_text(
+                (
+                    "add_executable(aes_fixture_test test_fixture.c)\n"
+                    "target_link_libraries("
+                    "aes_fixture_test PRIVATE aes_fixture)\n"
+                    "add_test("
+                    "NAME aes_fixture_test COMMAND aes_fixture_test)\n"
+                ),
+                encoding="utf-8",
+            )
+
+            report = aes_bld_001.validate_structure(root)
+
+        self.assertEqual(
+            check_by_id(report, "AES-BLD-001-R022").status,
+            "passed",
+        )
+        self.assertEqual(
+            check_by_id(report, "AES-BLD-001-R042").status,
+            "passed",
         )
 
     def test_missing_cmake_presets_fails_canonical_path(self) -> None:
@@ -501,6 +626,34 @@ class InstallParityTests(unittest.TestCase):
             "autotools-only=['aes_fixture_subtract']",
             check.evidence[0],
         )
+
+    def test_symbol_parity_uses_llvm_for_cmake_and_gnu_for_autotools(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            cmake, autotools, profile = self.make_stages(temporary)
+            with (
+                mock.patch.object(
+                    aes_bld_001.shutil,
+                    "which",
+                    return_value="/usr/bin/tool",
+                ),
+                mock.patch.object(
+                    aes_bld_001,
+                    "_symbols",
+                    return_value={"aes_fixture_add"},
+                ) as symbols,
+            ):
+                report = aes_bld_001.compare_installs(
+                    cmake,
+                    autotools,
+                    profile_path=profile,
+                )
+
+        self.assertTrue(report.passes)
+        self.assertEqual(symbols.call_count, 2)
+        self.assertEqual(symbols.call_args_list[0].args[1], "llvm-nm")
+        self.assertEqual(symbols.call_args_list[1].args[1], "nm")
 
 
 class EvidenceSchemaTests(unittest.TestCase):

@@ -1,10 +1,10 @@
 # AES-BLD-001 Enforcement Plan
 
-Status: Initial reference gate
+Status: Reference gate with authoritative GNU and LLVM tool bindings
 
 Owner: AEMS
 
-Issue: #21
+Issues: #21, #23
 
 Authority: `dlworrell/AES`
 
@@ -14,7 +14,7 @@ Normative source:
 ## Purpose
 
 AEMS implements the adopted AES requirements without redefining them. This
-plan establishes one canonical CMake/CTest/Clang development path and one
+plan establishes one canonical CMake/CTest/Clang/LLVM development path and one
 independent Autoconf/Automake/Libtool/GNU Make/GCC portability path, then
 compares their observable results.
 
@@ -46,10 +46,10 @@ sanitizers, parity, or distribution checks.
 
 The required evidence paths are:
 
-1. CMake, CTest, and Clang;
-2. CMake, CTest, and GCC;
-3. Autotools, GNU Make, and GCC;
-4. Autotools, GNU Make, and Clang;
+1. CMake, CTest, Clang, LLVM binary tools, and LLD;
+2. CMake, CTest, GCC, GNU binutils, and GNU ld;
+3. Autotools, GNU Make, GCC, GNU binutils, and GNU ld;
+4. Autotools, GNU Make, Clang, LLVM binary tools, and LLD;
 5. clang-tidy using the Clang preset's compilation database;
 6. Clang ASan and UBSan;
 7. staged CMake/GNU install, package or executable smoke, public-symbol
@@ -73,15 +73,19 @@ frontend-specific metadata is excluded.
 
 ## Tool authority
 
-The checked-in profile declares minimum version policy. Compliance jobs record
-the exact CMake, CTest, Clang, clang-tidy, GCC, Autoconf, Automake, Libtool,
-GNU Make, and pkg-config versions they execute. The Clang and clang-tidy major
-versions must agree.
+The checked-in profile declares minimum version policy and explicit tool
+bindings. Compliance jobs record the exact CMake, CTest, Clang, clang-tidy,
+LLVM archiver, archive indexer, symbol and object inspectors, coverage and
+profile-data tools, LLD, GCC, GNU binutils, GNU ld, Autoconf, Automake,
+Libtool, GNU Make, and pkg-config versions they execute. The Clang and
+clang-tidy major versions must agree.
 
-The workflow currently resolves LLVM/Clang 18 and GCC 13 explicitly from the
-pinned `ubuntu-24.04` runner image and its package repository. CMake,
-Autoconf, Automake, Libtool, GNU Make, and pkg-config use the runner
-distribution's stable release while retaining their exact versions in every
+The workflow resolves Clang 18, LLVM 18, LLD 18, and GCC 13 explicitly from
+the pinned `ubuntu-24.04` runner image and its package repository. Clang paths
+bind `llvm-ar`, `llvm-ranlib`, `llvm-nm`, `llvm-objdump`, and `ld.lld`; GCC
+paths bind GNU `ar`, `ranlib`, `nm`, `objdump`, and `ld`. CMake, Autoconf,
+Automake, Libtool, GNU Make, and pkg-config use the runner distribution's
+stable release while retaining their exact versions in every
 structure-evidence bundle.
 
 ## Rollout
@@ -98,9 +102,9 @@ The initial repository inventory is reporting-only. A downstream repository
 does not become enforcing until its local profile and caller set `strict:
 true`.
 
-## Known follow-up
+## Downstream follow-up
 
-AEMS issue #21 remains open after the initial reference gate. Closure requires
-successful reference workflow evidence, `repo_templates` distribution,
-representative `evo` and `atarix` adoption, private-repository checkout
-coverage, and ecosystem freshness reporting.
+The initial reference gate closed AEMS issue #21. Issue #23 makes the GNU and
+LLVM binary-tool bindings executable and evidenced. Repository-specific
+adoption remains downstream work; Evo tracks its representative adoption in
+`dlworrell/evo#14`.

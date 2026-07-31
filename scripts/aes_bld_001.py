@@ -27,12 +27,43 @@ REQUIRED_TOOL_COMMANDS: dict[str, tuple[str, ...]] = {
     "ctest": ("ctest", "--version"),
     "clang": ("clang", "--version"),
     "clang-tidy": ("clang-tidy", "--version"),
+    "llvm-ar": ("llvm-ar", "--version"),
+    "llvm-ranlib": ("llvm-ranlib", "--version"),
+    "llvm-nm": ("llvm-nm", "--version"),
+    "llvm-objdump": ("llvm-objdump", "--version"),
+    "llvm-cov": ("llvm-cov", "--version"),
+    "llvm-profdata": ("llvm-profdata", "--version"),
+    "ld.lld": ("ld.lld", "--version"),
     "gcc": ("gcc", "--version"),
+    "ar": ("ar", "--version"),
+    "ranlib": ("ranlib", "--version"),
+    "nm": ("nm", "--version"),
+    "objdump": ("objdump", "--version"),
+    "ld": ("ld", "--version"),
     "autoconf": ("autoconf", "--version"),
     "automake": ("automake", "--version"),
     "libtoolize": ("libtoolize", "--version"),
     "make": ("make", "--version"),
     "pkg-config": ("pkg-config", "--version"),
+}
+
+EXPECTED_TOOL_BINDINGS: dict[str, dict[str, str]] = {
+    "clang": {
+        "compiler": "clang",
+        "archiver": "llvm-ar",
+        "archive_indexer": "llvm-ranlib",
+        "symbol_inspector": "llvm-nm",
+        "object_inspector": "llvm-objdump",
+        "linker": "ld.lld",
+    },
+    "gcc": {
+        "compiler": "gcc",
+        "archiver": "ar",
+        "archive_indexer": "ranlib",
+        "symbol_inspector": "nm",
+        "object_inspector": "objdump",
+        "linker": "ld",
+    },
 }
 
 REQUIRED_CI_JOBS = {
@@ -183,6 +214,39 @@ def _profile_path(root: Path, profile_path: Path) -> Path:
 
 def _existing_paths(root: Path, paths: Iterable[str]) -> list[str]:
     return sorted(path for path in paths if (root / path).is_file())
+
+
+def _cmake_manifest_paths(
+    root: Path, declared_paths: Iterable[str]
+) -> tuple[Path, ...]:
+    """Return first-party CMake manifests governing declared source paths."""
+    manifests = {root / "CMakeLists.txt"}
+    for declared_path in declared_paths:
+        if not isinstance(declared_path, str):
+            continue
+        relative = Path(declared_path)
+        if relative.is_absolute() or ".." in relative.parts:
+            continue
+        parent = relative.parent
+        while parent != Path("."):
+            manifests.add(root / parent / "CMakeLists.txt")
+            parent = parent.parent
+    return tuple(sorted(path for path in manifests if path.is_file()))
+
+
+def _cmake_declares_path(
+    root: Path, manifests: Iterable[Path], declared_path: str
+) -> bool:
+    """Check a source against each manifest using its directory-relative path."""
+    source = root / declared_path
+    for manifest in manifests:
+        try:
+            relative = source.relative_to(manifest.parent).as_posix()
+        except ValueError:
+            continue
+        if relative in _text(manifest):
+            return True
+    return False
 
 
 def _tool_versions() -> dict[str, dict[str, str | None]]:
@@ -500,10 +564,12 @@ def validate_structure(
         else set()
     )
     minimum_versions = tools.get("minimum_versions")
+    bindings = tools.get("bindings")
     tool_declaration_ok = (
         isinstance(minimum_versions, dict)
         and declared_tool_names == set(REQUIRED_TOOL_COMMANDS)
         and set(REQUIRED_TOOL_COMMANDS) <= set(minimum_versions)
+        and bindings == EXPECTED_TOOL_BINDINGS
     )
     if require_tools:
         report.tools = _tool_versions()
@@ -516,7 +582,10 @@ def validate_structure(
         "AES-BLD-001-R011",
         tool_declaration_ok,
         "Required tool policy and exact available versions are recorded.",
-        "Required tool declarations are incomplete or a required tool is unavailable.",
+        (
+            "Required tool declarations or GNU/LLVM bindings are incomplete, "
+            "or a required tool is unavailable."
+        ),
         tuple(
             f"{name}: {value.get('version') or value.get('status')}"
             for name, value in sorted(report.tools.items())
@@ -526,15 +595,36 @@ def validate_structure(
     )
 
     cmake_path = root / "CMakeLists.txt"
-    cmake_text = _text(cmake_path)
+    root_cmake_text = _text(cmake_path)
+    declared_cmake_paths = [
+        item
+        for item in (
+            list(production_sources)
+            if isinstance(production_sources, list)
+            else []
+        )
+        if isinstance(item, str)
+    ]
+    if isinstance(normative_tests, list):
+        declared_cmake_paths.extend(
+            test["source"]
+            for test in normative_tests
+            if isinstance(test, dict)
+            and isinstance(test.get("source"), str)
+        )
+    cmake_manifests = _cmake_manifest_paths(
+        root,
+        declared_cmake_paths,
+    )
+    cmake_text = "\n".join(_text(path) for path in cmake_manifests)
     _check(
         checks,
         "AES-BLD-001-R020",
         (
             cmake_path.is_file()
-            and "cmake_minimum_required" in cmake_text
-            and re.search(r"\bproject\s*\(", cmake_text) is not None
-            and re.search(r"\binstall\s*\(", cmake_text) is not None
+            and "cmake_minimum_required" in root_cmake_text
+            and re.search(r"\bproject\s*\(", root_cmake_text) is not None
+            and re.search(r"\binstall\s*\(", root_cmake_text) is not None
         ),
         "Root CMake project declares the project and installation.",
         "Root CMake project or required project/install declarations are missing.",
@@ -591,7 +681,11 @@ def validate_structure(
             and isinstance(test.get("source"), str)
             and (root / test["source"]).is_file()
             and isinstance(test.get("cmake"), str)
-            and test["source"] in cmake_text
+            and _cmake_declares_path(
+                root,
+                cmake_manifests,
+                test["source"],
+            )
             and test["cmake"] in cmake_text
             for test in normative_tests
         )
@@ -790,7 +884,11 @@ def validate_structure(
         and bool(production_sources)
         and all(
             isinstance(source, str)
-            and source in cmake_text
+            and _cmake_declares_path(
+                root,
+                cmake_manifests,
+                source,
+            )
             and source in automake_text
             for source in production_sources
         )
@@ -858,12 +956,26 @@ def validate_structure(
         else (),
     )
     if build_kind == "c-library":
+        symbol_tools = parity.get("symbol_tools")
         _check(
             checks,
             "AES-BLD-001-R044",
-            parity.get("symbol_check") is True,
-            "ABI-facing symbol parity is required for the library.",
-            "Library profile does not require symbol parity.",
+            (
+                parity.get("symbol_check") is True
+                and symbol_tools
+                == {
+                    "cmake": "llvm-nm",
+                    "autotools": "nm",
+                }
+            ),
+            (
+                "ABI-facing symbol parity is required with independent "
+                "LLVM and GNU inspectors."
+            ),
+            (
+                "Library profile does not require LLVM/GNU symbol parity "
+                "with the authoritative inspectors."
+            ),
             (profile_display,),
         )
     else:
@@ -998,9 +1110,9 @@ def _manifest(
     return result
 
 
-def _symbols(path: Path) -> set[str]:
+def _symbols(path: Path, tool: str = "nm") -> set[str]:
     completed = subprocess.run(
-        ["nm", "-g", "--defined-only", str(path)],
+        [tool, "-g", "--defined-only", str(path)],
         check=False,
         capture_output=True,
         text=True,
@@ -1008,7 +1120,7 @@ def _symbols(path: Path) -> set[str]:
     )
     if completed.returncode != 0:
         raise ValueError(
-            f"nm failed for {path}: {completed.stderr.strip()}"
+            f"{tool} failed for {path}: {completed.stderr.strip()}"
         )
     result = set()
     for line in completed.stdout.splitlines():
@@ -1101,13 +1213,33 @@ def compare_installs(
     )
 
     if parity.get("symbol_check") is True:
-        if shutil.which("nm") is None:
+        symbol_tools = parity.get("symbol_tools", {})
+        cmake_symbol_tool = (
+            symbol_tools.get("cmake")
+            if isinstance(symbol_tools, dict)
+            else None
+        )
+        autotools_symbol_tool = (
+            symbol_tools.get("autotools")
+            if isinstance(symbol_tools, dict)
+            else None
+        )
+        missing_tools = [
+            tool
+            for tool in (cmake_symbol_tool, autotools_symbol_tool)
+            if not isinstance(tool, str) or shutil.which(tool) is None
+        ]
+        if missing_tools:
             _check(
                 report.checks,
                 "AES-BLD-001-R044",
                 False,
                 "",
-                "nm is required for configured symbol-parity checks.",
+                (
+                    "Configured GNU and LLVM symbol tools are required for "
+                    "symbol-parity checks."
+                ),
+                tuple(str(tool) for tool in missing_tools),
             )
         else:
             libraries = sorted(
@@ -1118,8 +1250,14 @@ def compare_installs(
             symbol_differences = []
             for relative in libraries:
                 try:
-                    cmake_symbols = _symbols(cmake_stage / relative)
-                    autotools_symbols = _symbols(autotools_stage / relative)
+                    cmake_symbols = _symbols(
+                        cmake_stage / relative,
+                        cmake_symbol_tool,
+                    )
+                    autotools_symbols = _symbols(
+                        autotools_stage / relative,
+                        autotools_symbol_tool,
+                    )
                 except ValueError as exc:
                     symbol_differences.append(str(exc))
                     continue

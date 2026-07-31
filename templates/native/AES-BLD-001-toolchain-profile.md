@@ -20,15 +20,17 @@ C++ use `planned-native` before their first production source is merged.
 ## Canonical developer path
 
 Document the checked-in CMake configure, build, and CTest presets for Clang,
-GCC, and the Clang ASan+UBSan path. Record the C/C++ standards, warning policy,
-clang-tidy configuration, compilation-database location, supported hosts, and
-cross-compilation limitations.
+GCC, and the Clang ASan+UBSan path. Bind Clang to LLVM `ar`, `ranlib`, `nm`,
+`objdump`, and LLD, and bind GCC to the GNU equivalents. Record the C/C++
+standards, warning policy, clang-tidy configuration, compilation-database
+location, supported hosts, and cross-compilation limitations.
 
 ## Independent GNU path
 
 Document `autoreconf -fvi`, the out-of-tree `configure` command, GNU Make
-build/test/install/uninstall commands, GCC and Clang interchange, Libtool use,
-and `make distcheck` applicability.
+build/test/install/uninstall commands, GCC and Clang interchange, the matching
+GNU or LLVM binary-tool environment, Libtool use, and `make distcheck`
+applicability.
 
 ## Parity map
 
@@ -39,8 +41,9 @@ frontend-specific metadata exclusions.
 
 ## Version and offline policy
 
-Record minimum supported versions and retain the exact versions emitted by the
-AEMS compliance job. Describe dependencies that must be installed or vendored
+Record minimum supported versions for Clang, LLVM, LLD, GCC, GNU binutils, and
+the build frontends, and retain the exact versions emitted by the AEMS
+compliance job. Describe dependencies that must be installed or vendored
 before configure/build/test/install can proceed without network access.
 
 ## Waivers
