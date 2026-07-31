@@ -13,11 +13,15 @@ evidence for AEMS and does not redefine the normative requirements.
 
 - Language: ISO C17
 - Canonical developer frontend: CMake and CTest
-- Canonical diagnostics toolchain: Clang, clang-tidy, ASan, and UBSan
+- Canonical diagnostics toolchain: Clang 18, clang-tidy 18, ASan, and UBSan
+- Canonical binary toolchain: LLVM 18 (`llvm-ar`, `llvm-ranlib`, `llvm-nm`,
+  `llvm-objdump`) and LLD 18
 - GNU portability frontend: Autoconf, Automake, Libtool, and GNU Make
-- GNU portability compiler: GCC
+- GNU portability compiler and binary tools: GCC 13 and GNU binutils
 
 CMake and Autotools operate independently over the same source and test files.
+Both frontends bind the Clang path to LLVM/LLD and the GCC path to GNU
+binutils/ld.
 
 ## Commands
 
@@ -36,7 +40,8 @@ consumer in `consumer/consumer.c`.
 
 Libtool's installed `.la` metadata is the only declared frontend-specific
 install exclusion. Compiled archives need not be byte-identical, but their
-exported symbol sets must agree.
+exported symbol sets must agree when inspected independently with `llvm-nm`
+for the CMake/Clang stage and GNU `nm` for the Autotools/GCC stage.
 
 ## Waivers
 
