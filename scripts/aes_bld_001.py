@@ -27,12 +27,43 @@ REQUIRED_TOOL_COMMANDS: dict[str, tuple[str, ...]] = {
     "ctest": ("ctest", "--version"),
     "clang": ("clang", "--version"),
     "clang-tidy": ("clang-tidy", "--version"),
+    "llvm-ar": ("llvm-ar", "--version"),
+    "llvm-ranlib": ("llvm-ranlib", "--version"),
+    "llvm-nm": ("llvm-nm", "--version"),
+    "llvm-objdump": ("llvm-objdump", "--version"),
+    "llvm-cov": ("llvm-cov", "--version"),
+    "llvm-profdata": ("llvm-profdata", "--version"),
+    "ld.lld": ("ld.lld", "--version"),
     "gcc": ("gcc", "--version"),
+    "ar": ("ar", "--version"),
+    "ranlib": ("ranlib", "--version"),
+    "nm": ("nm", "--version"),
+    "objdump": ("objdump", "--version"),
+    "ld": ("ld", "--version"),
     "autoconf": ("autoconf", "--version"),
     "automake": ("automake", "--version"),
     "libtoolize": ("libtoolize", "--version"),
     "make": ("make", "--version"),
     "pkg-config": ("pkg-config", "--version"),
+}
+
+EXPECTED_TOOL_BINDINGS: dict[str, dict[str, str]] = {
+    "clang": {
+        "compiler": "clang",
+        "archiver": "llvm-ar",
+        "archive_indexer": "llvm-ranlib",
+        "symbol_inspector": "llvm-nm",
+        "object_inspector": "llvm-objdump",
+        "linker": "ld.lld",
+    },
+    "gcc": {
+        "compiler": "gcc",
+        "archiver": "ar",
+        "archive_indexer": "ranlib",
+        "symbol_inspector": "nm",
+        "object_inspector": "objdump",
+        "linker": "ld",
+    },
 }
 
 REQUIRED_CI_JOBS = {
@@ -500,10 +531,12 @@ def validate_structure(
         else set()
     )
     minimum_versions = tools.get("minimum_versions")
+    bindings = tools.get("bindings")
     tool_declaration_ok = (
         isinstance(minimum_versions, dict)
         and declared_tool_names == set(REQUIRED_TOOL_COMMANDS)
         and set(REQUIRED_TOOL_COMMANDS) <= set(minimum_versions)
+        and bindings == EXPECTED_TOOL_BINDINGS
     )
     if require_tools:
         report.tools = _tool_versions()
@@ -516,7 +549,10 @@ def validate_structure(
         "AES-BLD-001-R011",
         tool_declaration_ok,
         "Required tool policy and exact available versions are recorded.",
-        "Required tool declarations are incomplete or a required tool is unavailable.",
+        (
+            "Required tool declarations or GNU/LLVM bindings are incomplete, "
+            "or a required tool is unavailable."
+        ),
         tuple(
             f"{name}: {value.get('version') or value.get('status')}"
             for name, value in sorted(report.tools.items())
@@ -858,12 +894,26 @@ def validate_structure(
         else (),
     )
     if build_kind == "c-library":
+        symbol_tools = parity.get("symbol_tools")
         _check(
             checks,
             "AES-BLD-001-R044",
-            parity.get("symbol_check") is True,
-            "ABI-facing symbol parity is required for the library.",
-            "Library profile does not require symbol parity.",
+            (
+                parity.get("symbol_check") is True
+                and symbol_tools
+                == {
+                    "cmake": "llvm-nm",
+                    "autotools": "nm",
+                }
+            ),
+            (
+                "ABI-facing symbol parity is required with independent "
+                "LLVM and GNU inspectors."
+            ),
+            (
+                "Library profile does not require LLVM/GNU symbol parity "
+                "with the authoritative inspectors."
+            ),
             (profile_display,),
         )
     else:
@@ -998,9 +1048,9 @@ def _manifest(
     return result
 
 
-def _symbols(path: Path) -> set[str]:
+def _symbols(path: Path, tool: str = "nm") -> set[str]:
     completed = subprocess.run(
-        ["nm", "-g", "--defined-only", str(path)],
+        [tool, "-g", "--defined-only", str(path)],
         check=False,
         capture_output=True,
         text=True,
@@ -1008,7 +1058,7 @@ def _symbols(path: Path) -> set[str]:
     )
     if completed.returncode != 0:
         raise ValueError(
-            f"nm failed for {path}: {completed.stderr.strip()}"
+            f"{tool} failed for {path}: {completed.stderr.strip()}"
         )
     result = set()
     for line in completed.stdout.splitlines():
@@ -1101,13 +1151,33 @@ def compare_installs(
     )
 
     if parity.get("symbol_check") is True:
-        if shutil.which("nm") is None:
+        symbol_tools = parity.get("symbol_tools", {})
+        cmake_symbol_tool = (
+            symbol_tools.get("cmake")
+            if isinstance(symbol_tools, dict)
+            else None
+        )
+        autotools_symbol_tool = (
+            symbol_tools.get("autotools")
+            if isinstance(symbol_tools, dict)
+            else None
+        )
+        missing_tools = [
+            tool
+            for tool in (cmake_symbol_tool, autotools_symbol_tool)
+            if not isinstance(tool, str) or shutil.which(tool) is None
+        ]
+        if missing_tools:
             _check(
                 report.checks,
                 "AES-BLD-001-R044",
                 False,
                 "",
-                "nm is required for configured symbol-parity checks.",
+                (
+                    "Configured GNU and LLVM symbol tools are required for "
+                    "symbol-parity checks."
+                ),
+                tuple(str(tool) for tool in missing_tools),
             )
         else:
             libraries = sorted(
@@ -1118,8 +1188,14 @@ def compare_installs(
             symbol_differences = []
             for relative in libraries:
                 try:
-                    cmake_symbols = _symbols(cmake_stage / relative)
-                    autotools_symbols = _symbols(autotools_stage / relative)
+                    cmake_symbols = _symbols(
+                        cmake_stage / relative,
+                        cmake_symbol_tool,
+                    )
+                    autotools_symbols = _symbols(
+                        autotools_stage / relative,
+                        autotools_symbol_tool,
+                    )
                 except ValueError as exc:
                     symbol_differences.append(str(exc))
                     continue
