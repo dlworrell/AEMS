@@ -30,7 +30,8 @@ AEMS currently provides:
 - local and aggregate AES-DEV-001 evidence scanners;
 - local and aggregate AES-SEC-001 adoption and banned-API scanners, native
   control profiles, opt-in build presets, and explicit fuzz smoke support;
-- AES-BLD-001 CMake/CTest/Clang and independent GNU build-parity validation,
+- AES-BLD-001 CMake/CTest/Clang/LLVM 18 and independent GCC/GNU
+  build-parity validation,
   reference C library/application fixtures, reusable CI, and evidence schema;
 - AES-SEC-002 applicability and detector reporting with positive and negative
   synthetic fixtures;
