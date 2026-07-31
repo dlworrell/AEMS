@@ -181,6 +181,49 @@ class StructureValidationTests(unittest.TestCase):
             "not-applicable",
         )
 
+    def test_nested_cmake_test_manifest_is_traced(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "fixture"
+            shutil.copytree(FIXTURE, root)
+            cmake_path = root / "CMakeLists.txt"
+            cmake_text = cmake_path.read_text(encoding="utf-8")
+            test_block_start = cmake_text.index("if(BUILD_TESTING)")
+            install_block_start = cmake_text.index(
+                "\n\nset(prefix",
+                test_block_start,
+            )
+            cmake_path.write_text(
+                (
+                    cmake_text[:test_block_start]
+                    + "if(BUILD_TESTING)\n"
+                    + "  add_subdirectory(tests)\n"
+                    + "endif()"
+                    + cmake_text[install_block_start:]
+                ),
+                encoding="utf-8",
+            )
+            (root / "tests" / "CMakeLists.txt").write_text(
+                (
+                    "add_executable(aes_fixture_test test_fixture.c)\n"
+                    "target_link_libraries("
+                    "aes_fixture_test PRIVATE aes_fixture)\n"
+                    "add_test("
+                    "NAME aes_fixture_test COMMAND aes_fixture_test)\n"
+                ),
+                encoding="utf-8",
+            )
+
+            report = aes_bld_001.validate_structure(root)
+
+        self.assertEqual(
+            check_by_id(report, "AES-BLD-001-R022").status,
+            "passed",
+        )
+        self.assertEqual(
+            check_by_id(report, "AES-BLD-001-R042").status,
+            "passed",
+        )
+
     def test_missing_cmake_presets_fails_canonical_path(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary) / "fixture"
