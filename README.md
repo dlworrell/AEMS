@@ -39,6 +39,8 @@ AEMS currently provides:
 - GitHub Actions workflows for local and ecosystem reporting;
 - JSON and Markdown reports;
 - durable compliance-evidence envelope packaging;
+- a manually dispatched, dry-run-first applier for the Catylist ADR-0006
+  default-branch and release-tag rulesets, with drift reports;
 - a manually dispatched, dry-run-first merged-branch cleanup for the Catalyst
   repositories, with JSON and Markdown reports; and
 - development/security profiles, enforcement plans, waiver tracking, and
@@ -195,6 +197,9 @@ are not scanned by default.
 - `templates/`: opt-in native build and workflow presets;
 - `scripts/package_compliance_evidence.py`: stable JSON evidence-envelope
   packager;
+- `scripts/catylist_rulesets.py` and
+  `.github/workflows/apply-catylist-rulesets.yml`: Catylist ADR-0006 ruleset
+  drift reporting and application;
 - `scripts/cleanup_merged_branches.py` and
   `.github/workflows/cleanup-merged-branches.yml`: one-time and occasional
   merged-branch cleanup;
@@ -233,6 +238,8 @@ conformance as proof of closure.
   — reporting only
 - [AES-BLD-001 enforcement plan](docs/engineering/AES-BLD-001-enforcement-plan.md)
   — initial reference gate
+- [Catylist default-branch rulesets](docs/engineering/catylist-default-branch-rulesets.md)
+  — manual, approval-gated, dry run by default
 - [Merged-branch cleanup](docs/engineering/merged-branch-cleanup.md)
   — manual, approval-gated, dry run by default
 - [Compliance evidence schema](docs/engineering/compliance-evidence-schema.md)

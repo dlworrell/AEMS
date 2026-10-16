@@ -10,6 +10,7 @@ on:
       - "examples/traceability/**"
       - "schemas/aems-traceability-v1.schema.json"
       - "scripts/aems_*.py"
+      - "scripts/catylist_rulesets.py"
       - "scripts/cleanup_merged_branches.py"
       - "scripts/validate_traceability.py"
       - "tests/test_inventory.py"
@@ -17,6 +18,7 @@ on:
       - "tests/test_project_zero.py"
       - "tests/test_structured.py"
       - "tests/test_traceability.py"
+      - "tests/test_catylist_rulesets.py"
       - "tests/test_cleanup_merged_branches.py"
       - ".github/workflows/project-zero.yml"
   push:
