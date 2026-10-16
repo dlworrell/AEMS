@@ -1,0 +1,106 @@
+name: Clean Up Merged Branches
+
+# Deletes branches whose work is already in the default branch, across every
+# Catylist inventory entry with default_branch_policy: protected. Manual
+# dispatch only; dry run by default. See
+# docs/engineering/merged-branch-cleanup.md for the deletion rule.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Report only. Set to false to delete the branches the rule selects.
+        required: false
+        default: true
+        type: boolean
+      repos:
+        description: Optional comma-separated full_name filter, for example dlworrell/ruleset-sandbox
+        required: false
+        default: ''
+        type: string
+      keep:
+        description: Optional comma-separated fnmatch patterns of branches to keep (backup/* is always kept)
+        required: false
+        default: ''
+        type: string
+      catylist_ref:
+        description: Pinned 40-character commit SHA of dlworrell/Catylist (inventory source)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cleanup-merged-branches
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  cleanup:
+    name: Plan or delete merged branches
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # BRANCH_CLEANUP_TOKEN is an environment secret. The ruleset-admin
+    # environment requires the maintainer's approval for every run and only
+    # accepts runs from main, so a stray dispatch cannot reach the token.
+    environment: ruleset-admin
+
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Test branch classification
+        run: python3 -m unittest tests.test_cleanup_merged_branches -v
+
+      - name: Plan or delete merged branches
+        env:
+          BRANCH_CLEANUP_TOKEN: ${{ secrets.BRANCH_CLEANUP_TOKEN }}
+          SOURCE_TOKEN: ${{ github.token }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_REPOS: ${{ inputs.repos }}
+          INPUT_KEEP: ${{ inputs.keep }}
+          INPUT_CATYLIST_REF: ${{ inputs.catylist_ref }}
+        run: |
+          set -euo pipefail
+          args=(
+            --catylist-ref "$INPUT_CATYLIST_REF"
+            --repos "$INPUT_REPOS"
+            --keep "$INPUT_KEEP"
+            --output-dir build/aems/branch-cleanup
+          )
+          if [ "$INPUT_DRY_RUN" = "false" ]; then
+            args+=(--apply)
+          else
+            args+=(--dry-run)
+          fi
+          python3 scripts/cleanup_merged_branches.py "${args[@]}"
+
+      - name: Add cleanup report to summary
+        if: ${{ always() }}
+        run: |
+          if [ -f build/aems/branch-cleanup/report.md ]; then
+            cat build/aems/branch-cleanup/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No cleanup report was produced; see the job log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload cleanup report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-cleanup-report
+          path: |
+            build/aems/branch-cleanup/report.json
+            build/aems/branch-cleanup/report.md
+          if-no-files-found: warn
