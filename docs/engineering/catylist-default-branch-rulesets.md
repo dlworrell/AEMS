@@ -4,14 +4,14 @@ Status: Draft implementation; not yet authorized for apply runs
 Owner: AEMS
 Issue: dlworrell/Catylist#22
 Upstream decision: `dlworrell/Catylist/docs/adr/ADR-0006-default-branch-protection-and-signed-commits.md`
-Upstream obligation: AES-DEV-001, pending dlworrell/Catylist#20
+Upstream obligation: AES-DEV-001-R001 to R007 (Default-Branch Integrity)
 
 ## Purpose
 
 Catylist ADR-0006 requires default-branch protection, signed commits, merge
 commits only, and protected release tags on every repository whose inventory
 entry has `default_branch_policy: protected`. AES-DEV-001 records the
-obligations (dlworrell/Catylist#20). dlworrell/repo_templates holds the
+obligations as AES-DEV-001-R001 to R007. dlworrell/repo_templates holds the
 baseline rulesets (dlworrell/Catylist#25). AEMS applies them and reports
 drift.
 
@@ -143,7 +143,7 @@ Rollout order:
 ## Traceability
 
 - Catylist ADR-0006, sections 2 and 3: the rules applied.
-- AES-DEV-001: the obligation that this implements, pending dlworrell/Catylist#20.
+- AES-DEV-001-R001 to R007 (Default-Branch Integrity): the obligations that this implements.
 - dlworrell/Catylist#25: the repo_templates baseline that this reads.
 - dlworrell/Catylist#22: this implementation.
 

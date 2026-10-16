@@ -234,7 +234,7 @@ conformance as proof of closure.
 - [AES-BLD-001 enforcement plan](docs/engineering/AES-BLD-001-enforcement-plan.md)
   — initial reference gate
 - [Catylist default-branch rulesets](docs/engineering/catylist-default-branch-rulesets.md)
-  — draft; apply runs await AES-DEV-001 obligations
+  — apply runs await the repo_templates ruleset files (dlworrell/Catylist#25)
 - [Compliance evidence schema](docs/engineering/compliance-evidence-schema.md)
 - [Development profile](docs/engineering/AES-DEV-001-development-principles.md)
 - [Secure C/C++ profile](docs/engineering/SECURE-C-CXX.md)
