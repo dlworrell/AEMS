@@ -239,7 +239,7 @@ conformance as proof of closure.
 - [AES-BLD-001 enforcement plan](docs/engineering/AES-BLD-001-enforcement-plan.md)
   — initial reference gate
 - [Catylist default-branch rulesets](docs/engineering/catylist-default-branch-rulesets.md)
-  — apply runs await the repo_templates ruleset files (dlworrell/Catylist#25)
+  — manual, approval-gated, dry run by default
 - [Merged-branch cleanup](docs/engineering/merged-branch-cleanup.md)
   — manual, approval-gated, dry run by default
 - [Compliance evidence schema](docs/engineering/compliance-evidence-schema.md)
