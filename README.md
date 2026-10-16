@@ -40,7 +40,9 @@ AEMS currently provides:
 - JSON and Markdown reports;
 - durable compliance-evidence envelope packaging;
 - a manually dispatched, dry-run-first applier for the Catylist ADR-0006
-  default-branch and release-tag rulesets, with drift reports; and
+  default-branch and release-tag rulesets, with drift reports;
+- a manually dispatched, dry-run-first merged-branch cleanup for the Catalyst
+  repositories, with JSON and Markdown reports; and
 - development/security profiles, enforcement plans, waiver tracking, and
   retained ecosystem baselines.
 
@@ -198,6 +200,9 @@ are not scanned by default.
 - `scripts/catylist_rulesets.py` and
   `.github/workflows/apply-catylist-rulesets.yml`: Catylist ADR-0006 ruleset
   drift reporting and application;
+- `scripts/cleanup_merged_branches.py` and
+  `.github/workflows/cleanup-merged-branches.yml`: one-time and occasional
+  merged-branch cleanup;
 - `.github/workflows/`: pull-request, push, and manually dispatched scans;
 - `docs/engineering/reports/`: retained baselines and adoption evidence.
 
@@ -235,6 +240,8 @@ conformance as proof of closure.
   — initial reference gate
 - [Catylist default-branch rulesets](docs/engineering/catylist-default-branch-rulesets.md)
   — apply runs await the repo_templates ruleset files (dlworrell/Catylist#25)
+- [Merged-branch cleanup](docs/engineering/merged-branch-cleanup.md)
+  — manual, approval-gated, dry run by default
 - [Compliance evidence schema](docs/engineering/compliance-evidence-schema.md)
 - [Development profile](docs/engineering/AES-DEV-001-development-principles.md)
 - [Secure C/C++ profile](docs/engineering/SECURE-C-CXX.md)
