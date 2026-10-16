@@ -1,0 +1,101 @@
+name: Apply Catylist Rulesets
+
+# Applies the Catylist ADR-0006 default-branch and release-tag rulesets and
+# merge settings to every inventory entry with default_branch_policy:
+# protected. Manual dispatch only; dry run by default. See
+# docs/engineering/catylist-default-branch-rulesets.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Report drift only. Set to false to create/update rulesets and patch merge settings.
+        required: false
+        default: true
+        type: boolean
+      repos:
+        description: Optional comma-separated full_name filter, for example dlworrell/ruleset-sandbox
+        required: false
+        default: ''
+        type: string
+      catylist_ref:
+        description: Pinned 40-character commit SHA of dlworrell/Catylist (inventory source)
+        required: true
+        type: string
+      templates_ref:
+        description: Pinned 40-character commit SHA of dlworrell/repo_templates (ruleset source)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apply-catylist-rulesets
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  rulesets:
+    name: Plan or apply Catylist rulesets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Test ruleset planning
+        run: python3 -m unittest tests.test_catylist_rulesets -v
+
+      - name: Plan or apply rulesets
+        env:
+          RULESET_ADMIN_TOKEN: ${{ secrets.RULESET_ADMIN_TOKEN }}
+          SOURCE_TOKEN: ${{ github.token }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_REPOS: ${{ inputs.repos }}
+          INPUT_CATYLIST_REF: ${{ inputs.catylist_ref }}
+          INPUT_TEMPLATES_REF: ${{ inputs.templates_ref }}
+        run: |
+          set -euo pipefail
+          args=(
+            --catylist-ref "$INPUT_CATYLIST_REF"
+            --templates-ref "$INPUT_TEMPLATES_REF"
+            --repos "$INPUT_REPOS"
+            --output-dir build/aems/catylist-rulesets
+          )
+          if [ "$INPUT_DRY_RUN" = "false" ]; then
+            args+=(--apply)
+          else
+            args+=(--dry-run)
+          fi
+          python3 scripts/catylist_rulesets.py "${args[@]}"
+
+      - name: Add drift report to summary
+        if: ${{ always() }}
+        run: |
+          if [ -f build/aems/catylist-rulesets/report.md ]; then
+            cat build/aems/catylist-rulesets/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No drift report was produced; see the job log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload drift report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: catylist-rulesets-report
+          path: |
+            build/aems/catylist-rulesets/report.json
+            build/aems/catylist-rulesets/report.md
+          if-no-files-found: warn
