@@ -43,6 +43,10 @@ jobs:
     name: Plan or apply Catylist rulesets
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    # RULESET_ADMIN_TOKEN is an environment secret. The ruleset-admin
+    # environment requires the maintainer's approval for every run and only
+    # accepts runs from main, so a stray dispatch cannot reach the token.
+    environment: ruleset-admin
 
     steps:
       - name: Check out AEMS

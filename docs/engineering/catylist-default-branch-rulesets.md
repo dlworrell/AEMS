@@ -103,8 +103,10 @@ is archived, or the plan does not support rulesets.
 
 ## Token setup
 
-GitHub API calls to target repositories use the Actions secret
-`RULESET_ADMIN_TOKEN`. Configure it as follows:
+GitHub API calls to target repositories use the secret `RULESET_ADMIN_TOKEN`,
+stored in the protected `ruleset-admin` environment, not as a repository
+secret. The job declares `environment: ruleset-admin`, so it cannot read the
+token until the maintainer approves that run.
 
 1. Create a fine-grained personal access token. The resource owner is
    `dlworrell`. Give it a short expiry.
@@ -115,13 +117,21 @@ GitHub API calls to target repositories use the Actions secret
    - **Metadata: Read-only** (granted automatically).
 
    Grant no other permissions.
-4. Store the token as the repository Actions secret `RULESET_ADMIN_TOKEN` in
-   dlworrell/AEMS.
+4. In dlworrell/AEMS, open **Settings → Environments → New environment**,
+   name it `ruleset-admin`, and configure:
+   - **Required reviewers:** the maintainer. Leave "Prevent self-review"
+     off while the program has a single maintainer, so the maintainer can
+     approve their own dispatch.
+   - **Deployment branches and tags:** **Selected branches and tags**, with
+     the single rule `main`.
+5. In that environment, add the environment secret `RULESET_ADMIN_TOKEN`.
+   Do not also store it as a repository secret.
 
 The workflow's own `GITHUB_TOKEN` has `contents: read` only. It is used to
 read the public Catylist inventory and the repo_templates rulesets. The admin
 token is passed to a single step through the environment. It is never placed
-on a command line or echoed, and request errors are redacted. Revoke or
+on a command line or echoed, and request errors are redacted. Every run
+waits for approval in the Actions UI before the token is released. Revoke or
 rotate the token after each rollout stage.
 
 ## Operating procedure
