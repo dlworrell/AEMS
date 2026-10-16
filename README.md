@@ -38,7 +38,9 @@ AEMS currently provides:
 - role- and ownership-aware repository inventories for both standards;
 - GitHub Actions workflows for local and ecosystem reporting;
 - JSON and Markdown reports;
-- durable compliance-evidence envelope packaging; and
+- durable compliance-evidence envelope packaging;
+- a manually dispatched, dry-run-first merged-branch cleanup for the Catalyst
+  repositories, with JSON and Markdown reports; and
 - development/security profiles, enforcement plans, waiver tracking, and
   retained ecosystem baselines.
 
@@ -193,6 +195,9 @@ are not scanned by default.
 - `templates/`: opt-in native build and workflow presets;
 - `scripts/package_compliance_evidence.py`: stable JSON evidence-envelope
   packager;
+- `scripts/cleanup_merged_branches.py` and
+  `.github/workflows/cleanup-merged-branches.yml`: one-time and occasional
+  merged-branch cleanup;
 - `.github/workflows/`: pull-request, push, and manually dispatched scans;
 - `docs/engineering/reports/`: retained baselines and adoption evidence.
 
@@ -228,6 +233,8 @@ conformance as proof of closure.
   — reporting only
 - [AES-BLD-001 enforcement plan](docs/engineering/AES-BLD-001-enforcement-plan.md)
   — initial reference gate
+- [Merged-branch cleanup](docs/engineering/merged-branch-cleanup.md)
+  — manual, approval-gated, dry run by default
 - [Compliance evidence schema](docs/engineering/compliance-evidence-schema.md)
 - [Development profile](docs/engineering/AES-DEV-001-development-principles.md)
 - [Secure C/C++ profile](docs/engineering/SECURE-C-CXX.md)
