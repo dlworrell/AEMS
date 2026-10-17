@@ -7,6 +7,8 @@ on:
       - 'config/aes-codeql-controls.json'
       - 'scripts/aes_codeql.py'
       - 'scripts/update_aes_codeql_coverage.py'
+      - 'scripts/check_real_header_evidence.py'
+      - 'scripts/resolve_aes_codeql_suite.py'
       - 'tests/test_aes_codeql.py'
       - 'tests/fixtures/codeql/**'
       - 'docs/engineering/AES-CodeQL.md'
@@ -18,8 +20,11 @@ on:
       - 'config/aes-codeql-controls.json'
       - 'scripts/aes_codeql.py'
       - 'scripts/update_aes_codeql_coverage.py'
+      - 'scripts/check_real_header_evidence.py'
+      - 'scripts/resolve_aes_codeql_suite.py'
       - 'tests/test_aes_codeql.py'
       - 'tests/fixtures/codeql/**'
+      - 'docs/engineering/AES-CodeQL.md'
       - '.github/workflows/aes-codeql-tests.yml'
   workflow_dispatch:
 
@@ -29,7 +34,7 @@ permissions:
 jobs:
   query-tests:
     name: Query tests (${{ matrix.language }})
-    timeout-minutes: 20
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -82,6 +87,17 @@ jobs:
           codeql pack install "tests/fixtures/codeql/${{ matrix.language }}" --additional-packs=codeql
           codeql query compile --check-only --threads=1 --ram=4096 "codeql/${{ matrix.language }}/queries"
 
+      - name: Resolve the pinned default suite
+        run: |
+          # The upstream pin lives only in codeql/<language>/aes-security.qls.
+          upstream="$(python3 scripts/resolve_aes_codeql_suite.py pin --language "${{ matrix.language }}")"
+          echo "Upstream suite pack: $upstream"
+          codeql pack download "$upstream"
+          python3 scripts/resolve_aes_codeql_suite.py verify --language "${{ matrix.language }}"
+
+      - name: Compile the resolved default suite
+        run: codeql query compile --check-only --threads=0 --additional-packs=codeql "codeql/${{ matrix.language }}/aes-security.qls"
+
       - name: Test vulnerable and safe fixtures
         run: codeql test run --threads=1 --ram=4096 --additional-packs=codeql "tests/fixtures/codeql/${{ matrix.language }}"
 
@@ -92,6 +108,34 @@ jobs:
           git -C "$RUNNER_TEMP/aes-policy-sources" remote add origin https://github.com/dlworrell/AES.git
           git -C "$RUNNER_TEMP/aes-policy-sources" fetch --depth=1 origin 256bf6dd0e424b134d4f1c628f9aff30ea12566d
           python3 scripts/update_aes_codeql_coverage.py --aes-repository "$RUNNER_TEMP/aes-policy-sources" --check
+
+      - name: Analyze real-header fixture, plain and fortified
+        if: matrix.language == 'cpp'
+        run: |
+          # --source-root must stay at the fixture folder: isAesSource excludes
+          # paths under tests/fixtures/, so a repository-root source root would
+          # hide every result.
+          fixture=tests/fixtures/codeql/cpp-real-headers
+          codeql database create "$RUNNER_TEMP/db-plain" --language=cpp \
+            --source-root "$fixture" --command='gcc -O0 -c real.c -o /dev/null'
+          codeql database create "$RUNNER_TEMP/db-fortify" --language=cpp \
+            --source-root "$fixture" --command='gcc -O2 -D_FORTIFY_SOURCE=2 -c real.c -o /dev/null'
+          for variant in plain fortify; do
+            python3 scripts/aes_codeql.py --database "$RUNNER_TEMP/db-$variant" --language cpp \
+              --repository "$GITHUB_REPOSITORY" --commit-sha "$GITHUB_SHA" \
+              --output-dir "$RUNNER_TEMP/real-header-evidence/$variant" --custom-only
+          done
+          python3 scripts/check_real_header_evidence.py \
+            plain="$(ls "$RUNNER_TEMP"/real-header-evidence/plain/*.json)" \
+            fortify="$(ls "$RUNNER_TEMP"/real-header-evidence/fortify/*.json)"
+
+      - name: Preserve real-header evidence
+        if: always() && matrix.language == 'cpp'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: aes-codeql-real-header-evidence
+          path: ${{ runner.temp }}/real-header-evidence/**/*.json
+          if-no-files-found: ignore
 
       - name: Preserve query-test diagnostics
         if: always()

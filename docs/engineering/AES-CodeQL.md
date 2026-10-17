@@ -46,6 +46,43 @@ bounded/suppressed scanf conversions, read-only sized key signatures, ordinary
 non-secret initialization, and memory-backed SQLite temp storage are negative
 fixtures. Discovery of a primitive is not a finding of undefined behavior.
 
+### Interface matching and fortified builds
+
+`isCInterface` (in `codeql/cpp/AesScope.qll`) matches the global or `std::`
+interface by qualified name, never same-named class or namespace members. It
+also accepts the checked and builtin forms a call can resolve to under
+`_FORTIFY_SOURCE`: `__<name>_chk`, `__builtin___<name>_chk` and
+`__builtin_<name>`. Results always report the canonical interface name.
+
+With glibc and GCC, fortified calls still resolve to inline wrappers named after
+the interface (in `string_fortified.h` and `stdio2.h`), and the `_chk` builtins
+are called inside those system headers, which source selection excludes. Headers
+that fortify with macros, such as Apple SDKs, rewrite the call site itself to
+`__builtin___<name>_chk`; `policy/fortified.c` covers that form synthetically.
+
+### Candidate secret names
+
+`hasSensitiveName` is a name heuristic for `key-buffer-contract` and
+`candidate-secret-memset`. A term (`key`, `secret`, `password`, `passwd`,
+`passphrase`, optionally plural) must form its own word:
+
+- snake_case, whole word or ALL_CAPS: `session_key`, `m_secret`, `KEY`, `secret_2`;
+- camelCase, including after an acronym: `sessionKey`, `privateKeyBytes`, `APIKey`;
+- a leading lowercase segment: `keyBytes`, `secretData`.
+
+Word-bounded length, size, count, index and id companions are excluded
+(`key_len`, `keyLen`, `keys_count`, `key_id`). Known limits:
+
+- False negatives: names with no word boundary (`sessionkey`, `apikey`), secrets
+  named without these terms (`token`, `nonce`, `seed`, `credential`, `pin`), and
+  secrets reached through struct fields or aliases with neutral names.
+- False positives: non-secret uses of the words, such as `HotKey`, `public_key`,
+  `key_type` or `sort_keys`, and `secret_valid`-style flags.
+
+The fixtures assert 18 names that must match and 8 that must not
+(`keyboard`, `monkey`, `hotkey`, `secretary_note` and the companions above).
+Treat results as review candidates, never as a secret inventory.
+
 ## Upstream analysis and limitations
 
 The default `aes-security.qls` suites import exact upstream query-pack versions:
@@ -73,7 +110,8 @@ existing gates remain applicable. This implementation does not resolve governed
 scope ownership or reconcile findings automatically with disposition ledgers.
 
 Secret naming is heuristic. Dynamic SQL, arbitrary indirect calls, cross-language
-flows, and whole-program lifetimes are incomplete. Swift analysis requires macOS.
+flows, and whole-program lifetimes are incomplete. Swift extraction and query
+tests require macOS; CI runs them on a GitHub-hosted macOS runner.
 Objective-C/Objective-C++, assembly, target-only 65C816 code, and unsupported CUDA
 surfaces require explicit complementary coverage; a C++ database does not attest
 to them.
@@ -102,6 +140,48 @@ codeql pack install tests/fixtures/codeql/swift --additional-packs=codeql
 codeql pack download codeql/swift-queries@1.3.12
 codeql query compile --check-only codeql/swift/queries
 codeql test run --threads=1 --additional-packs=codeql tests/fixtures/codeql/swift
+```
+
+### What CI checks
+
+`.github/workflows/aes-codeql-tests.yml` runs a C/C++ job on Linux and a Swift
+job on a GitHub-hosted macOS runner. Each job:
+
+1. runs the unit tests for evidence, coverage and suite handling;
+2. installs the checksum-verified CLI and the locked pack dependencies;
+3. reads the upstream pack pin from `codeql/<language>/aes-security.qls` (the
+   only place it is recorded), downloads it, and runs
+   `scripts/resolve_aes_codeql_suite.py verify`, which fails unless every AES
+   custom query and at least one upstream query appear in the resolved suite;
+4. compiles the whole resolved default suite with `--check-only`;
+5. runs the fixture query tests.
+
+The C/C++ job also checks the source-pinned coverage catalog and runs the
+real-header end-to-end test. `tests/fixtures/codeql/cpp-real-headers/real.c`
+includes the system headers and is extracted twice, plain (`gcc -O0`) and
+fortified (`gcc -O2 -D_FORTIFY_SOURCE=2`). `scripts/aes_codeql.py --custom-only`
+runs on both databases, and `scripts/check_real_header_evidence.py` requires
+`banned-interface` results for `strcpy`, `strcat`, `sprintf`, `vsprintf`,
+`system`, `popen` and `atoi` (matched by exact interface name), plus
+`candidate-secret-memset` and `discarded-snprintf-result`, in both. Both evidence
+files are uploaded as the `aes-codeql-real-header-evidence` artifact. The
+fixture's `--source-root` must stay at its own folder, because source selection
+excludes `tests/fixtures/`.
+
+To run the real-header test locally:
+
+```sh
+fixture=tests/fixtures/codeql/cpp-real-headers
+for variant in plain fortify; do
+  flags=-O0; [ "$variant" = fortify ] && flags='-O2 -D_FORTIFY_SOURCE=2'
+  codeql database create "/tmp/db-$variant" --language=cpp --overwrite \
+    --source-root "$fixture" --command="gcc $flags -c real.c -o /dev/null"
+  python3 scripts/aes_codeql.py --database "/tmp/db-$variant" --language cpp \
+    --repository dlworrell/AEMS --commit-sha "$(git rev-parse HEAD)" \
+    --output-dir "/tmp/evidence-$variant" --custom-only
+done
+python3 scripts/check_real_header_evidence.py \
+  plain="$(ls /tmp/evidence-plain/*.json)" fortify="$(ls /tmp/evidence-fortify/*.json)"
 ```
 
 For offline/library-source validation, use the official `github/codeql` source

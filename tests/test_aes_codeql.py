@@ -9,6 +9,8 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from aes_codeql import CATALOG, main, summarize_sarif
+from check_real_header_evidence import BANNED_INTERFACES, missing_findings
+from resolve_aes_codeql_suite import ROOT, check_resolved, upstream_pin
 from update_aes_codeql_coverage import clauses, support
 
 
@@ -78,6 +80,57 @@ class EvidenceTests(unittest.TestCase):
             self.assertEqual(evidence["standards_compliance"], "NOT_ESTABLISHED")
             self.assertEqual(evidence["complementary_evidence"]["status"], "not-evaluated")
             self.assertEqual(json.loads(stale.read_text()), sarif())
+
+
+
+def real_header_evidence(*, drop=()):
+    findings = [{"rule_id": "aes/cpp/banned-interface",
+                 "message": f"AES-SEC-001: {name} is banned outside an explicitly approved exception."}
+                for name in BANNED_INTERFACES if name not in drop]
+    findings += [{"rule_id": rule, "message": "review"} for rule in
+                 ("aes/cpp/candidate-secret-memset", "aes/cpp/discarded-snprintf-result")
+                 if rule not in drop]
+    return {"analysis": {"finding_count": len(findings), "findings": findings}}
+
+
+class RealHeaderEvidenceTests(unittest.TestCase):
+    def test_complete_evidence_has_nothing_missing(self):
+        self.assertEqual(missing_findings(real_header_evidence()), [])
+
+    def test_each_banned_interface_is_required_by_exact_name(self):
+        # vsprintf and snprintf contain "sprintf"; they must not stand in for it.
+        evidence = real_header_evidence(drop=("sprintf",))
+        evidence["analysis"]["findings"].append({
+            "rule_id": "aes/cpp/banned-interface",
+            "message": "AES-SEC-001: snprintf requires review"})
+        self.assertEqual(missing_findings(evidence), ["aes/cpp/banned-interface (sprintf)"])
+
+    def test_missing_review_rules_are_reported(self):
+        evidence = real_header_evidence(drop=("aes/cpp/candidate-secret-memset",))
+        self.assertEqual(missing_findings(evidence), ["aes/cpp/candidate-secret-memset"])
+
+
+
+class DefaultSuiteTests(unittest.TestCase):
+    def test_pins_are_read_from_the_suite_files(self):
+        self.assertEqual(upstream_pin(ROOT / "codeql/cpp/aes-security.qls"), "codeql/cpp-queries@1.9.1")
+        self.assertEqual(upstream_pin(ROOT / "codeql/swift/aes-security.qls"), "codeql/swift-queries@1.3.12")
+
+    def test_unpinned_import_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            suite = Path(directory) / "suite.qls"
+            suite.write_text("- import: codeql-suites/x.qls\n  from: codeql/cpp-queries\n")
+            with self.assertRaisesRegex(ValueError, "version"):
+                upstream_pin(suite)
+
+    def test_resolved_suite_needs_custom_and_upstream_queries(self):
+        custom = sorted((ROOT / "codeql/cpp/queries").glob("*.ql"))
+        upstream = ["/packs/codeql/cpp-queries/Security/CWE-120/BadlyBoundedWrite.ql"]
+        self.assertEqual(check_resolved([str(q) for q in custom] + upstream, custom), [])
+        problems = check_resolved([str(q) for q in custom[1:]] + upstream, custom)
+        self.assertEqual(len(problems), 1)
+        self.assertIn(custom[0].name, problems[0])
+        self.assertIn("no upstream queries", check_resolved([str(q) for q in custom], custom)[0])
 
 
 class CoverageTests(unittest.TestCase):
