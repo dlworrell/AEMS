@@ -1,0 +1,6 @@
+name: dlworrell/aes-security-cpp
+version: 0.1.0
+dependencies:
+  codeql/cpp-all: 12.2.0
+defaultSuiteFile: aes-security.qls
+extractor: cpp
