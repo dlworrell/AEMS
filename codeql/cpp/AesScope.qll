@@ -11,10 +11,15 @@ predicate isAesSource(Locatable element) {
   )
 }
 
-/** Match the global/standard API, not unrelated same-named class/namespace methods. */
+/**
+ * Match the global/standard API, not unrelated same-named class/namespace methods.
+ * With real headers and _FORTIFY_SOURCE a call can resolve to the checked or
+ * builtin form of the same interface, which carries the same obligations.
+ */
 bindingset[name]
 predicate isCInterface(Function function, string name) {
-  function.getQualifiedName() = [name, "std::" + name]
+  function.getQualifiedName() =
+    [name, "std::" + name, "__" + name + "_chk", "__builtin___" + name + "_chk", "__builtin_" + name]
 }
 
 /**

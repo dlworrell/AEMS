@@ -1,3 +1,4 @@
+| fortified.c:16:5:16:28 | call to __builtin___snprintf_chk | AES-SEC-001: the formatting return value is discarded. Check for errors/truncation when they affect correctness or security; document intentional bounded initialization. |
 | test.cpp:75:11:75:18 | call to snprintf | AES-SEC-001: the formatting return value is discarded. Check for errors/truncation when they affect correctness or security; document intentional bounded initialization. |
 | test.cpp:90:5:90:12 | call to snprintf | AES-SEC-001: the formatting return value is discarded. Check for errors/truncation when they affect correctness or security; document intentional bounded initialization. |
 | test.cpp:91:11:91:18 | call to snprintf | AES-SEC-001: the formatting return value is discarded. Check for errors/truncation when they affect correctness or security; document intentional bounded initialization. |

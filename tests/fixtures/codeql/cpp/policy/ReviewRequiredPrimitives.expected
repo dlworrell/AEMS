@@ -1,3 +1,4 @@
+| fortified.c:16:5:16:28 | call to __builtin___snprintf_chk | AES-SEC-001: snprintf requires a reviewed invariant and approved wrapper or scope-specific disposition/waiver. A directory name alone does not approve this operation. |
 | test.cpp:72:5:72:10 | call to memcpy | AES-SEC-001: memcpy requires a reviewed invariant and approved wrapper or scope-specific disposition/waiver. A directory name alone does not approve this operation. |
 | test.cpp:73:5:73:11 | call to memmove | AES-SEC-001: memmove requires a reviewed invariant and approved wrapper or scope-specific disposition/waiver. A directory name alone does not approve this operation. |
 | test.cpp:74:5:74:11 | call to strncpy | AES-SEC-001: strncpy requires a reviewed invariant and approved wrapper or scope-specific disposition/waiver. A directory name alone does not approve this operation. |
