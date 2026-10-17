@@ -1,0 +1,5 @@
+- description: AES-SEC-001/002 C/C++ analysis with pinned upstream security coverage
+- import: codeql-suites/cpp-security-extended.qls
+  from: codeql/cpp-queries
+  version: 1.9.1
+- import: aes-custom.qls

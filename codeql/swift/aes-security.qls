@@ -1,0 +1,5 @@
+- description: AES-SEC-002 Swift analysis with pinned upstream security coverage
+- import: codeql-suites/swift-security-extended.qls
+  from: codeql/swift-queries
+  version: 1.3.12
+- import: aes-custom.qls

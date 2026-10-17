@@ -1,0 +1,5 @@
+name: dlworrell/aes-security-cpp-tests
+version: 0.1.0
+extractor: cpp
+dependencies:
+  dlworrell/aes-security-cpp: 0.1.0

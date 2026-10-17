@@ -1,0 +1,6 @@
+name: dlworrell/aes-security-swift
+version: 0.1.0
+dependencies:
+  codeql/swift-all: 6.8.5
+defaultSuiteFile: aes-security.qls
+extractor: swift

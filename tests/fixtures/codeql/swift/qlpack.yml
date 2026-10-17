@@ -1,0 +1,5 @@
+name: dlworrell/aes-security-swift-tests
+version: 0.1.0
+extractor: swift
+dependencies:
+  dlworrell/aes-security-swift: 0.1.0

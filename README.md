@@ -236,6 +236,8 @@ conformance as proof of closure.
   — implemented blocking review-disposition ratchet
 - [AES-SEC-002 reporting plan](docs/engineering/AES-SEC-002-reporting-plan.md)
   — reporting only
+- [AES CodeQL implementation](docs/engineering/AES-CodeQL.md)
+  — proposed source-pinned query packs, synthetic tests, and reporting-only evidence
 - [AES-BLD-001 enforcement plan](docs/engineering/AES-BLD-001-enforcement-plan.md)
   — initial reference gate
 - [Catylist default-branch rulesets](docs/engineering/catylist-default-branch-rulesets.md)
