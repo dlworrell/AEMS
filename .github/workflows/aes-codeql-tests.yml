@@ -79,6 +79,7 @@ jobs:
         run: |
           codeql version
           codeql pack install "codeql/${{ matrix.language }}"
+          codeql pack install "tests/fixtures/codeql/${{ matrix.language }}" --additional-packs=codeql
           codeql query compile --check-only --threads=1 --ram=4096 "codeql/${{ matrix.language }}/queries"
 
       - name: Test vulnerable and safe fixtures

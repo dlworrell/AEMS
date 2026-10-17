@@ -87,6 +87,7 @@ From the AEMS repository root:
 
 ```sh
 codeql pack install codeql/cpp
+codeql pack install tests/fixtures/codeql/cpp --additional-packs=codeql
 codeql pack download codeql/cpp-queries@1.9.1
 codeql query compile --check-only codeql/cpp/queries
 codeql test run --threads=1 --additional-packs=codeql tests/fixtures/codeql/cpp
@@ -97,6 +98,7 @@ On macOS, additionally run:
 
 ```sh
 codeql pack install codeql/swift
+codeql pack install tests/fixtures/codeql/swift --additional-packs=codeql
 codeql pack download codeql/swift-queries@1.3.12
 codeql query compile --check-only codeql/swift/queries
 codeql test run --threads=1 --additional-packs=codeql tests/fixtures/codeql/swift
