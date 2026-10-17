@@ -1,0 +1,3 @@
+| test.c:10:5:10:10 | call to memset | AES-SEC-002: this write destination flows from a borrowed const pointer. Do not erase or mutate caller-owned const storage. Review ownership and use project-owned mutable storage. |
+| test.cpp:104:5:104:10 | call to memset | AES-SEC-002: this write destination flows from a borrowed const pointer. Do not erase or mutate caller-owned const storage. Review ownership and use project-owned mutable storage. |
+| test.cpp:106:5:106:18 | call to explicit_bzero | AES-SEC-002: this write destination flows from a borrowed const pointer. Do not erase or mutate caller-owned const storage. Review ownership and use project-owned mutable storage. |

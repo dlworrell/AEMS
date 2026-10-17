@@ -1,0 +1,3707 @@
+{
+  "schema": "aems.codeql-controls.v1",
+  "status": "implementation-proposal-reporting-only",
+  "standard_compliance_proven": false,
+  "sources": [
+    {
+      "id": "AES-SEC-001",
+      "repository": "dlworrell/AES",
+      "revision": "256bf6dd0e424b134d4f1c628f9aff30ea12566d",
+      "path": "standards/AES-SEC-001-secure-c-cpp-coding-rules.md",
+      "sha256": "b08c007d1af066125ed795026875c18b3e82e5b9484228ff18dbce7a5298c1bf"
+    },
+    {
+      "id": "AES-SEC-002",
+      "repository": "dlworrell/AES",
+      "revision": "256bf6dd0e424b134d4f1c628f9aff30ea12566d",
+      "path": "standards/AES-SEC-002-cross-language-secret-storage-boundaries.md",
+      "sha256": "04599f8fd49e3a698ee609811ef25e4d972ca1e156966f6b215a05df8e2e00cf"
+    }
+  ],
+  "queries": [
+    {
+      "id": "aes/cpp/banned-interface",
+      "language": "cpp",
+      "path": "codeql/cpp/queries/BannedInterfaces.ql",
+      "standard": "AES-SEC-001",
+      "enforcement": "report-only",
+      "confidence": "high"
+    },
+    {
+      "id": "aes/cpp/borrowed-const-buffer-write",
+      "language": "cpp",
+      "path": "codeql/cpp/queries/BorrowedConstBufferWrite.ql",
+      "standard": "AES-SEC-002",
+      "enforcement": "report-only",
+      "confidence": "high"
+    },
+    {
+      "id": "aes/cpp/candidate-secret-memset",
+      "language": "cpp",
+      "path": "codeql/cpp/queries/CandidateSecretMemset.ql",
+      "standard": "AES-SEC-002",
+      "enforcement": "report-only",
+      "confidence": "medium"
+    },
+    {
+      "id": "aes/cpp/discarded-snprintf-result",
+      "language": "cpp",
+      "path": "codeql/cpp/queries/DiscardedSnprintfResult.ql",
+      "standard": "AES-SEC-001",
+      "enforcement": "report-only",
+      "confidence": "high"
+    },
+    {
+      "id": "aes/cpp/key-buffer-contract",
+      "language": "cpp",
+      "path": "codeql/cpp/queries/MutableKeyParameter.ql",
+      "standard": "AES-SEC-002",
+      "enforcement": "report-only",
+      "confidence": "medium"
+    },
+    {
+      "id": "aes/cpp/native-thread-dispatch-review",
+      "language": "cpp",
+      "path": "codeql/cpp/queries/NativeThreadDispatch.ql",
+      "standard": "AES-SEC-002",
+      "enforcement": "report-only",
+      "confidence": "high"
+    },
+    {
+      "id": "aes/cpp/review-required-primitive",
+      "language": "cpp",
+      "path": "codeql/cpp/queries/ReviewRequiredPrimitives.ql",
+      "standard": "AES-SEC-001",
+      "enforcement": "report-only",
+      "confidence": "high"
+    },
+    {
+      "id": "aes/cpp/sqlite-disk-temp-storage",
+      "language": "cpp",
+      "path": "codeql/cpp/queries/SqliteDiskTempStorage.ql",
+      "standard": "AES-SEC-002",
+      "enforcement": "report-only",
+      "confidence": "high"
+    },
+    {
+      "id": "aes/cpp/unbounded-scanf-string",
+      "language": "cpp",
+      "path": "codeql/cpp/queries/UnboundedScanf.ql",
+      "standard": "AES-SEC-001",
+      "enforcement": "report-only",
+      "confidence": "high"
+    },
+    {
+      "id": "aes/swift/unsafe-pointer-lifecycle",
+      "language": "swift",
+      "path": "codeql/swift/queries/UnsafePointerLifecycle.ql",
+      "standard": "AES-SEC-002",
+      "enforcement": "report-only",
+      "confidence": "medium"
+    }
+  ],
+  "limitations": [
+    "All custom clause coverage is partial. Unmapped clauses remain explicit complementary-evidence obligations.",
+    "Profiles, waiver authority, governed scopes, ownership, runtime behavior, secret erasure, dependency provenance, artifact hardening and history-migration authorization require complementary evidence.",
+    "Name-identified secret candidates are heuristics; differently named or unlabeled secrets can be missed.",
+    "Indirect calls, cross-language flows, dynamic SQL and whole-program lifetime proofs are incomplete.",
+    "Default vendor/build and synthetic-fixture exclusions require ownership review; a repository's authoritative manifest and existing scope/adoption gates remain applicable.",
+    "CodeQL completion or zero findings never establishes AES-SEC-001/002 compliance."
+  ],
+  "requirements": [
+    {
+      "section": "Rule Levels",
+      "source_lines": [
+        23,
+        23
+      ],
+      "text": "- MUST: violation blocks merge unless waived.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L23-L23",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L23-L23",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Rule Levels",
+      "source_lines": [
+        24,
+        24
+      ],
+      "text": "- SHOULD: expected default; deviation requires an engineering reason.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L24-L24",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L24-L24",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Rule Levels",
+      "source_lines": [
+        25,
+        25
+      ],
+      "text": "- MAY: allowed practice or optional improvement.",
+      "level": "MAY",
+      "locator": "AES-SEC-001:L25-L25",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L25-L25",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Rule Levels",
+      "source_lines": [
+        26,
+        26
+      ],
+      "text": "- BANNED: prohibited outside explicitly approved low-level modules.",
+      "level": "BANNED",
+      "locator": "AES-SEC-001:L26-L26",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L26-L26",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Repository Behavior",
+      "source_lines": [
+        30,
+        30
+      ],
+      "text": "Each repository that contains or may contain C or C++ code MUST inherit this standard.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L30-L30",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L30-L30",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Repository Behavior",
+      "source_lines": [
+        32,
+        32
+      ],
+      "text": "Each such repository MUST maintain a local secure-coding profile that states:",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L32-L32",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L32-L32",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Repository Behavior",
+      "source_lines": [
+        34,
+        34
+      ],
+      "text": "- which native-code languages and standards are allowed;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L34-L34",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L34-L34",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Repository Behavior",
+      "source_lines": [
+        35,
+        35
+      ],
+      "text": "- which compiler warnings are required;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L35-L35",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L35-L35",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Repository Behavior",
+      "source_lines": [
+        36,
+        36
+      ],
+      "text": "- which sanitizers are run in tests;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L36-L36",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L36-L36",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Repository Behavior",
+      "source_lines": [
+        37,
+        37
+      ],
+      "text": "- which static-analysis tools are used;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L37-L37",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L37-L37",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Repository Behavior",
+      "source_lines": [
+        38,
+        38
+      ],
+      "text": "- where unsafe code is allowed;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L38-L38",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L38-L38",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Repository Behavior",
+      "source_lines": [
+        39,
+        39
+      ],
+      "text": "- how rule exceptions are documented.",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L39-L39",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L39-L39",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Repository Behavior",
+      "source_lines": [
+        41,
+        41
+      ],
+      "text": "Repositories that do not currently contain native code SHOULD still include an adoption marker stating that any future C/C++ contribution must comply before acceptance.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L41-L41",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L41-L41",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Governed Project Scopes",
+      "source_lines": [
+        45,
+        45
+      ],
+      "text": "A repository MAY declare governed project scopes in its repository manifest, as defined by AES-003 and authorized by Catylist `docs/adr/ADR-0004-governed-project-scopes.md`. A repository that declares no scopes is governed by this section exactly as written above.",
+      "level": "MAY",
+      "locator": "AES-SEC-001:L45-L45",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L45-L45",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Governed Project Scopes",
+      "source_lines": [
+        49,
+        49
+      ],
+      "text": "- each declared scope that contains or may contain C or C++ code MUST inherit this standard for the files it owns;",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L49-L49",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L49-L49",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Governed Project Scopes",
+      "source_lines": [
+        50,
+        50
+      ],
+      "text": "- each such scope MUST maintain its own local secure-coding profile, stating every item listed above, under `<scope>/docs/engineering/`;",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L50-L50",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L50-L50",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Governed Project Scopes",
+      "source_lines": [
+        51,
+        51
+      ],
+      "text": "- each such scope MUST maintain its own waiver log, and its own review-disposition ledger where AES-SEC-001 findings are dispositioned, under `<scope>/docs/engineering/`;",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L51-L51",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L51-L51",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Governed Project Scopes",
+      "source_lines": [
+        53,
+        53
+      ],
+      "text": "- a scope to which this standard does not apply MUST be declared not applicable in the manifest, with its reason, using the AES-003 not-applicable form. It MUST NOT be silently omitted, and the declaration MUST be revisited when the scope's languages or surfaces change.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L53-L53",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L53-L53",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Governed Project Scopes",
+      "source_lines": [
+        55,
+        55
+      ],
+      "text": "Scope-level adoption does not weaken any requirement of this standard. A scope profile MAY be stricter than this standard or than the repository-level profile. It MUST NOT relax this standard.",
+      "level": "MAY",
+      "locator": "AES-SEC-001:L55-L55",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L55-L55",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Governed Project Scopes",
+      "source_lines": [
+        57,
+        57
+      ],
+      "text": "A scope's profile, waiver log, and review-disposition ledger satisfy this section only for files owned by that scope, and only when AES-SEC-001 evaluation runs with that scope as its scan root. Until enforcement tooling supports scoped scanning, a repository that declares scopes MUST keep its repository-wide AES-SEC-001 evaluation and repository-level evidence, and scope-level evidence is supplementary.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L57-L57",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L57-L57",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Banned Interfaces",
+      "source_lines": [
+        61,
+        61
+      ],
+      "text": "The following interfaces are BANNED in ordinary application, firmware, parser, emulator, and tooling code:",
+      "level": "BANNED",
+      "locator": "AES-SEC-001:L61-L61",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L61-L61",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/banned-interface",
+        "aes/cpp/unbounded-scanf-string"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Buffer and String Rules",
+      "source_lines": [
+        101,
+        101
+      ],
+      "text": "- Every buffer crossing a trust boundary MUST carry an explicit length.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L101-L101",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L101-L101",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Buffer and String Rules",
+      "source_lines": [
+        102,
+        102
+      ],
+      "text": "- Every parser entry point MUST accept bounded input.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L102-L102",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L102-L102",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Buffer and String Rules",
+      "source_lines": [
+        103,
+        103
+      ],
+      "text": "- Serialized length fields MUST be validated against the actual remaining input.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L103-L103",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L103-L103",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Buffer and String Rules",
+      "source_lines": [
+        104,
+        104
+      ],
+      "text": "- Strings from external sources MUST NOT be trusted as valid, terminated, encoded, or semantically acceptable until checked.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L104-L104",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L104-L104",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Buffer and String Rules",
+      "source_lines": [
+        105,
+        105
+      ],
+      "text": "- `strncpy` MUST NOT be used as a general-purpose safe string copy.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L105-L105",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L105-L105",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/review-required-primitive"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Buffer and String Rules",
+      "source_lines": [
+        106,
+        106
+      ],
+      "text": "- Truncation from `snprintf` or equivalent APIs MUST be detected when truncation affects correctness or security.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L106-L106",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L106-L106",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/discarded-snprintf-result"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Integer and Size Rules",
+      "source_lines": [
+        123,
+        123
+      ],
+      "text": "- Integer values used for allocation, indexing, copy lengths, object counts, offsets, or serialized sizes MUST be range-checked before use.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L123-L123",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L123-L123",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Integer and Size Rules",
+      "source_lines": [
+        124,
+        124
+      ],
+      "text": "- Multiplication used to compute allocation sizes MUST be checked for overflow before allocation.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L124-L124",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L124-L124",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Integer and Size Rules",
+      "source_lines": [
+        125,
+        125
+      ],
+      "text": "- Addition used to compute sizes, offsets, or pointer movement MUST be checked for overflow before use.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L125-L125",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L125-L125",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Integer and Size Rules",
+      "source_lines": [
+        126,
+        126
+      ],
+      "text": "- Signed values MUST NOT be converted to unsigned sizes until non-negativity and upper bounds are proven.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L126-L126",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L126-L126",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Integer and Size Rules",
+      "source_lines": [
+        127,
+        127
+      ],
+      "text": "- `int` SHOULD NOT be used for sizes, offsets, object counts, or allocation lengths.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L127-L127",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L127-L127",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Integer and Size Rules",
+      "source_lines": [
+        128,
+        128
+      ],
+      "text": "- Decompressed, decoded, or expanded output MUST have explicit maximum bounds.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L128-L128",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L128-L128",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C++ Ownership and Lifetime Rules",
+      "source_lines": [
+        142,
+        142
+      ],
+      "text": "- Raw owning pointers are BANNED in ordinary C++ code.",
+      "level": "BANNED",
+      "locator": "AES-SEC-001:L142-L142",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L142-L142",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/review-required-primitive"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C++ Ownership and Lifetime Rules",
+      "source_lines": [
+        143,
+        143
+      ],
+      "text": "- Direct `new` and `delete` are BANNED outside resource wrappers, allocators, and low-level containers.",
+      "level": "BANNED",
+      "locator": "AES-SEC-001:L143-L143",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L143-L143",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/review-required-primitive"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C++ Ownership and Lifetime Rules",
+      "source_lines": [
+        144,
+        144
+      ],
+      "text": "- RAII MUST be used for memory, file handles, sockets, locks, descriptors, temporary state, and other owned resources.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L144-L144",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L144-L144",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C++ Ownership and Lifetime Rules",
+      "source_lines": [
+        146,
+        146
+      ],
+      "text": "- `std::shared_ptr` MAY be used only when shared ownership is real and documented by design.",
+      "level": "MAY",
+      "locator": "AES-SEC-001:L146-L146",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L146-L146",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C++ Ownership and Lifetime Rules",
+      "source_lines": [
+        147,
+        147
+      ],
+      "text": "- Non-owning pointers and references MUST NOT outlive the object they reference.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L147-L147",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L147-L147",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C++ Ownership and Lifetime Rules",
+      "source_lines": [
+        148,
+        148
+      ],
+      "text": "- References or pointers to local objects MUST NOT be returned.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L148-L148",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L148-L148",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C++ Ownership and Lifetime Rules",
+      "source_lines": [
+        149,
+        149
+      ],
+      "text": "- Async callbacks, threads, and lambdas MUST document captured-object lifetime when capturing by reference or raw pointer.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L149-L149",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L149-L149",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C++ Ownership and Lifetime Rules",
+      "source_lines": [
+        150,
+        150
+      ],
+      "text": "- Iterators, references, and pointers MUST be assumed invalid after container operations that can invalidate them.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L150-L150",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L150-L150",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Unsafe Code Containment",
+      "source_lines": [
+        166,
+        166
+      ],
+      "text": "Unsafe code MUST be isolated behind safe interfaces.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L166-L166",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L166-L166",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Unsafe Code Containment",
+      "source_lines": [
+        179,
+        179
+      ],
+      "text": "Unsafe modules MUST document their local invariants. A public function exported from an unsafe module SHOULD expose a safe interface rather than leaking raw lifetime, size, or aliasing requirements to callers.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L179-L179",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L179-L179",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Trust-Boundary Rules",
+      "source_lines": [
+        183,
+        183
+      ],
+      "text": "- Shell execution with untrusted input is BANNED.",
+      "level": "BANNED",
+      "locator": "AES-SEC-001:L183-L183",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L183-L183",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/banned-interface"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Trust-Boundary Rules",
+      "source_lines": [
+        184,
+        184
+      ],
+      "text": "- Path construction from untrusted input MUST enforce canonicalization and containment.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L184-L184",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L184-L184",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Trust-Boundary Rules",
+      "source_lines": [
+        185,
+        185
+      ],
+      "text": "- Temporary-file creation MUST avoid predictable names and race-prone patterns.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L185-L185",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L185-L185",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Trust-Boundary Rules",
+      "source_lines": [
+        186,
+        186
+      ],
+      "text": "- File, socket, and device permissions MUST be explicit where privilege or confidentiality is involved.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L186-L186",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L186-L186",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Trust-Boundary Rules",
+      "source_lines": [
+        187,
+        187
+      ],
+      "text": "- TOCTOU-sensitive checks MUST be avoided or tied to stable handles such as file descriptors.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L187-L187",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L187-L187",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Trust-Boundary Rules",
+      "source_lines": [
+        188,
+        188
+      ],
+      "text": "- Error returns from security-relevant calls MUST NOT be ignored.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L188-L188",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L188-L188",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Parser and Fuzzing Rules",
+      "source_lines": [
+        192,
+        192
+      ],
+      "text": "Every parser for external input SHOULD have a fuzz harness before it is considered security-complete.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L192-L192",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L192-L192",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Parser and Fuzzing Rules",
+      "source_lines": [
+        205,
+        205
+      ],
+      "text": "A parser MUST fail safely on malformed input. It MUST NOT crash, hang, recurse without bound, allocate without bound, or read/write out of bounds.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L205-L205",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L205-L205",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Tooling Baseline",
+      "source_lines": [
+        209,
+        209
+      ],
+      "text": "C and C++ repositories SHOULD build with a warning profile equivalent to:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L209-L209",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L209-L209",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Tooling Baseline",
+      "source_lines": [
+        225,
+        225
+      ],
+      "text": "C repositories SHOULD also consider:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L225-L225",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L225-L225",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Tooling Baseline",
+      "source_lines": [
+        234,
+        234
+      ],
+      "text": "C++ repositories SHOULD also consider:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L234-L234",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L234-L234",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Tooling Baseline",
+      "source_lines": [
+        244,
+        244
+      ],
+      "text": "Test builds SHOULD run AddressSanitizer and UndefinedBehaviorSanitizer where the platform supports them:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L244-L244",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L244-L244",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Tooling Baseline",
+      "source_lines": [
+        251,
+        251
+      ],
+      "text": "ThreadSanitizer, MemorySanitizer, LeakSanitizer, static analysis, and fuzzing SHOULD be added as the repository matures.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L251-L251",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L251-L251",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        255,
+        255
+      ],
+      "text": "Native-code repositories SHOULD eventually enforce this sequence:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L255-L255",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L255-L255",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        257,
+        257
+      ],
+      "text": "1. format check;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L257-L257",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L257-L257",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        258,
+        258
+      ],
+      "text": "2. compiler warnings;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L258-L258",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L258-L258",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        259,
+        259
+      ],
+      "text": "3. static analysis;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L259-L259",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L259-L259",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        260,
+        260
+      ],
+      "text": "4. unit tests;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L260-L260",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L260-L260",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        261,
+        261
+      ],
+      "text": "5. sanitizer tests;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L261-L261",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L261-L261",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        262,
+        262
+      ],
+      "text": "6. fuzz smoke tests for parsers;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L262-L262",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L262-L262",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        263,
+        263
+      ],
+      "text": "7. release build with platform hardening flags.",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L263-L263",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L263-L263",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        265,
+        265
+      ],
+      "text": "Existing repositories MAY use a ratchet strategy:",
+      "level": "MAY",
+      "locator": "AES-SEC-001:L265-L265",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L265-L265",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        267,
+        267
+      ],
+      "text": "- measure existing violations;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L267-L267",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L267-L267",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        268,
+        268
+      ],
+      "text": "- baseline legacy violations;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L268-L268",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L268-L268",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        269,
+        269
+      ],
+      "text": "- block new violations;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L269-L269",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L269-L269",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        270,
+        270
+      ],
+      "text": "- fix highest-risk legacy violations first;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L270-L270",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L270-L270",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        271,
+        271
+      ],
+      "text": "- require waivers for remaining exceptions;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L271-L271",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L271-L271",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "CI Enforcement",
+      "source_lines": [
+        272,
+        272
+      ],
+      "text": "- remove waivers over time.",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L272-L272",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L272-L272",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        276,
+        276
+      ],
+      "text": "A waiver is required for any MUST or BANNED rule violation.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L276-L276",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L276-L276",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        278,
+        278
+      ],
+      "text": "Each waiver MUST state:",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L278-L278",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L278-L278",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        280,
+        280
+      ],
+      "text": "- the rule being waived;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L280-L280",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L280-L280",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        281,
+        281
+      ],
+      "text": "- the repository, the governed project scope when the affected file belongs to one, and the file path;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L281-L281",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L281-L281",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        282,
+        282
+      ],
+      "text": "- why the exception exists;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L282-L282",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L282-L282",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        283,
+        283
+      ],
+      "text": "- the invariant that makes the code safe enough;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L283-L283",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L283-L283",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        284,
+        284
+      ],
+      "text": "- what tests, sanitizer runs, fuzzing, or review evidence covers it;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L284-L284",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L284-L284",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        285,
+        285
+      ],
+      "text": "- the owner;",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L285-L285",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L285-L285",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        286,
+        286
+      ],
+      "text": "- the review date.",
+      "level": "inherited",
+      "locator": "AES-SEC-001:L286-L286",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L286-L286",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waiver Process",
+      "source_lines": [
+        288,
+        288
+      ],
+      "text": "A waiver for a file owned by a governed project scope MUST be recorded in that scope's waiver log. A waiver recorded in one scope never covers files in another scope or in the repository-level remainder, and a repository-level waiver never covers files owned by a declared scope.",
+      "level": "MUST",
+      "locator": "AES-SEC-001:L288-L288",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L288-L288",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Minimum Local Profile",
+      "source_lines": [
+        294,
+        294
+      ],
+      "text": "Each adopting repository, and each adopting governed project scope, SHOULD include this minimum local policy:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L294-L294",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L294-L294",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Review Cadence",
+      "source_lines": [
+        326,
+        326
+      ],
+      "text": "This standard SHOULD be reviewed whenever the ecosystem adds a new native-code platform, compiler, sanitizer, target architecture, parser, emulator subsystem, firmware target, or release process.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-001:L326-L326",
+      "standard": "AES-SEC-001",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-001-secure-c-cpp-coding-rules.md#L326-L326",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Rule Levels",
+      "source_lines": [
+        20,
+        20
+      ],
+      "text": "- MUST: violation blocks acceptance unless waived.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L20-L20",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L20-L20",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Rule Levels",
+      "source_lines": [
+        21,
+        21
+      ],
+      "text": "- SHOULD: expected default; deviation requires a recorded engineering reason.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L21-L21",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L21-L21",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Rule Levels",
+      "source_lines": [
+        22,
+        22
+      ],
+      "text": "- MAY: permitted option.",
+      "level": "MAY",
+      "locator": "AES-SEC-002:L22-L22",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L22-L22",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Rule Levels",
+      "source_lines": [
+        23,
+        23
+      ],
+      "text": "- BANNED: prohibited outside an explicitly reviewed exception.",
+      "level": "BANNED",
+      "locator": "AES-SEC-002:L23-L23",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L23-L23",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        27,
+        27
+      ],
+      "text": "A repository in scope MUST document:",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L27-L27",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L27-L27",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        29,
+        29
+      ],
+      "text": "- the languages, ABI, target platforms, and supported toolchains;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L29-L29",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L29-L29",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        30,
+        30
+      ],
+      "text": "- the confidential data and secret material being protected;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L30-L30",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L30-L30",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        31,
+        31
+      ],
+      "text": "- every safe-language/native-code entry point;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L31-L31",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L31-L31",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        32,
+        32
+      ],
+      "text": "- ownership, lifetime, mutability, thread-affinity, and callback rules;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L32-L32",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L32-L32",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        33,
+        33
+      ],
+      "text": "- key generation, storage, use, recovery, and destruction behavior;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L33-L33",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L33-L33",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        34,
+        34
+      ],
+      "text": "- encrypted database, journal, temporary-file, backup, and restore boundaries;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L34-L34",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L34-L34",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        35,
+        35
+      ],
+      "text": "- platform hardening and artifact-verification evidence;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L35-L35",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L35-L35",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        36,
+        36
+      ],
+      "text": "- sanitizer, analyzer, fuzzing, dependency, and repository-hygiene gates; and",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L36-L36",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L36-L36",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Required Local Profile",
+      "source_lines": [
+        37,
+        37
+      ],
+      "text": "- any deferred ABI migration or approved waiver.",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L37-L37",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L37-L37",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        44,
+        45
+      ],
+      "text": "- Production FFI calls MUST be confined to a small reviewed bridge rather than distributed through UI, business, or orchestration code.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L44-L45",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L44-L45",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        46,
+        47
+      ],
+      "text": "- New native object APIs MUST prefer opaque handles with explicit constructor/destructor functions.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L46-L47",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L46-L47",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        48,
+        50
+      ],
+      "text": "- An existing versioned ABI MAY retain an exposed layout temporarily only when compatibility is documented and an opaque-handle migration is assigned to a new interface version.",
+      "level": "MAY",
+      "locator": "AES-SEC-002:L48-L50",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L48-L50",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        51,
+        52
+      ],
+      "text": "- Every pointer parameter MUST state ownership, nullability, mutability, valid length, lifetime, and thread-affinity.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L51-L52",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L51-L52",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        53,
+        54
+      ],
+      "text": "- Long-lived ownership of a heap pointer MUST NOT be transferred implicitly across the ABI.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L53-L54",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L53-L54",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        55,
+        56
+      ],
+      "text": "- Borrowed data MUST be copied into native value types before its documented lifetime ends.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L55-L56",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L55-L56",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        57,
+        59
+      ],
+      "text": "- Callback contracts MUST state whether invocation is synchronous, on which thread or executor it occurs, and whether the callback or context is retained.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L57-L59",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L57-L59",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/native-thread-dispatch-review"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        60,
+        64
+      ],
+      "text": "- A callback declared synchronous on the calling thread MUST run before the native entry point returns and MUST NOT be dispatched to a worker thread. Source or AST policy and a focused thread-identity test SHOULD protect this contract. An asynchronous redesign requires explicit executor marshalling and a versioned interface review.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L60-L64",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L60-L64",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/native-thread-dispatch-review"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        65,
+        66
+      ],
+      "text": "- Constructors and destructors MUST form an explicit lifecycle pair. Failure paths MUST leave ownership unambiguous.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L65-L66",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L65-L66",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "ABI and Ownership Boundary",
+      "source_lines": [
+        67,
+        68
+      ],
+      "text": "- Unsafe pointers and FFI handles MUST NOT be treated as inherently thread-safe or `Sendable`.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L67-L68",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L67-L68",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C and C++ Boundary",
+      "source_lines": [
+        74,
+        74
+      ],
+      "text": "Native code MUST inherit AES-SEC-001.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L74-L74",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L74-L74",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C and C++ Boundary",
+      "source_lines": [
+        79,
+        80
+      ],
+      "text": "- `strncpy` and `strncat` MUST NOT be described as general safe replacements for unbounded string functions.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L79-L80",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L79-L80",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C and C++ Boundary",
+      "source_lines": [
+        81,
+        82
+      ],
+      "text": "- A native function MUST clear only sensitive mutable storage it owns. Overwriting a borrowed `const` caller buffer is BANNED.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L81-L82",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L81-L82",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/borrowed-const-buffer-write"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C and C++ Boundary",
+      "source_lines": [
+        83,
+        84
+      ],
+      "text": "- Source policy SHOULD mechanically reject prohibited APIs and unexpected unsafe-zone expansion.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L83-L84",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L83-L84",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "C and C++ Boundary",
+      "source_lines": [
+        85,
+        86
+      ],
+      "text": "- Public error text MUST be bounded and MUST NOT include secret bytes, credentials, personal records, or raw provider responses.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L85-L86",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L85-L86",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Swift Boundary",
+      "source_lines": [
+        90,
+        90
+      ],
+      "text": "Swift 6 repositories in scope MUST:",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L90-L90",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L90-L90",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Swift Boundary",
+      "source_lines": [
+        92,
+        92
+      ],
+      "text": "- compile in Swift 6 language mode;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L92-L92",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L92-L92",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Swift Boundary",
+      "source_lines": [
+        93,
+        93
+      ],
+      "text": "- enable complete strict-concurrency checking;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L93-L93",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L93-L93",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Swift Boundary",
+      "source_lines": [
+        94,
+        94
+      ],
+      "text": "- place mutable shared state behind an actor or global-actor boundary;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L94-L94",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L94-L94",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Swift Boundary",
+      "source_lines": [
+        95,
+        95
+      ],
+      "text": "- use `Sendable` value types across concurrency boundaries;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L95-L95",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L95-L95",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Swift Boundary",
+      "source_lines": [
+        96,
+        97
+      ],
+      "text": "- isolate `UnsafePointer`, `UnsafeMutablePointer`, raw-buffer, opaque-pointer, unmanaged-reference, and C-callback code in the reviewed bridge; and",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L96-L97",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L96-L97",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/swift/unsafe-pointer-lifecycle"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Swift Boundary",
+      "source_lines": [
+        98,
+        99
+      ],
+      "text": "- copy borrowed C strings and rows before returning from a synchronous callback.",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L98-L99",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L98-L99",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Swift Boundary",
+      "source_lines": [
+        101,
+        102
+      ],
+      "text": "Views and presentation code MUST NOT call the C ABI directly. A checked-in source gate SHOULD enforce this boundary.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L101-L102",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L101-L102",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Swift Boundary",
+      "source_lines": [
+        104,
+        107
+      ],
+      "text": "The name of an internal implementation type MUST NOT be cited as a public API. For example, a project may require a secure-memory abstraction only when that abstraction is actually public, supported on every target, and its guarantees are documented.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L104-L107",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L104-L107",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        111,
+        112
+      ],
+      "text": "- Projects MUST reuse established cryptographic implementations and platform key stores rather than invent cryptography.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L111-L112",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L111-L112",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        113,
+        115
+      ],
+      "text": "- Keys MUST cross APIs as read-only byte buffers and explicit lengths, such as `const uint8_t *` or `const unsigned char *`, not mutable or null-terminated strings.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L113-L115",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L113-L115",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/key-buffer-contract"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        116,
+        118
+      ],
+      "text": "- Keys, passwords, tokens, and recovery material MUST NOT appear in logs, errors, telemetry, environment variables, command-line arguments, process listings, or repository content.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L116-L118",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L116-L118",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        119,
+        120
+      ],
+      "text": "- Interactive secret input SHOULD disable terminal echo or use a platform secure-input control.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L119-L120",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L119-L120",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        121,
+        122
+      ],
+      "text": "- UI fields that contain secrets SHOULD be marked privacy-sensitive when the platform supports it.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L121-L122",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L121-L122",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        123,
+        125
+      ],
+      "text": "- An unpersisted recovery secret MUST remain in the smallest feasible local scope. Text required by a secure-input control MUST be nonpersistent and cleared promptly after conversion, cancellation, and view disappearance.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L123-L125",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L123-L125",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        126,
+        128
+      ],
+      "text": "- After decoding, recovery bytes MUST be held in a localized mutable byte buffer and cleared on every visible exit path immediately after the synchronous cryptographic operation.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L126-L128",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L126-L128",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        129,
+        135
+      ],
+      "text": "- A secret buffer has one documented owner. Every mutable project-owned C secret copy or derived key structure MUST be cleared before deallocation or function return. Use `explicit_bzero()` or `memset_s()` where the admitted platform supports it; otherwise use one reviewed optimization-resistant erasure abstraction, such as volatile byte writes, with test or artifact evidence. Code MUST NOT pretend to erase buffers owned internally by a dependency.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L129-L135",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L129-L135",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/borrowed-const-buffer-write",
+        "aes/cpp/candidate-secret-memset"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        136,
+        138
+      ],
+      "text": "- Secret clearing MUST be described accurately. It does not by itself prove that runtime copies, swap, crash capture, core dumps, or compiler-created temporaries cannot contain a copy.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L136-L138",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L136-L138",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        139,
+        140
+      ],
+      "text": "- Key-store accessibility, device migration, synchronization, backup, and locked-device behavior MUST be explicit.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L139-L140",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L139-L140",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        141,
+        142
+      ],
+      "text": "- A project MUST NOT claim hardware-backed or secure-enclave storage unless the actual key type, API, and target provide that property.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L141-L142",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L141-L142",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Secret and Key Lifecycle",
+      "source_lines": [
+        143,
+        144
+      ],
+      "text": "- Recovery keys and device keys SHOULD be distinct when portable recovery and device-local access have different trust boundaries.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L143-L144",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L143-L144",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        150,
+        152
+      ],
+      "text": "- The main file, journals, WAL, shared-memory state, temporary tables and indexes, backups, exports, staging files, and crash artifacts MUST be included in the storage threat model.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L150-L152",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L150-L152",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        153,
+        155
+      ],
+      "text": "- Temporary database state MUST remain encrypted or in memory. A project using SQLite/SQLCipher SHOULD enforce this in both the dependency build and each runtime connection where supported.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L153-L155",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L153-L155",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/sqlite-disk-temp-storage"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        156,
+        158
+      ],
+      "text": "- A keyed SQLite/SQLCipher connection MUST apply its runtime temporary-storage policy immediately after the key and before verification queries, schema or virtual-table access, transactions, attachments, or exports.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L156-L158",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L156-L158",
+      "codeql_coverage": "partial",
+      "query_ids": [
+        "aes/cpp/sqlite-disk-temp-storage"
+      ],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        159,
+        160
+      ],
+      "text": "- Encrypted open MUST key the connection before protected data access and MUST fail closed without plaintext fallback.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L159-L160",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L159-L160",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        161,
+        162
+      ],
+      "text": "- Integrity and authentication checks MUST run before a restored or migrated database becomes active.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L161-L162",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L161-L162",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        163,
+        164
+      ],
+      "text": "- Encrypted files MUST use exclusive, race-resistant creation and explicit least-privilege permissions.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L163-L164",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L163-L164",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        165,
+        167
+      ],
+      "text": "- Restore and migration MUST use a private, protected application or service container. Shared groups and public document directories require a specific design reason.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L165-L167",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L165-L167",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        168,
+        169
+      ],
+      "text": "- A restore source SHOULD be opened read-only, bounded by size, checked against an exact supported schema, and preserved on failure.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L168-L169",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L168-L169",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        170,
+        171
+      ],
+      "text": "- Replacement of active state MUST define rollback, sidecar cleanup, and recovery behavior.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L170-L171",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L170-L171",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Encrypted Storage",
+      "source_lines": [
+        172,
+        173
+      ],
+      "text": "- Storage encryption MUST NOT be represented as erasure of plaintext blocks or removal of data already present in repository history.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L172-L173",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L172-L173",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        177,
+        178
+      ],
+      "text": "Projects MUST select controls that belong to each target format and linker. Flags from one object format MUST NOT be copied blindly to another platform.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L177-L178",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L177-L178",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        180,
+        180
+      ],
+      "text": "For ELF release executables where supported, the baseline SHOULD include:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L180-L180",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L180-L180",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        190,
+        192
+      ],
+      "text": "CI SHOULD inspect the resulting ELF and require the intended PIE, non-executable-stack, RELRO/NOW, canary, and fortify evidence. Compiler flags alone are not artifact evidence.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L190-L192",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L190-L192",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        194,
+        194
+      ],
+      "text": "Apple application targets SHOULD use:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L194-L194",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L194-L194",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        196,
+        196
+      ],
+      "text": "- Apple-Clang stack protection and platform PIE defaults;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L196-L196",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L196-L196",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        197,
+        197
+      ],
+      "text": "- Hardened Runtime where supported;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L197-L197",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L197-L197",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        198,
+        198
+      ],
+      "text": "- App Sandbox for macOS and Mac Catalyst where the application model permits;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L198-L198",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L198-L198",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        199,
+        199
+      ],
+      "text": "- least-privilege entitlements; and",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L199-L199",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L199-L199",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        200,
+        201
+      ],
+      "text": "- security-scoped user-selected file access instead of broad filesystem entitlements.",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L200-L201",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L200-L201",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        203,
+        204
+      ],
+      "text": "Apple CI SHOULD inspect Mach-O flags/symbols and resolved build settings. ELF `-z` options MUST NOT be sent to the Darwin linker.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L203-L204",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L203-L204",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        206,
+        212
+      ],
+      "text": "An iOS or Mac Catalyst application importing an external confidential file MUST use a user-mediated file picker that returns a security-scoped URL where the platform requires one. The application MUST bracket validation and copying with security-scoped access, release that access on every exit, and stage the still-encrypted file only in its private protected container. Mac Catalyst MUST enable App Sandbox and grant user-selected files no more than read-only access unless a reviewed feature requires writes.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L206-L212",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L206-L212",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        214,
+        217
+      ],
+      "text": "Process sandboxes such as namespaces, seccomp, chroot, containers, or service sandboxes are deployment controls. A risk assessment SHOULD select them for networked, privileged, multi-user, or hostile-input services; they are not a portable substitute for memory and input safety.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L214-L217",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L214-L217",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Platform Hardening",
+      "source_lines": [
+        219,
+        224
+      ],
+      "text": "Linux and other command-line clients MUST NOT receive secrets through `argv`, environment variables, or process-visible command construction. Interactive secrets MUST come from a private TTY channel, such as `/dev/tty` or TTY-backed standard input, with echo disabled and the prior terminal state restored on every visible path. Project-owned input text and decoded byte buffers MUST then be cleared.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L219-L224",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L219-L224",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        228,
+        228
+      ],
+      "text": "Repositories in scope SHOULD enforce:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L228-L228",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L228-L228",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        230,
+        230
+      ],
+      "text": "1. formatting and warnings-as-errors;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L230-L230",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L230-L230",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        231,
+        231
+      ],
+      "text": "2. source-boundary and banned-API scans;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L231-L231",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L231-L231",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        232,
+        232
+      ],
+      "text": "3. static analysis;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L232-L232",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L232-L232",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        233,
+        233
+      ],
+      "text": "4. unit, integrity, wrong-key, and failure-path tests;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L233-L233",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L233-L233",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        234,
+        234
+      ],
+      "text": "5. AddressSanitizer and UndefinedBehaviorSanitizer for native tests;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L234-L234",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L234-L234",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        235,
+        235
+      ],
+      "text": "6. fuzzing for external parsers and decoders;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L235-L235",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L235-L235",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        236,
+        236
+      ],
+      "text": "7. Swift complete-concurrency compilation;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L236-L236",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L236-L236",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        237,
+        237
+      ],
+      "text": "8. Thread Sanitizer for concurrent Swift and supported native tests;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L237-L237",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L237-L237",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        238,
+        238
+      ],
+      "text": "9. hardened release construction and binary inspection; and",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L238-L238",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L238-L238",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        239,
+        239
+      ],
+      "text": "10. secret/private-data scans over source and production artifacts.",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L239-L239",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L239-L239",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Analysis and Dynamic Verification",
+      "source_lines": [
+        241,
+        243
+      ],
+      "text": "Tool unavailability on one target is not permission to disable a supported gate on another target. Evidence MUST distinguish local, hosted, simulated, signed-device, and production verification.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L241-L243",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L241-L243",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Dependencies",
+      "source_lines": [
+        247,
+        248
+      ],
+      "text": "- Security-sensitive dependencies MUST use immutable or exact versions with recorded provenance.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L247-L248",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L247-L248",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Dependencies",
+      "source_lines": [
+        249,
+        250
+      ],
+      "text": "- CI MUST detect drift between platform-specific declarations of the same dependency.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L249-L250",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L249-L250",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Dependencies",
+      "source_lines": [
+        251,
+        252
+      ],
+      "text": "- Known-vulnerability review MUST be automated where the repository host and package ecosystem support it.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L251-L252",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L251-L252",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Dependencies",
+      "source_lines": [
+        253,
+        254
+      ],
+      "text": "- When automated dependency review is unavailable, the repository MUST record a repeatable advisory-review process before changing or releasing a pin.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L253-L254",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L253-L254",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Dependencies",
+      "source_lines": [
+        255,
+        255
+      ],
+      "text": "- Third-party warnings MUST NOT weaken checks for project-owned code.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L255-L255",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L255-L255",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Repository Data and History",
+      "source_lines": [
+        259,
+        261
+      ],
+      "text": "- Repositories MUST classify personal catalogues, databases, screenshots, provider responses, exports, keys, certificates, signing profiles, and derived caches.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L259-L261",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L259-L261",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Repository Data and History",
+      "source_lines": [
+        262,
+        263
+      ],
+      "text": "- Ignore rules and a tracked-file gate MUST prevent new confidential storage or secret material from entering ordinary source paths.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L262-L263",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L262-L263",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Repository Data and History",
+      "source_lines": [
+        264,
+        265
+      ],
+      "text": "- Tests and CI MUST use synthetic data unless a separately approved private environment is explicitly required.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L264-L265",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L264-L265",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Repository Data and History",
+      "source_lines": [
+        266,
+        267
+      ],
+      "text": "- Production builds SHOULD succeed with historical/private source directories physically absent.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L266-L267",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L266-L267",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Repository Data and History",
+      "source_lines": [
+        268,
+        269
+      ],
+      "text": "- Production artifacts SHOULD be scanned for private symbols and stable data markers.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L268-L269",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L268-L269",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Evidence",
+      "source_lines": [
+        287,
+        287
+      ],
+      "text": "An adopting repository MUST record:",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L287-L287",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L287-L287",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Evidence",
+      "source_lines": [
+        289,
+        289
+      ],
+      "text": "- the implementation commit;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L289-L289",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L289-L289",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Evidence",
+      "source_lines": [
+        290,
+        290
+      ],
+      "text": "- local and hosted tool results;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L290-L290",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L290-L290",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Evidence",
+      "source_lines": [
+        291,
+        291
+      ],
+      "text": "- target toolchain and dependency versions;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L291-L291",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L291-L291",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Evidence",
+      "source_lines": [
+        292,
+        292
+      ],
+      "text": "- artifact-inspection results;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L292-L292",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L292-L292",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Evidence",
+      "source_lines": [
+        293,
+        293
+      ],
+      "text": "- untested targets and compensating controls;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L293-L293",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L293-L293",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Evidence",
+      "source_lines": [
+        294,
+        294
+      ],
+      "text": "- deferred ABI or recovery work;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L294-L294",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L294-L294",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Evidence",
+      "source_lines": [
+        295,
+        296
+      ],
+      "text": "- explicit non-claims about hardware storage, secret erasure, and Git history; and",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L295-L296",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L295-L296",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Evidence",
+      "source_lines": [
+        297,
+        297
+      ],
+      "text": "- links to the local threat model, operations runbook, and waivers.",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L297-L297",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L297-L297",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "AEMS Enforcement Direction",
+      "source_lines": [
+        301,
+        301
+      ],
+      "text": "AEMS SHOULD ratchet this draft in reporting mode before blocking:",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L301-L301",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L301-L301",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "AEMS Enforcement Direction",
+      "source_lines": [
+        303,
+        303
+      ],
+      "text": "1. detect a local cross-language/storage profile;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L303-L303",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L303-L303",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "AEMS Enforcement Direction",
+      "source_lines": [
+        304,
+        305
+      ],
+      "text": "2. inventory FFI bridge files, direct-call escape paths, raw pointer allocations, and corresponding lifecycle anchors;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L304-L305",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L304-L305",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "AEMS Enforcement Direction",
+      "source_lines": [
+        306,
+        307
+      ],
+      "text": "3. report callback contracts, native thread-creation paths, strict-concurrency, actor isolation, and sanitizer settings;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L306-L307",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L306-L307",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "AEMS Enforcement Direction",
+      "source_lines": [
+        308,
+        309
+      ],
+      "text": "4. reject the AES-banned string APIs and report const key-buffer declarations, owned-buffer erasure, and keyed temporary-storage ordering;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L308-L309",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L308-L309",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "AEMS Enforcement Direction",
+      "source_lines": [
+        310,
+        311
+      ],
+      "text": "5. report interactive secret-input, dependency-pin, repository-hygiene, and private-file access evidence;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L310-L311",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L310-L311",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "AEMS Enforcement Direction",
+      "source_lines": [
+        312,
+        313
+      ],
+      "text": "6. inspect platform release verification and distinguish ELF runners and rules from Apple build pipelines;",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L312-L313",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L312-L313",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "AEMS Enforcement Direction",
+      "source_lines": [
+        314,
+        314
+      ],
+      "text": "7. baseline gaps; and",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L314-L314",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L314-L314",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "AEMS Enforcement Direction",
+      "source_lines": [
+        315,
+        316
+      ],
+      "text": "8. block new violations only after the standard is adopted and repositories have a migration window.",
+      "level": "inherited",
+      "locator": "AES-SEC-002:L315-L316",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L315-L316",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Waivers",
+      "source_lines": [
+        323,
+        325
+      ],
+      "text": "A waiver is required for every MUST or BANNED violation. It MUST identify the rule, repository and symbols, necessity, safety invariant, evidence, owner, approval date, review date, removal condition, and affected release scope.",
+      "level": "MUST",
+      "locator": "AES-SEC-002:L323-L325",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L323-L325",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    },
+    {
+      "section": "Review Cadence",
+      "source_lines": [
+        345,
+        348
+      ],
+      "text": "This standard SHOULD be reviewed when the ecosystem adds a language/ABI, cryptographic provider, encrypted-store format, secret-recovery mechanism, target object format, platform sandbox, compiler, sanitizer, or repository data migration.",
+      "level": "SHOULD",
+      "locator": "AES-SEC-002:L345-L348",
+      "standard": "AES-SEC-002",
+      "source_url": "https://github.com/dlworrell/AES/blob/256bf6dd0e424b134d4f1c628f9aff30ea12566d/standards/AES-SEC-002-cross-language-secret-storage-boundaries.md#L345-L348",
+      "codeql_coverage": "complementary-evidence-required",
+      "query_ids": [],
+      "complementary_evidence": [
+        "Run existing AES adoption/boundary scanners and inspect their actual findings.",
+        "Review this exact clause and supply applicable tests, compiler/build/artifact results, threat-model or waiver evidence. Query success does not discharge this clause."
+      ]
+    }
+  ]
+}

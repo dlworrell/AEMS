@@ -1,0 +1,3 @@
+| test.cpp:96:33:96:35 | key | AES-SEC-002: review this name-identified candidate secret input for read-only bytes and an explicit byte length. Internal owned mutable storage can be legitimate; parameter names are not a complete secret inventory. |
+| test.cpp:97:42:97:47 | secret | AES-SEC-002: review this name-identified candidate secret input for read-only bytes and an explicit byte length. Internal owned mutable storage can be legitimate; parameter names are not a complete secret inventory. |
+| test.cpp:110:36:110:41 | secret | AES-SEC-002: review this name-identified candidate secret input for read-only bytes and an explicit byte length. Internal owned mutable storage can be legitimate; parameter names are not a complete secret inventory. |

@@ -1,0 +1,2 @@
+| test.cpp:123:5:123:16 | call to sqlite3_exec | AES-SEC-002: this SQLite command requests file-backed temporary storage. For confidential connections, enforce encrypted or in-memory temporary state after keying and before protected access; review the dependency build too. |
+| test.cpp:125:5:125:16 | call to sqlite3_exec | AES-SEC-002: this SQLite command requests file-backed temporary storage. For confidential connections, enforce encrypted or in-memory temporary state after keying and before protected access; review the dependency build too. |

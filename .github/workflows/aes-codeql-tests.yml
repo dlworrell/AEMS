@@ -1,0 +1,103 @@
+name: AES CodeQL Query Tests
+
+on:
+  pull_request:
+    paths:
+      - 'codeql/**'
+      - 'config/aes-codeql-controls.json'
+      - 'scripts/aes_codeql.py'
+      - 'scripts/update_aes_codeql_coverage.py'
+      - 'tests/test_aes_codeql.py'
+      - 'tests/fixtures/codeql/**'
+      - 'docs/engineering/AES-CodeQL.md'
+      - '.github/workflows/aes-codeql-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'codeql/**'
+      - 'config/aes-codeql-controls.json'
+      - 'scripts/aes_codeql.py'
+      - 'scripts/update_aes_codeql_coverage.py'
+      - 'tests/test_aes_codeql.py'
+      - 'tests/fixtures/codeql/**'
+      - '.github/workflows/aes-codeql-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  query-tests:
+    name: Query tests (${{ matrix.language }})
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: cpp
+            runner: ubuntu-24.04
+            platform: linux64
+            sha256: ac0a4ea06843577ed3a1f5af145756c3085ebfd42e59a5aff1b66489f29d16dc
+          - language: swift
+            runner: macos-15
+            platform: osx64
+            sha256: 33c8f7097a1ccd6d8362ff1ee04d66eb4a309002ec6bffa256030d3881f706f2
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Test evidence and coverage handling
+        run: python3 -m unittest discover -s tests -p 'test_aes_codeql.py' -v
+
+      - name: Install verified CodeQL CLI
+        env:
+          CODEQL_PLATFORM: ${{ matrix.platform }}
+          CODEQL_SHA256: ${{ matrix.sha256 }}
+        run: |
+          curl -fL --retry 3 --max-time 300 \
+            "https://github.com/github/codeql-cli-binaries/releases/download/v2.27.2/codeql-${CODEQL_PLATFORM}.zip" \
+            -o "$RUNNER_TEMP/aes-codeql.zip"
+          python3 - <<'PY'
+          import hashlib, os
+          digest = hashlib.sha256()
+          with open(os.path.join(os.environ['RUNNER_TEMP'], 'aes-codeql.zip'), 'rb') as stream:
+              for block in iter(lambda: stream.read(1024 * 1024), b''):
+                  digest.update(block)
+          if digest.hexdigest() != os.environ['CODEQL_SHA256']:
+              raise SystemExit('CodeQL archive checksum mismatch')
+          PY
+          unzip -q "$RUNNER_TEMP/aes-codeql.zip" -d "$RUNNER_TEMP/aes-codeql"
+          echo "$RUNNER_TEMP/aes-codeql/codeql" >> "$GITHUB_PATH"
+
+      - name: Install locked dependencies and compile queries
+        run: |
+          codeql version
+          codeql pack install "codeql/${{ matrix.language }}"
+          codeql query compile --check-only --threads=1 --ram=4096 "codeql/${{ matrix.language }}/queries"
+
+      - name: Test vulnerable and safe fixtures
+        run: codeql test run --threads=1 --ram=4096 --additional-packs=codeql "tests/fixtures/codeql/${{ matrix.language }}"
+
+      - name: Check source-pinned coverage
+        if: matrix.language == 'cpp'
+        run: |
+          git init "$RUNNER_TEMP/aes-policy-sources"
+          git -C "$RUNNER_TEMP/aes-policy-sources" remote add origin https://github.com/dlworrell/AES.git
+          git -C "$RUNNER_TEMP/aes-policy-sources" fetch --depth=1 origin 256bf6dd0e424b134d4f1c628f9aff30ea12566d
+          python3 scripts/update_aes_codeql_coverage.py --aes-repository "$RUNNER_TEMP/aes-policy-sources" --check
+
+      - name: Preserve query-test diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: aes-codeql-query-tests-${{ matrix.language }}
+          path: |
+            tests/fixtures/codeql/${{ matrix.language }}/**/*.actual
+            tests/fixtures/codeql/${{ matrix.language }}/**/*.expected
+          if-no-files-found: ignore

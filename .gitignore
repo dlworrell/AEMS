@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# CodeQL query-test databases, results, and local compilation caches
+*.testproj/
+*.actual
+*.bqrs
+*.qlo
+.codeql/
