@@ -51,12 +51,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out governed repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: governed
 
       - name: Check out AEMS runtime
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: dlworrell/AEMS
           ref: main
@@ -124,7 +124,7 @@ jobs:
 
       - name: Upload structure evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: aes-bld-001-structure-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/structure/
@@ -142,7 +142,7 @@ jobs:
           - gcc
     steps:
       - name: Check out governed repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: governed
 
@@ -212,7 +212,7 @@ jobs:
 
       - name: Upload CMake evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: aes-bld-001-cmake-${{ matrix.compiler }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/cmake-${{ matrix.compiler }}/
@@ -230,7 +230,7 @@ jobs:
           - clang
     steps:
       - name: Check out governed repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: governed
 
@@ -330,7 +330,7 @@ jobs:
 
       - name: Upload Autotools evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: aes-bld-001-autotools-${{ matrix.compiler }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/autotools-${{ matrix.compiler }}/
@@ -342,7 +342,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out governed repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: governed
 
@@ -416,7 +416,7 @@ jobs:
 
       - name: Upload Clang-Tidy evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: aes-bld-001-clang-tidy-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/clang-tidy/
@@ -428,7 +428,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out governed repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: governed
 
@@ -482,7 +482,7 @@ jobs:
 
       - name: Upload sanitizer evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: aes-bld-001-clang-sanitizers-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/clang-sanitizers/
@@ -494,12 +494,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out governed repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: governed
 
       - name: Check out AEMS runtime
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: dlworrell/AEMS
           ref: main
@@ -668,7 +668,7 @@ jobs:
 
       - name: Upload install-parity evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: aes-bld-001-install-parity-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/install-parity/
@@ -680,7 +680,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out governed repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: governed
 
@@ -718,7 +718,7 @@ jobs:
 
       - name: Upload distribution evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: aes-bld-001-distcheck-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.AEMS_GOVERNED_ARTIFACT_ROOT }}/build/aems/aes-bld-001/distcheck/
