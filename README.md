@@ -255,3 +255,8 @@ conformance as proof of closure.
 ## License
 
 See [LICENSE](LICENSE).
+
+
+## Architecture decision proposals
+
+See the [ADR proposal index](docs/adr/README.md) for the proposed AEMS-ADR-002 CodeQL evidence addendum and its source lineage. These review records do not change current reporting or gate behavior.
