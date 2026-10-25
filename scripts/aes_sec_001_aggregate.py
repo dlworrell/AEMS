@@ -121,6 +121,7 @@ def scan_checkout(root: Path, repository: str, include_dangerous: bool) -> dict:
     result["review_dispositions"] = review
     result["summary"] = {**remainder["summary"],
         "has_native_code": bool(result["native_files"]),
+        "requires_secure_profile": bool(result["native_files"] or result["build_surfaces"]),
         "has_banned_api_findings": any(f["severity"] == "banned" for f in result["findings"]),
         "passes_minimum_adoption_gate": bool(remainder["summary"]["passes_minimum_adoption_gate"]
             and all(r["scope_gate_passes"] for r in reports[1:])),
