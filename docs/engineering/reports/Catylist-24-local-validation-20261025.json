@@ -11,7 +11,7 @@
   },
   "local_tests": {
     "command": "python3 -m unittest discover -s tests -q",
-    "count": 155,
+    "count": 159,
     "result": "PASS"
   },
   "self_scan": {
@@ -67,7 +67,7 @@
     },
     {
       "path": "tests/test_aes_sec_001_scopes.py",
-      "sha256": "b64103bd6ef289ffbdd7eee101eba3e0c9ecef8e7fd2cb25d5ed226eb0e0acc1"
+      "sha256": "4a7be94b2a2f40faf234566226339dfe07e0efd28194c7e1bf075ddfdcb6c981"
     },
     {
       "path": "tests/test_structured.py",
@@ -88,6 +88,10 @@
     {
       "path": "schemas/aes-sec-001-review-dispositions-v1.schema.json",
       "sha256": "d83bb7de8e602d76a3f7e4f9caa0c4dda84c783768dfb2de01bc2a7c2bd7ff4c"
+    },
+    {
+      "path": "scripts/aes_sec_001_aggregate.py",
+      "sha256": "2b17bafd96109cc6f07e6382137e9745d4eafa62ab988676fb83016c9789dd2d"
     }
   ]
 }
