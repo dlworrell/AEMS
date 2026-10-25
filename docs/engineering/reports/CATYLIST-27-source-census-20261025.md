@@ -15,7 +15,8 @@ not republished here.
   identity and ownership agree with Catylist. Ten lack that entry point.
 - Five existing manifests omit the class in the inspected field. One further
   existing manifest explicitly contradicts the authoritative class; its
-  correction is prepared, with private source values omitted here. The absent
+  correction is merged in its owning repository after both PR workflows
+  passed, with private source values omitted here. The absent
   class/back-pointer fields are unresolved contract expectations: AES-003 explicitly leaves the Catylist
   back-pointer undefined under #18. The EWT manifest now identifies EWT and is
   not the formerly copied AES identity.

@@ -220,7 +220,14 @@
       "readiness": "OPEN: manifest/conformance/scope evidence remains required",
       "source_commit_sha256": "0ea8a09fda92be07b2205471bc60fd5983281080e2c3b3d39dd56ffef2804a01",
       "inventory_class_back_pointer": "DIVERGENCE: existing local class contradicts authoritative inventory; private value omitted",
-      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census",
+      "remediation_after_snapshot": {
+        "status": "MERGED: corrected the existing class from the authoritative inventory",
+        "verified_source_commits": 1,
+        "passing_pr_workflows": 2,
+        "merge_commit_sha256": "08923ca50e751fec68235b78510f7a7c7256694ec694f580acfc73d307b1ea7d",
+        "private_details": "Retained only in the owning repository and authenticated source capture"
+      }
     },
     {
       "repository": "dlworrell/code-noodling",
@@ -318,5 +325,6 @@
     "mismatch_count": 0
   },
   "identity_core_match_count": 7,
-  "classification_explicit_divergence_count": 1
+  "classification_explicit_divergence_count": 1,
+  "classification_divergences_resolved_after_snapshot": 1
 }

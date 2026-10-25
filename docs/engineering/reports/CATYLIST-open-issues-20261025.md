@@ -54,7 +54,10 @@ identities, leaves three prime-source dispositions in the root remainder,
 retains an exact identity/count migration map, pins the AEMS engine and tests
 coverage/election non-native applicability separately. Both strict ratchets and
 the combined aggregate pass locally with zero new, unresolved or stale
-findings. The nine-file patch is an atomic target-PR proposal; it has not been
+findings. Final follow-up [AEMS PR #33](https://github.com/dlworrell/AEMS/pull/33)
+corrects the combined profile flag and refuses duplicate JSON or normalized
+alias path maps; all 159 tests pass with the stronger assertions. The prepared
+caller pins that exact source commit. The nine-file patch is an atomic target-PR proposal; it has not been
 merged or presented as downstream CI evidence.
 
 EVO's retained manual Project Zero workflow now uses the unchanged canonical
