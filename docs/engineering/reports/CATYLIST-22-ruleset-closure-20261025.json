@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "issue": 22,
+  "observed_on": "2026-10-25",
+  "result": "MATCH",
+  "review_kind": "AI-assisted source review and authenticated read-only state comparison",
+  "protected_repository_count": 17,
+  "drifting_repository_count": 0,
+  "settings_changed_during_this_review": false,
+  "inventory_commit": "7a1ede0bb073477be226aa572fc3c20db3312df1",
+  "template_commit": "af2511a78bd51cb6a1cc1a4d779de1a8e58aeccc",
+  "evaluator_commit": "a1f3d5c6be8f39f4b752d6eafc2c4ff0028285b5",
+  "evaluator_sha256": "0753e427473c744f54c3963c73bf42a68b5d3b63edcc98b135fc37166e6d4dbb",
+  "authenticated_capture_sha256": "144108f5136fbc65c7dd1cc38484302a591deb5a47fc8f4f18edca5af64e94b8",
+  "offline_plan_sha256": "839ba2ce034858cf7e0dab258a4ddac7a38ed2ff272c63e8f35a4fbca651d022",
+  "capture_publication": "Raw authenticated repository metadata remains outside this public record; this record contains aggregate results and public workflow references.",
+  "prior_workflow_evidence": [
+    {
+      "run": 38919355433,
+      "mode": "sandbox dry-run",
+      "result": "success"
+    },
+    {
+      "run": 38920461123,
+      "mode": "sandbox apply",
+      "result": "success"
+    },
+    {
+      "run": 38921906808,
+      "mode": "five authority/control repositories dry-run",
+      "result": "success"
+    },
+    {
+      "run": 38923331551,
+      "mode": "five authority/control repositories apply",
+      "result": "success"
+    },
+    {
+      "run": 40003504334,
+      "mode": "code-noodling dry-run",
+      "result": "success"
+    },
+    {
+      "run": 40003752602,
+      "mode": "code-noodling apply",
+      "result": "success"
+    },
+    {
+      "run": 40016389121,
+      "mode": "remaining eleven protected repositories dry-run",
+      "result": "success"
+    },
+    {
+      "run": 40044383728,
+      "mode": "subsequent selected-repository apply",
+      "result": "success"
+    }
+  ],
+  "limits": [
+    "Current state comparison establishes ADR-0006 ruleset/settings conformance, not all AES obligations or ADR-0007 implementation qualification.",
+    "Workflow logs were inspected for mode, filter, before/action/after report and success; workflow success alone was not treated as proof.",
+    "No production setting was changed to manufacture new evidence."
+  ]
+}

@@ -1,0 +1,1182 @@
+diff --git a/.github/workflows/aes-sec-001-governance.yml b/.github/workflows/aes-sec-001-governance.yml
+index 14d5c939a463636135022676fd9224288203eae6..e5f01383918ac1199da4837a5476208b1fa15a49 100644
+--- a/.github/workflows/aes-sec-001-governance.yml
++++ b/.github/workflows/aes-sec-001-governance.yml
+@@ -3,16 +3,66 @@ name: AES-SEC-001 Governance
+ on:
+   pull_request:
+   push:
+-    branches:
+-      - main
++    branches: [main]
+   workflow_dispatch:
+ 
+ permissions:
+   contents: read
+ 
+ jobs:
+-  governance:
+-    uses: dlworrell/AEMS/.github/workflows/aes-sec-001-distributed.yml@main
++  coverage:
++    name: Scope coverage and applicability
++    runs-on: ubuntu-24.04
++    steps:
++      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
++        with:
++          persist-credentials: false
++      - name: Check out pinned AEMS coverage engine
++        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
++        with:
++          repository: dlworrell/AEMS
++          ref: 4df3a37418536d97865c9774701d910eb6f11bdb
++          path: .aems-scope-engine
++          persist-credentials: false
++      - name: Verify scope coverage and election applicability
++        run: |
++          mkdir -p build/aems/scope-coverage
++          python3 .aems-scope-engine/scripts/aems_scope_coverage.py . \
++            > build/aems/scope-coverage/coverage.json
++          python3 .aems-scope-engine/scripts/aes_sec_001_scan.py election-analysis \
++            --repo-name dlworrell/code-noodling --include-dangerous-primitives \
++            --format json > build/aems/scope-coverage/election.json
++          python3 - <<'PY'
++          import json
++          from pathlib import Path
++          report = json.loads(Path('build/aems/scope-coverage/election.json').read_text())
++          assert not report['native_files'] and not report['build_surfaces'], 'Reassess AES-SEC-001 applicability'
++          assert not any(p.suffix in {'.cu', '.cuh'} for p in Path('election-analysis').rglob('*') if p.is_file()), 'Reassess CUDA applicability'
++          PY
++      - name: Retain scope coverage evidence
++        if: always()
++        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
++        with:
++          name: aes-sec-001-scope-coverage-${{ github.run_id }}
++          path: build/aems/scope-coverage/
++          if-no-files-found: error
++  crypto:
++    name: Crypto scope
++    uses: dlworrell/AEMS/.github/workflows/aes-sec-001-distributed.yml@4df3a37418536d97865c9774701d910eb6f11bdb
+     with:
++      scan_root: crypto_pipeline
++      evidence_name: crypto-pipeline
+       include_dangerous_primitives: true
+       strict: true
++      strict_review_ratchet: true
++  remainder:
++    name: Repository remainder
++    uses: dlworrell/AEMS/.github/workflows/aes-sec-001-distributed.yml@4df3a37418536d97865c9774701d910eb6f11bdb
++    with:
++      exclude_paths: |
++        crypto_pipeline
++        election-analysis
++      evidence_name: repository-remainder
++      include_dangerous_primitives: true
++      strict: true
++      strict_review_ratchet: true
+diff --git a/README.md b/README.md
+index 964c3077aca45843bc117945d2c55c77ac362a4c..0136ee12944757af7935d1033a6ff17b7fb151b3 100644
+--- a/README.md
++++ b/README.md
+@@ -87,9 +87,10 @@ workflows only choose triggers and call the scope's `ci/` scripts.
+ | crypto-pipeline | [`crypto_pipeline/`](crypto_pipeline/) | [`crypto_pipeline/docs/engineering/`](crypto_pipeline/docs/engineering/) |
+ | election-analysis | [`election-analysis/`](election-analysis/) | None needed: AES-SEC-001 is declared not applicable (no C or C++) |
+ 
+-Everything else is the repository-level remainder until it is migrated. Until
+-AEMS can scan scopes separately, the repository-wide AES-SEC-001 scan and
+-ledger stay authoritative for every file.
++Everything else is the repository-level remainder until it is migrated.
++The pinned AEMS governance workflow scans crypto with its own profile and
++ledger, verifies the election scope remains non-native, and scans the remainder
++with declared scopes excluded. It retains the tracked-file coverage plan.
+ 
+ ---
+ 
+diff --git a/aes-manifest.yaml b/aes-manifest.yaml
+index f63760ee3898dd32d577eb2f0e9fd5d35da0eb3a..ef0c984c82acbf80e96d68f6aff5f6574426aa28 100644
+--- a/aes-manifest.yaml
++++ b/aes-manifest.yaml
+@@ -42,7 +42,7 @@ scopes:
+         evidence:
+           profile: crypto_pipeline/docs/engineering/SECURE-C-CXX.md
+           waiver_log: crypto_pipeline/docs/engineering/AES-SEC-001-waivers.md
+-          review_dispositions: docs/engineering/AES-SEC-001-review-dispositions.json
++          review_dispositions: crypto_pipeline/docs/engineering/AES-SEC-001-review-dispositions.json
+   - id: election-analysis
+     path: election-analysis/
+     owner: dlworrell
+diff --git a/crypto_pipeline/docs/engineering/AES-SEC-001-review-dispositions.json b/crypto_pipeline/docs/engineering/AES-SEC-001-review-dispositions.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..d87b49b7be214c51965cc0ccef22ac748b4904d2
+--- /dev/null
++++ b/crypto_pipeline/docs/engineering/AES-SEC-001-review-dispositions.json
+@@ -0,0 +1,427 @@
++{
++  "schema_version": "1.0.0",
++  "repository": "dlworrell/code-noodling",
++  "baseline": {
++    "captured_at": "2026-08-08",
++    "source": "AEMS workflow run 31233379796; artifact 9014581108; sha256:f705f4fef5f7f2dd0d3cc8536b7603547e2d0fa75553666d67579900b1dd2876",
++    "findings": []
++  },
++  "dispositions": [
++    {
++      "finding_id": "aes-sec-001:ddf150290a77ac36963e94c4a1fe6583f42ecf432a2a98cd9f486a4a897e4e1a",
++      "source_fingerprint": "sha256:b03495ecf9eda33df3f265971bc16372347bb0856450d2c1e6db59df4ddf3cf4",
++      "path": "crypto_montgomery_ct.c",
++      "line": 27,
++      "symbol": "memset",
++      "classification": "approved-invariant",
++      "rationale": "Bounded initialization/copy in the separate Montgomery candidate. This disposition approves memory bounds only, not side-channel security.",
++      "invariant": "ctx points to a writable crypto_montgomery_ctx by contract. memset covers exactly sizeof(*ctx), after public input validation. This is public context initialization, not secret erasure.",
++      "evidence": [
++        "crypto_pipeline/crypto_montgomery_ct.h",
++        "crypto_pipeline/test_montgomery_ct.c",
++        "crypto_pipeline/test_montgomery_ct.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-CONSTANT-FLOW.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:3731b6de399f6f0fc541307b9fecb9d6657ef88c3bc9c566226284db05d49069",
++      "source_fingerprint": "sha256:3efb62b2a2bd7830155e6bde55732c867ab94108bb8f72f6bcad495a2c8af4a6",
++      "path": "crypto_montgomery_ct.c",
++      "line": 28,
++      "symbol": "memcpy",
++      "classification": "approved-invariant",
++      "rationale": "Bounded initialization/copy in the separate Montgomery candidate. This disposition approves memory bounds only, not side-channel security.",
++      "invariant": "n is public and validated in 1..1024; ctx->modulus holds 1024 limbs; modulus provides n readable limbs and does not overlap ctx. The copy is exactly n limbs.",
++      "evidence": [
++        "crypto_pipeline/crypto_montgomery_ct.h",
++        "crypto_pipeline/test_montgomery_ct.c",
++        "crypto_pipeline/test_montgomery_ct.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-CONSTANT-FLOW.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:93ef90709c4cc52e7555959fdf0a8332fb3a4308d36f5a575c3c263c0b13d49a",
++      "source_fingerprint": "sha256:3f6d3f43fb276c78d897c5868a2781f6a33fcb4891d68cd6e0937036e3703f68",
++      "path": "crypto_montgomery_ct.c",
++      "line": 46,
++      "symbol": "memset",
++      "classification": "approved-invariant",
++      "rationale": "Bounded initialization/copy in the separate Montgomery candidate. This disposition approves memory bounds only, not side-channel security.",
++      "invariant": "t is a local 2*n-limb VLA created after public length validation. The fill is exactly 2*n limbs. This initializes arithmetic scratch; separate volatile stores wipe it after use.",
++      "evidence": [
++        "crypto_pipeline/crypto_montgomery_ct.h",
++        "crypto_pipeline/test_montgomery_ct.c",
++        "crypto_pipeline/test_montgomery_ct.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-CONSTANT-FLOW.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:3f51c1ebf678326eaa13697672188b93bfe51aab6901ade5b8134cd7f7bd1caa",
++      "source_fingerprint": "sha256:64d35558807212f2c1016ef7dac547c20f01fdd733e289086b950da69bfd1a21",
++      "path": "crypto_multiplier.c",
++      "line": 88,
++      "symbol": "memset",
++      "classification": "approved-invariant",
++      "rationale": "Comba initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Validated n<=1024; output contract or private caller supplies 2*n limbs, exactly the zero-fill byte count.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:7fc675b6ffede5fced2da0b3065fa780b44bd95aae11b9ffe635c8ab059793a9",
++      "source_fingerprint": "sha256:29179d8a38cc9b504a80cc9c9983a4e66c6789f145e17aaa1d947476b77c79cf",
++      "path": "crypto_multiplier.c",
++      "line": 141,
++      "symbol": "memmove",
++      "classification": "approved-invariant",
++      "rationale": "REDC move. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "The 2*n-limb product allocation contains source [n,2*n) and destination [0,n); memmove permits overlap.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:621a334337e1bfb9a3e71809ac82db1feb70f0100cb38dfe2d1112efe326b856",
++      "source_fingerprint": "sha256:e1db7b21598249c4e56dee60c7e69da0eced21794e87df08b226377742783816",
++      "path": "crypto_multiplier.c",
++      "line": 142,
++      "symbol": "memset",
++      "classification": "approved-invariant",
++      "rationale": "REDC zeroing. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "product+n begins the upper n-limb half of the contracted allocation and the fill is exactly n limbs.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:f6cfd264166a213d78a68d1079303c69afbbf6184535a1660e4d07b32321f3fa",
++      "source_fingerprint": "sha256:476d248c48ca4d3ce3f9dc4f9f81f97d339e4fdbe63bf643a6acf51af25b1e66",
++      "path": "crypto_multiplier.c",
++      "line": 153,
++      "symbol": "memcpy",
++      "classification": "approved-invariant",
++      "rationale": "Odd Karatsuba input a. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Private pa has n+1 limbs; input has n limbs; copy is n limbs and pa[n] is explicitly zeroed. n+1<=1024.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:9690dba166ce90c9114715cf7c6f50d37069552ed9d2915c9a66f6e440087ca5",
++      "source_fingerprint": "sha256:702af66b86157657fd1440914277fcddbd87514aa4ae9729136a012498d123b7",
++      "path": "crypto_multiplier.c",
++      "line": 154,
++      "symbol": "memcpy",
++      "classification": "approved-invariant",
++      "rationale": "Odd Karatsuba input b. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Private pb has n+1 limbs; input has n limbs; copy is n limbs and pb[n] is explicitly zeroed. n+1<=1024.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:58e73fe4028b55d82df2bdd39865d2cbeee3fc729126813fb02dff774b293ba2",
++      "source_fingerprint": "sha256:e77f4c6f02e7b3ebae0ddc90afed48db925bfb5a431b8541b6404ae54d710dfe",
++      "path": "crypto_multiplier.c",
++      "line": 157,
++      "symbol": "memcpy",
++      "classification": "approved-invariant",
++      "rationale": "Odd Karatsuba output. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Private pr has 2*(n+1) initialized limbs; contracted output r has 2*n limbs and only that many are copied.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:b32ca20a19123a8cac63927392c46cfb091d8a51a22e763114a256841964c419",
++      "source_fingerprint": "sha256:938386966f78326fc0466e4d1b7e6203f93e71a2fe8861af8333755ad380bbf3",
++      "path": "crypto_multiplier.c",
++      "line": 241,
++      "symbol": "memset",
++      "classification": "approved-invariant",
++      "rationale": "NTT output initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Contracted result has 2*n limbs, matching the fill count; n is validated before allocation/access.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:b72e8f6c7c7801ce7aab4206b663895a66cf6b5dfcb31b01f1af2c7eaf5c39c2",
++      "source_fingerprint": "sha256:b4d996c9a49c89ff5843382671401b73ff704cdc5dc2b4ec1eeb4e8a31f2f7b1",
++      "path": "crypto_multiplier.c",
++      "line": 252,
++      "symbol": "memcpy",
++      "classification": "approved-invariant",
++      "rationale": "NTT first residue array. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "first has 2*digits uint32_t elements; fa has length>=2*digits fully initialized elements. Copy covers exactly first, with no overlap.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:7ae07d652f591dd3b6e8eab4718dfa41efb399fa9b580470900b1115f9786fa8",
++      "source_fingerprint": "sha256:77876bb896ad13f0fec31a18a50a7874c80b74f359a03f0adbcea27ea8da9a05",
++      "path": "crypto_multiplier.c",
++      "line": 280,
++      "symbol": "memset",
++      "classification": "approved-invariant",
++      "rationale": "Remainder initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "r has n limbs by public output contract or private VLA allocation; n<=1024 and the fill is exactly n limbs.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:954ca3bc8b41f6152efa3ecaddbfdb1055344a69e1550ec6b67a3260a05d88bc",
++      "source_fingerprint": "sha256:35394c088c30002c7c9aec438fd2522b54aba4edbe862c0c4f6b3a8a2ce58db5",
++      "path": "crypto_multiplier.c",
++      "line": 334,
++      "symbol": "memcpy",
++      "classification": "approved-invariant",
++      "rationale": "Inverse modulus copy. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Private v has n limbs and mod provides n readable limbs; arrays are disjoint and count is bounded.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:bd3dc1cef70483fe3e2bc3d0e80669ea4a70f6da1135b32edf02c712a1e1b467",
++      "source_fingerprint": "sha256:832ae2617552a9c909fb71b955ad7ba1fa842c7a46c70e4518f0509cf86a3789",
++      "path": "crypto_multiplier.c",
++      "line": 335,
++      "symbol": "memset",
++      "classification": "approved-invariant",
++      "rationale": "Inverse x1 initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Private x1 is an n-limb VLA; initialization length matches and n was validated.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:262f2c2e8281eed53770fb271503b2551e57b29771fc3e3bb4eb28c4fd6f6f50",
++      "source_fingerprint": "sha256:fde71dcf7660a18495b0b5b4b2a75acf681c9fc429d17aef4281f8612acabcf0",
++      "path": "crypto_multiplier.c",
++      "line": 336,
++      "symbol": "memset",
++      "classification": "approved-invariant",
++      "rationale": "Inverse x2 initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Private x2 is an n-limb VLA; initialization length matches and n was validated.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:b69c838d0ee7345f4e20570fe41ef54d3237598859d87e0aefbf98fc90924778",
++      "source_fingerprint": "sha256:e325756853c06b6d534f2ac0675c3eb2d6822bdf3b97205356fade8643582265",
++      "path": "crypto_multiplier.c",
++      "line": 348,
++      "symbol": "memcpy",
++      "classification": "approved-invariant",
++      "rationale": "Inverse output. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Selected x1 or x2 is an initialized private n-limb array; result contract supplies n writable limbs. Copy executes only on successful inversion.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:91c52df73cf5d29678fc81f1fdcd66d0f0114c0a136de75377a2ce4cfde4fcfd",
++      "source_fingerprint": "sha256:3ce01d91272e8c90422cdd3c99c516d5693ff63de1d6e49c3e3e8860d6d31c38",
++      "path": "crypto_multiplier.c",
++      "line": 386,
++      "symbol": "memset",
++      "classification": "approved-invariant",
++      "rationale": "Blinding k initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Private k has n limbs and is fully initialized, including high limbs outside the sampled modulus bit length.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:932f5990dd6ae11b3b5d3e9dcb4d8e34142ce7608f0a3cf6d65fe061f00dde01",
++      "source_fingerprint": "sha256:48e6ae0af4017ca5daae26746894285587fcade1d57375aff0bbc75828bf9ea9",
++      "path": "crypto_multiplier.c",
++      "line": 393,
++      "symbol": "memcpy",
++      "classification": "approved-invariant",
++      "rationale": "Blinding output. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Private value holds a successful n-limb modular product; blinded output contract supplies n writable limbs, disjoint from locals.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    },
++    {
++      "finding_id": "aes-sec-001:583e768a5564aa97b748f56a3bd249b46aada46cb6bcc8d951840eafc905d38b",
++      "source_fingerprint": "sha256:f6445408b4bdc940c43affadbdaf9a5b4519d62cd79ac310851a41e7116a2996",
++      "path": "crypto_multiplier.c",
++      "line": 394,
++      "symbol": "memcpy",
++      "classification": "approved-invariant",
++      "rationale": "Blinding factor output. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
++      "invariant": "Private k has n initialized limbs; factor output contract supplies n writable limbs, disjoint from blinded and all inputs.",
++      "evidence": [
++        "crypto_pipeline/crypto_multiplier.h",
++        "crypto_pipeline/test_bounds.c",
++        "crypto_pipeline/test_arithmetic.py",
++        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
++        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
++      ],
++      "owner": "dlworrell",
++      "reviewer": "Codex (automated code review)",
++      "reviewed_at": "2026-10-13",
++      "reassess_after": "2027-01-13",
++      "resolution_commit": null
++    }
++  ],
++  "scope": "crypto_pipeline"
++}
+diff --git a/crypto_pipeline/docs/engineering/AES-SEC-001-review-dispositions.json.license b/crypto_pipeline/docs/engineering/AES-SEC-001-review-dispositions.json.license
+new file mode 100644
+index 0000000000000000000000000000000000000000..7b095a320abbd27c5e77edfc488f00dc1a3ed4e8
+--- /dev/null
++++ b/crypto_pipeline/docs/engineering/AES-SEC-001-review-dispositions.json.license
+@@ -0,0 +1,4 @@
++SPDX-FileCopyrightText: 2026 Donovan Worrell
++
++SPDX-License-Identifier: Apache-2.0
++Catalyst-File-ID: urn:uuid:b3b77f07-6255-4327-bd2e-af63b525cbfd
+diff --git a/crypto_pipeline/docs/engineering/SECURE-C-CXX.md b/crypto_pipeline/docs/engineering/SECURE-C-CXX.md
+index e9ac87eee2ba446b835dfea26e601dfbd077c6f6..017490ff201e9b5928d6f96526670dcd9262f4fc 100644
+--- a/crypto_pipeline/docs/engineering/SECURE-C-CXX.md
++++ b/crypto_pipeline/docs/engineering/SECURE-C-CXX.md
+@@ -48,11 +48,14 @@ In addition to the repository profile, code in this scope must:
+ 
+ ## Transition
+ 
+-AEMS does not yet scan governed project scopes separately (Catylist #24).
+-Until it does, AES-SEC-001 requires the repository-wide scan and the
+-repository-level ledger to remain authoritative for these files. This scope's
+-ledger carries the same dispositions re-keyed to scope-relative paths, ready
+-for the scope-rooted scan, and is supplementary until then.
++AEMS now scans this scope separately (Catylist #24). The scope ledger is
++active for `crypto_pipeline/` and uses scope-relative finding identities.
++The root ledger retains only the repository-level remainder. The reviewed
++path-only migration preserved all 22 existing dispositions: 19 here and 3 in
++the remainder, with no new approvals. The identity/count map is recorded in
++[`scope-ledger-rekey-20261025.json`](evidence/scope-ledger-rekey-20261025.json).
++The root governance workflow pins the AEMS engine and checks the scope,
++not-applicable election classification, and remainder separately.
+ 
+ ## Waivers
+ 
+diff --git a/crypto_pipeline/docs/engineering/evidence/scope-ledger-rekey-20261025.json b/crypto_pipeline/docs/engineering/evidence/scope-ledger-rekey-20261025.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..f84406c776420ce4c1c9bd278ad574f34899442b
+--- /dev/null
++++ b/crypto_pipeline/docs/engineering/evidence/scope-ledger-rekey-20261025.json
+@@ -0,0 +1,165 @@
++{
++  "schema_version": "1.0.0",
++  "scope": "crypto_pipeline",
++  "approvals_created": 0,
++  "baseline_before": 3,
++  "baseline_moved": 0,
++  "baseline_remaining": 3,
++  "dispositions_before": 22,
++  "dispositions_moved": 19,
++  "dispositions_remaining": 3,
++  "identities": [
++    {
++      "old_finding_id": "aes-sec-001:042e93d17bea2c2eda219755e7bdc7d4d7c2e07d52ba67e223db2b03b5656718",
++      "new_finding_id": "aes-sec-001:b72e8f6c7c7801ce7aab4206b663895a66cf6b5dfcb31b01f1af2c7eaf5c39c2",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:a6d19723b12d2fa5197cef45d372b2ae8e91eb5d669a427af341bad43dfa34d3",
++      "new_source_fingerprint": "sha256:b4d996c9a49c89ff5843382671401b73ff704cdc5dc2b4ec1eeb4e8a31f2f7b1"
++    },
++    {
++      "old_finding_id": "aes-sec-001:0652229a17dc952c632a6432ba3c3adc148fe018f3bc140e618f0ac83506a2c8",
++      "new_finding_id": "aes-sec-001:621a334337e1bfb9a3e71809ac82db1feb70f0100cb38dfe2d1112efe326b856",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:d22b41de92ac0f49e107b716cde89f477e90bc9e64967ae01071112ec13d4f61",
++      "new_source_fingerprint": "sha256:e1db7b21598249c4e56dee60c7e69da0eced21794e87df08b226377742783816"
++    },
++    {
++      "old_finding_id": "aes-sec-001:15d349fb13339a08f81c9a1d98c74b8604ab9e36333442727eb1ba975e2172f1",
++      "new_finding_id": "aes-sec-001:932f5990dd6ae11b3b5d3e9dcb4d8e34142ce7608f0a3cf6d65fe061f00dde01",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:50586de4834f251e9072373416d6c82776b000a9e6511cc791b228b71dadf0ef",
++      "new_source_fingerprint": "sha256:48e6ae0af4017ca5daae26746894285587fcade1d57375aff0bbc75828bf9ea9"
++    },
++    {
++      "old_finding_id": "aes-sec-001:20f00590e1734a7d0d1e17ef6feba420ea562d3c6b1a26c4bf99e50e30a63987",
++      "new_finding_id": "aes-sec-001:91c52df73cf5d29678fc81f1fdcd66d0f0114c0a136de75377a2ce4cfde4fcfd",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:d7906ef8692d187c01d1db40b0b647d3365d7fa41bccb7daf00d0821532f21b0",
++      "new_source_fingerprint": "sha256:3ce01d91272e8c90422cdd3c99c516d5693ff63de1d6e49c3e3e8860d6d31c38"
++    },
++    {
++      "old_finding_id": "aes-sec-001:373b97847aa00890cd7bf67c5a353e18b3ee784489372b353963b3a7866220eb",
++      "new_finding_id": "aes-sec-001:7fc675b6ffede5fced2da0b3065fa780b44bd95aae11b9ffe635c8ab059793a9",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:d47239ec1c64aa5acc069bdb1f746f06cfdb823787d4f0e416a787ecf26858c2",
++      "new_source_fingerprint": "sha256:29179d8a38cc9b504a80cc9c9983a4e66c6789f145e17aaa1d947476b77c79cf"
++    },
++    {
++      "old_finding_id": "aes-sec-001:450cd3428612f3766ba70630e3e76d61139d76ac867a3b35aa157ca80645e74c",
++      "new_finding_id": "aes-sec-001:3731b6de399f6f0fc541307b9fecb9d6657ef88c3bc9c566226284db05d49069",
++      "old_path": "crypto_pipeline/crypto_montgomery_ct.c",
++      "new_path": "crypto_montgomery_ct.c",
++      "old_source_fingerprint": "sha256:5b5458a1be1aa89bc08039d956fd31499278072e11c5798d181f52019f508692",
++      "new_source_fingerprint": "sha256:3efb62b2a2bd7830155e6bde55732c867ab94108bb8f72f6bcad495a2c8af4a6"
++    },
++    {
++      "old_finding_id": "aes-sec-001:4a909f14c685cabd742a789fb49a0bd5a7bec6612b5788e0984cd1079fa49bad",
++      "new_finding_id": "aes-sec-001:b32ca20a19123a8cac63927392c46cfb091d8a51a22e763114a256841964c419",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:6345fed4fa47d15faa9db619f9a9f00d0c7f46bfaa584d2846146a24da9a3474",
++      "new_source_fingerprint": "sha256:938386966f78326fc0466e4d1b7e6203f93e71a2fe8861af8333755ad380bbf3"
++    },
++    {
++      "old_finding_id": "aes-sec-001:4e009df6b6885167143863d4564bc9c21317af5b4dabfe0da500834c60938d01",
++      "new_finding_id": "aes-sec-001:7ae07d652f591dd3b6e8eab4718dfa41efb399fa9b580470900b1115f9786fa8",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:93848507a96a1928ddeffb299e61575a7b370369a4793fcb4d291d838da28786",
++      "new_source_fingerprint": "sha256:77876bb896ad13f0fec31a18a50a7874c80b74f359a03f0adbcea27ea8da9a05"
++    },
++    {
++      "old_finding_id": "aes-sec-001:5e5ffd59b288b37257f17bf2e8ed7fe839f7bb35fa9b31b13f9db9e195fb9b1f",
++      "new_finding_id": "aes-sec-001:3f51c1ebf678326eaa13697672188b93bfe51aab6901ade5b8134cd7f7bd1caa",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:a30f17b9fab814d8bd7ca292de5f6782923f2967a193f39b68782ef995c528b0",
++      "new_source_fingerprint": "sha256:64d35558807212f2c1016ef7dac547c20f01fdd733e289086b950da69bfd1a21"
++    },
++    {
++      "old_finding_id": "aes-sec-001:84f07f425e20f7975e71a845608c6f342c2abd97b4444f33ca71d3ab3a568376",
++      "new_finding_id": "aes-sec-001:9690dba166ce90c9114715cf7c6f50d37069552ed9d2915c9a66f6e440087ca5",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:2886f6d7d304c8260bc4fb74c6a92e4013e90ff6a0c7327c15f6fff7548e87c8",
++      "new_source_fingerprint": "sha256:702af66b86157657fd1440914277fcddbd87514aa4ae9729136a012498d123b7"
++    },
++    {
++      "old_finding_id": "aes-sec-001:8520a0e33fe614b652154fdc95bf422bd27d58e29c2aae2033e29e639a4faeac",
++      "new_finding_id": "aes-sec-001:954ca3bc8b41f6152efa3ecaddbfdb1055344a69e1550ec6b67a3260a05d88bc",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:a466e7c0861f8398af53bf64ed7f5aa3130c2899ba72eba4f840d4648ab44c06",
++      "new_source_fingerprint": "sha256:35394c088c30002c7c9aec438fd2522b54aba4edbe862c0c4f6b3a8a2ce58db5"
++    },
++    {
++      "old_finding_id": "aes-sec-001:87f9caed2b2b52ddbfce4fb4a5b8980ba7a5bea4ce68ab45dcde71cc46a8caee",
++      "new_finding_id": "aes-sec-001:f6cfd264166a213d78a68d1079303c69afbbf6184535a1660e4d07b32321f3fa",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:2fb9bfbf51960dcb35ec585ed1b52c5c038a2dc2cbca1430acda91a72b826695",
++      "new_source_fingerprint": "sha256:476d248c48ca4d3ce3f9dc4f9f81f97d339e4fdbe63bf643a6acf51af25b1e66"
++    },
++    {
++      "old_finding_id": "aes-sec-001:8cd6e533c4acb059a97914a535075e2949fff8c934a7c94279738ff12164edaa",
++      "new_finding_id": "aes-sec-001:93ef90709c4cc52e7555959fdf0a8332fb3a4308d36f5a575c3c263c0b13d49a",
++      "old_path": "crypto_pipeline/crypto_montgomery_ct.c",
++      "new_path": "crypto_montgomery_ct.c",
++      "old_source_fingerprint": "sha256:6b6f53d19258999374dee24c9109b05cf9eefda3f4459b56383e589481c35d0c",
++      "new_source_fingerprint": "sha256:3f6d3f43fb276c78d897c5868a2781f6a33fcb4891d68cd6e0937036e3703f68"
++    },
++    {
++      "old_finding_id": "aes-sec-001:b9a8a6508685a4cabe27a7626042d7641df8358ab04a49a3e39ac0a39704741a",
++      "new_finding_id": "aes-sec-001:bd3dc1cef70483fe3e2bc3d0e80669ea4a70f6da1135b32edf02c712a1e1b467",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:9ed839369c3621baa69ef50b727ce6bef1572a93fcc34cfaedb5e0cdc9f8264b",
++      "new_source_fingerprint": "sha256:832ae2617552a9c909fb71b955ad7ba1fa842c7a46c70e4518f0509cf86a3789"
++    },
++    {
++      "old_finding_id": "aes-sec-001:bb49e4d1ec7d5d71f458aa56c8e515e95c00b7200d197a174a1abd87e7d622b7",
++      "new_finding_id": "aes-sec-001:b69c838d0ee7345f4e20570fe41ef54d3237598859d87e0aefbf98fc90924778",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:d1c6d7633f649035076c7f7260c91ee33322cb939dabfb688592fc10fb7dddc0",
++      "new_source_fingerprint": "sha256:e325756853c06b6d534f2ac0675c3eb2d6822bdf3b97205356fade8643582265"
++    },
++    {
++      "old_finding_id": "aes-sec-001:c90c5b62628f0f2ae31f49fe920005c015c414b1b9e344c494faf102f59bf6de",
++      "new_finding_id": "aes-sec-001:262f2c2e8281eed53770fb271503b2551e57b29771fc3e3bb4eb28c4fd6f6f50",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:586a01412045e024659104f8e5a5c55d98d20b1c9d48c858f4e9f5d5ca6a6b8c",
++      "new_source_fingerprint": "sha256:fde71dcf7660a18495b0b5b4b2a75acf681c9fc429d17aef4281f8612acabcf0"
++    },
++    {
++      "old_finding_id": "aes-sec-001:e4427e6159a35debb4e6f47d667dba91e7a0adc3e7095c5e1fd864566eaf82b0",
++      "new_finding_id": "aes-sec-001:583e768a5564aa97b748f56a3bd249b46aada46cb6bcc8d951840eafc905d38b",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:c53db889998e0253da42800457c65e097e19168b7964abcc66566787a2316093",
++      "new_source_fingerprint": "sha256:f6445408b4bdc940c43affadbdaf9a5b4519d62cd79ac310851a41e7116a2996"
++    },
++    {
++      "old_finding_id": "aes-sec-001:f149124d5ab216df2bfeb8910f00eb96ce131dea62c8c265b37068ba9f1bec6c",
++      "new_finding_id": "aes-sec-001:58e73fe4028b55d82df2bdd39865d2cbeee3fc729126813fb02dff774b293ba2",
++      "old_path": "crypto_pipeline/crypto_multiplier.c",
++      "new_path": "crypto_multiplier.c",
++      "old_source_fingerprint": "sha256:fb6e0e371adf74b84b725e0a4350e6814ba16b26d4145016dcb31f90fabfa3f5",
++      "new_source_fingerprint": "sha256:e77f4c6f02e7b3ebae0ddc90afed48db925bfb5a431b8541b6404ae54d710dfe"
++    },
++    {
++      "old_finding_id": "aes-sec-001:f7ad43920701c238b37e9bb599dc056772667f7a314c2c5450c41a67a1b479b0",
++      "new_finding_id": "aes-sec-001:ddf150290a77ac36963e94c4a1fe6583f42ecf432a2a98cd9f486a4a897e4e1a",
++      "old_path": "crypto_pipeline/crypto_montgomery_ct.c",
++      "new_path": "crypto_montgomery_ct.c",
++      "old_source_fingerprint": "sha256:4b5f0a17be72831646bcfa0bccf0f370498be9e4ab2c872b137728f4cc482848",
++      "new_source_fingerprint": "sha256:b03495ecf9eda33df3f265971bc16372347bb0856450d2c1e6db59df4ddf3cf4"
++    }
++  ]
++}
+diff --git a/crypto_pipeline/docs/engineering/evidence/scope-ledger-rekey-20261025.json.license b/crypto_pipeline/docs/engineering/evidence/scope-ledger-rekey-20261025.json.license
+new file mode 100644
+index 0000000000000000000000000000000000000000..6ee8a9d8cf4156012a23a16a94f0dbb61cdad90d
+--- /dev/null
++++ b/crypto_pipeline/docs/engineering/evidence/scope-ledger-rekey-20261025.json.license
+@@ -0,0 +1,4 @@
++SPDX-FileCopyrightText: 2026 Donovan Worrell
++
++SPDX-License-Identifier: Apache-2.0
++Catalyst-File-ID: urn:uuid:5a35cf12-45da-466f-adb5-b66d85b18b55
+diff --git a/docs/engineering/AES-SEC-001-review-dispositions.json b/docs/engineering/AES-SEC-001-review-dispositions.json
+index f051a2585111bba045ca806e3372547b0c28196d..5fb469d8140f7309fce217231b1ee8b7a53b1e98 100644
+--- a/docs/engineering/AES-SEC-001-review-dispositions.json
++++ b/docs/engineering/AES-SEC-001-review-dispositions.json
+@@ -91,421 +91,7 @@
+       "reviewed_at": "2026-08-08",
+       "reassess_after": "2027-08-08",
+       "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:5e5ffd59b288b37257f17bf2e8ed7fe839f7bb35fa9b31b13f9db9e195fb9b1f",
+-      "source_fingerprint": "sha256:a30f17b9fab814d8bd7ca292de5f6782923f2967a193f39b68782ef995c528b0",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 80,
+-      "symbol": "memset",
+-      "classification": "approved-invariant",
+-      "rationale": "Comba initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Validated n<=1024; output contract or private caller supplies 2*n limbs, exactly the zero-fill byte count.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:373b97847aa00890cd7bf67c5a353e18b3ee784489372b353963b3a7866220eb",
+-      "source_fingerprint": "sha256:d47239ec1c64aa5acc069bdb1f746f06cfdb823787d4f0e416a787ecf26858c2",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 133,
+-      "symbol": "memmove",
+-      "classification": "approved-invariant",
+-      "rationale": "REDC move. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "The 2*n-limb product allocation contains source [n,2*n) and destination [0,n); memmove permits overlap.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:0652229a17dc952c632a6432ba3c3adc148fe018f3bc140e618f0ac83506a2c8",
+-      "source_fingerprint": "sha256:d22b41de92ac0f49e107b716cde89f477e90bc9e64967ae01071112ec13d4f61",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 134,
+-      "symbol": "memset",
+-      "classification": "approved-invariant",
+-      "rationale": "REDC zeroing. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "product+n begins the upper n-limb half of the contracted allocation and the fill is exactly n limbs.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:87f9caed2b2b52ddbfce4fb4a5b8980ba7a5bea4ce68ab45dcde71cc46a8caee",
+-      "source_fingerprint": "sha256:2fb9bfbf51960dcb35ec585ed1b52c5c038a2dc2cbca1430acda91a72b826695",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 145,
+-      "symbol": "memcpy",
+-      "classification": "approved-invariant",
+-      "rationale": "Odd Karatsuba input a. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Private pa has n+1 limbs; input has n limbs; copy is n limbs and pa[n] is explicitly zeroed. n+1<=1024.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:84f07f425e20f7975e71a845608c6f342c2abd97b4444f33ca71d3ab3a568376",
+-      "source_fingerprint": "sha256:2886f6d7d304c8260bc4fb74c6a92e4013e90ff6a0c7327c15f6fff7548e87c8",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 146,
+-      "symbol": "memcpy",
+-      "classification": "approved-invariant",
+-      "rationale": "Odd Karatsuba input b. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Private pb has n+1 limbs; input has n limbs; copy is n limbs and pb[n] is explicitly zeroed. n+1<=1024.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:f149124d5ab216df2bfeb8910f00eb96ce131dea62c8c265b37068ba9f1bec6c",
+-      "source_fingerprint": "sha256:fb6e0e371adf74b84b725e0a4350e6814ba16b26d4145016dcb31f90fabfa3f5",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 149,
+-      "symbol": "memcpy",
+-      "classification": "approved-invariant",
+-      "rationale": "Odd Karatsuba output. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Private pr has 2*(n+1) initialized limbs; contracted output r has 2*n limbs and only that many are copied.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:4a909f14c685cabd742a789fb49a0bd5a7bec6612b5788e0984cd1079fa49bad",
+-      "source_fingerprint": "sha256:6345fed4fa47d15faa9db619f9a9f00d0c7f46bfaa584d2846146a24da9a3474",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 233,
+-      "symbol": "memset",
+-      "classification": "approved-invariant",
+-      "rationale": "NTT output initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Contracted result has 2*n limbs, matching the fill count; n is validated before allocation/access.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:042e93d17bea2c2eda219755e7bdc7d4d7c2e07d52ba67e223db2b03b5656718",
+-      "source_fingerprint": "sha256:a6d19723b12d2fa5197cef45d372b2ae8e91eb5d669a427af341bad43dfa34d3",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 244,
+-      "symbol": "memcpy",
+-      "classification": "approved-invariant",
+-      "rationale": "NTT first residue array. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "first has 2*digits uint32_t elements; fa has length>=2*digits fully initialized elements. Copy covers exactly first, with no overlap.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:4e009df6b6885167143863d4564bc9c21317af5b4dabfe0da500834c60938d01",
+-      "source_fingerprint": "sha256:93848507a96a1928ddeffb299e61575a7b370369a4793fcb4d291d838da28786",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 272,
+-      "symbol": "memset",
+-      "classification": "approved-invariant",
+-      "rationale": "Remainder initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "r has n limbs by public output contract or private VLA allocation; n<=1024 and the fill is exactly n limbs.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:8520a0e33fe614b652154fdc95bf422bd27d58e29c2aae2033e29e639a4faeac",
+-      "source_fingerprint": "sha256:a466e7c0861f8398af53bf64ed7f5aa3130c2899ba72eba4f840d4648ab44c06",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 326,
+-      "symbol": "memcpy",
+-      "classification": "approved-invariant",
+-      "rationale": "Inverse modulus copy. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Private v has n limbs and mod provides n readable limbs; arrays are disjoint and count is bounded.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:b9a8a6508685a4cabe27a7626042d7641df8358ab04a49a3e39ac0a39704741a",
+-      "source_fingerprint": "sha256:9ed839369c3621baa69ef50b727ce6bef1572a93fcc34cfaedb5e0cdc9f8264b",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 327,
+-      "symbol": "memset",
+-      "classification": "approved-invariant",
+-      "rationale": "Inverse x1 initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Private x1 is an n-limb VLA; initialization length matches and n was validated.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:c90c5b62628f0f2ae31f49fe920005c015c414b1b9e344c494faf102f59bf6de",
+-      "source_fingerprint": "sha256:586a01412045e024659104f8e5a5c55d98d20b1c9d48c858f4e9f5d5ca6a6b8c",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 328,
+-      "symbol": "memset",
+-      "classification": "approved-invariant",
+-      "rationale": "Inverse x2 initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Private x2 is an n-limb VLA; initialization length matches and n was validated.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:bb49e4d1ec7d5d71f458aa56c8e515e95c00b7200d197a174a1abd87e7d622b7",
+-      "source_fingerprint": "sha256:d1c6d7633f649035076c7f7260c91ee33322cb939dabfb688592fc10fb7dddc0",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 340,
+-      "symbol": "memcpy",
+-      "classification": "approved-invariant",
+-      "rationale": "Inverse output. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Selected x1 or x2 is an initialized private n-limb array; result contract supplies n writable limbs. Copy executes only on successful inversion.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:20f00590e1734a7d0d1e17ef6feba420ea562d3c6b1a26c4bf99e50e30a63987",
+-      "source_fingerprint": "sha256:d7906ef8692d187c01d1db40b0b647d3365d7fa41bccb7daf00d0821532f21b0",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 378,
+-      "symbol": "memset",
+-      "classification": "approved-invariant",
+-      "rationale": "Blinding k initialization. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Private k has n limbs and is fully initialized, including high limbs outside the sampled modulus bit length.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:15d349fb13339a08f81c9a1d98c74b8604ab9e36333442727eb1ba975e2172f1",
+-      "source_fingerprint": "sha256:50586de4834f251e9072373416d6c82776b000a9e6511cc791b228b71dadf0ef",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 385,
+-      "symbol": "memcpy",
+-      "classification": "approved-invariant",
+-      "rationale": "Blinding output. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Private value holds a successful n-limb modular product; blinded output contract supplies n writable limbs, disjoint from locals.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:e4427e6159a35debb4e6f47d667dba91e7a0adc3e7095c5e1fd864566eaf82b0",
+-      "source_fingerprint": "sha256:c53db889998e0253da42800457c65e097e19168b7964abcc66566787a2316093",
+-      "path": "crypto_pipeline/crypto_multiplier.c",
+-      "line": 386,
+-      "symbol": "memcpy",
+-      "classification": "approved-invariant",
+-      "rationale": "Blinding factor output. Re-reviewed after the arithmetic rewrite; approval concerns memory bounds under the documented caller contract, not constant-time security.",
+-      "invariant": "Private k has n initialized limbs; factor output contract supplies n writable limbs, disjoint from blinded and all inputs.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_multiplier.h",
+-        "crypto_pipeline/test_bounds.c",
+-        "crypto_pipeline/test_arithmetic.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-MEMORY-REVIEW.md",
+-        "crypto_pipeline/docs/engineering/CRYPTO-ARITHMETIC.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:f7ad43920701c238b37e9bb599dc056772667f7a314c2c5450c41a67a1b479b0",
+-      "source_fingerprint": "sha256:4b5f0a17be72831646bcfa0bccf0f370498be9e4ab2c872b137728f4cc482848",
+-      "path": "crypto_pipeline/crypto_montgomery_ct.c",
+-      "line": 13,
+-      "symbol": "memset",
+-      "classification": "approved-invariant",
+-      "rationale": "Bounded initialization/copy in the separate Montgomery candidate. This disposition approves memory bounds only, not side-channel security.",
+-      "invariant": "ctx points to a writable crypto_montgomery_ctx by contract. memset covers exactly sizeof(*ctx), after public input validation. This is public context initialization, not secret erasure.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_montgomery_ct.h",
+-        "crypto_pipeline/test_montgomery_ct.c",
+-        "crypto_pipeline/test_montgomery_ct.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-CONSTANT-FLOW.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:450cd3428612f3766ba70630e3e76d61139d76ac867a3b35aa157ca80645e74c",
+-      "source_fingerprint": "sha256:5b5458a1be1aa89bc08039d956fd31499278072e11c5798d181f52019f508692",
+-      "path": "crypto_pipeline/crypto_montgomery_ct.c",
+-      "line": 14,
+-      "symbol": "memcpy",
+-      "classification": "approved-invariant",
+-      "rationale": "Bounded initialization/copy in the separate Montgomery candidate. This disposition approves memory bounds only, not side-channel security.",
+-      "invariant": "n is public and validated in 1..1024; ctx->modulus holds 1024 limbs; modulus provides n readable limbs and does not overlap ctx. The copy is exactly n limbs.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_montgomery_ct.h",
+-        "crypto_pipeline/test_montgomery_ct.c",
+-        "crypto_pipeline/test_montgomery_ct.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-CONSTANT-FLOW.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+-    },
+-    {
+-      "finding_id": "aes-sec-001:8cd6e533c4acb059a97914a535075e2949fff8c934a7c94279738ff12164edaa",
+-      "source_fingerprint": "sha256:6b6f53d19258999374dee24c9109b05cf9eefda3f4459b56383e589481c35d0c",
+-      "path": "crypto_pipeline/crypto_montgomery_ct.c",
+-      "line": 32,
+-      "symbol": "memset",
+-      "classification": "approved-invariant",
+-      "rationale": "Bounded initialization/copy in the separate Montgomery candidate. This disposition approves memory bounds only, not side-channel security.",
+-      "invariant": "t is a local 2*n-limb VLA created after public length validation. The fill is exactly 2*n limbs. This initializes arithmetic scratch; separate volatile stores wipe it after use.",
+-      "evidence": [
+-        "crypto_pipeline/crypto_montgomery_ct.h",
+-        "crypto_pipeline/test_montgomery_ct.c",
+-        "crypto_pipeline/test_montgomery_ct.py",
+-        "crypto_pipeline/docs/engineering/CRYPTO-CONSTANT-FLOW.md"
+-      ],
+-      "owner": "dlworrell",
+-      "reviewer": "Codex (automated code review)",
+-      "reviewed_at": "2026-10-13",
+-      "reassess_after": "2027-01-13",
+-      "resolution_commit": null
+     }
+-  ]
++  ],
++  "scope": "."
+ }
