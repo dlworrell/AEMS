@@ -1,0 +1,31 @@
+name: Catylist PR commit signatures
+description: Read GitHub verification for every commit at the requested PR head; never execute PR code.
+inputs:
+  repository:
+    description: Repository owner/name.
+    required: true
+  pull-request:
+    description: Positive pull request number.
+    required: true
+  expected-head:
+    description: Full immutable PR head SHA.
+    required: true
+  token:
+    description: Caller token with contents read and pull-requests read only.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Verify every PR commit against the frozen head
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        AEMS_REPOSITORY: ${{ inputs.repository }}
+        AEMS_PR: ${{ inputs.pull-request }}
+        AEMS_HEAD: ${{ inputs.expected-head }}
+      run: >-
+        python3 "$GITHUB_ACTION_PATH/../../../scripts/pr_signatures.py"
+        --repository "$AEMS_REPOSITORY"
+        --pr "$AEMS_PR"
+        --expected-head "$AEMS_HEAD"
+        --output "$RUNNER_TEMP/aems-pr-signatures.json"
