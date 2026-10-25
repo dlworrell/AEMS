@@ -51,6 +51,9 @@ native controls. Its AES-SEC-002 applicability remains
 `not-yet-classified` until a covered persisted boundary exists and can be
 assessed from repository evidence.
 
+See [scoped AES-SEC-001 scans](docs/engineering/AES-SEC-001-scope-scans.md) for
+manifest coverage, scope-local evidence, and history-preserving ledger migration.
+
 ## Quick start
 
 Scan one checkout for development evidence:
