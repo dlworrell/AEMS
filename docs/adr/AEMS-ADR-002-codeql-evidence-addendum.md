@@ -1,18 +1,20 @@
-# AEMS-ADR-002: Proposed CodeQL Evidence Addendum
+# AEMS-ADR-002: CodeQL Evidence Addendum
 
 Stable draft ID: DRAFT-AEMS-002-CODEQL-ADDENDUM
 Date: 2026-10-25
 AI-assisted drafting: ChatGPT; no independent review asserted.
-Status: Proposed addition to an existing proposed record; not a second ADR identity
+Status: Accepted addendum; the unfiled base AEMS-ADR-002 remains Proposed
+Decision authority: Donovan Worrell
+Implementation qualification: Open; CQL-A01–08 evidence remains required
 Owner: AEMS
 Target: docs/adr/AEMS-ADR-002-development-adapter-contract.md, when the owning proposal is reconciled and filed.
 Source: CONSOLIDATED-ADRS.md version 6, AEMS-ADR-002 v0.2.0, particularly §§2.2, 2.4, 2.8 and recovery reconciliation.
-Dependencies: accepted Catylist ADR-0007; proposed Catylist ADR-0009 for mandatory CodeQL policy; applicable adopted AES requirements. Unaccepted sibling proposals do not become policy through this addendum.
+Dependencies: accepted Catylist ADR-0007; Catylist ADR-0009 for CodeQL governance; repository-specific mandatory promotion remains separate; applicable adopted AES requirements. Unaccepted sibling proposals do not become policy through this addendum.
 
 ## Context
 The existing proposal already covers independent exact-subject evaluation. The CodeQL guide exposes a specific unresolved boundary: a database's supplied commit SHA is caller-asserted, while database construction may execute untrusted build code. Extend the existing contract instead of building another evidence gate.
 
-## Proposed additions
+## Accepted additions; implementation qualification open
 ### Extend §2.2 — Extraction and evaluation provenance
 Record repository and governed scope; exact requested commit and checked-out tree; clean/dirty state; submodule/generated-source identities where applicable; database/extraction identity or retained digest manifest; complete extraction commands, build flags, compiler/SDK/OS and container/runner image identity; completion and source coverage/exclusions; raw log and report hashes. Declare unavailable dimensions explicitly.
 
@@ -42,7 +44,7 @@ Keep execution of PR build code isolated from trusted attestation signing and ru
 Retain exact revisions, expected and observed outcomes and raw logs. No passing result is asserted here.
 
 ## Alternatives, consequences and rollback
-Keeping only caller assertions is simpler but leaves provenance unverified. Building a second gate duplicates the accepted architecture. Extending the existing versioned contract is proposed; it adds schema and isolation work while preserving one engine and one evidence lineage.
+Keeping only caller assertions is simpler but leaves provenance unverified. Building a second gate duplicates the accepted architecture. The accepted direction is to extend the existing versioned contract; it adds schema and isolation work while preserving one engine and one evidence lineage.
 Introduce changes in report-only mode. Preserve historical envelopes and verification tools. Roll back a defective producer through a reviewed version pin; never relabel old evidence as newly verified.
 
 
@@ -52,5 +54,12 @@ The base AEMS-ADR-002 is a proposal in [CONSOLIDATED-ADRS.md, Library version 6]
 
 The [review package](https://chatgpt.com/library?file_id=libfile_bf517bbea7ec8191b5de98af02721c7f&account_id=personal) retains the drafting rationale and alternatives. Current [CodeQL implementation](../engineering/AES-CodeQL.md) remains report-only. The [current audit census](../engineering/reports/CATYLIST-27-source-census-20261025.md) records later scope-scanning delivery and remaining onboarding gaps; this addendum does not restart completed work or claim those gaps are closed.
 
-Formal approval must identify the exact reviewed revision and record the maintainer's acceptance or requested revisions. All CQL-A tests above are proposed evidence, not results from this publication.
+Formal approval must identify the exact reviewed revision and record the maintainer's acceptance or requested revisions. The CQL-A tests above define required qualification evidence; no results are asserted by this publication.
 
+
+
+## Maintainer acceptance of this addendum — 2026-10-25
+
+Donovan Worrell reported approval of the review PRs and directed repair of their merge blockers. This records acceptance of the bounded CodeQL evidence additions and CQL-A01–08 criteria reviewed in PR #35 at `55dea7cdfd281c9fa6e598d383d1e07ea083dbae`, republished with the identical complete tree as verified `a9aa7dbd4d591dadceb6a478f588361be6ed6269` and merged at `2901c715651a10c700d0c7c3cbd683c86c748170`.
+
+Acceptance is effective when this signed record merges and is limited to this addendum. The unfiled base AEMS-ADR-002 remains Proposed and must still be reconciled. No sibling proposal, implementation, required-check rollout or test outcome is accepted by implication. Current CodeQL operation remains report-only until its separate qualification and promotion succeed. AI preparation of this record does not assert independent human review or substitute a machine signature for the maintainer's review decision.
