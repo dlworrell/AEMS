@@ -1,0 +1,24 @@
+name: Verified signing evidence (bootstrap)
+on:
+  push:
+    branches: [bootstrap/git-remediation-evidence-20261025]
+permissions:
+  contents: write
+concurrency:
+  group: git-signing-evidence-bootstrap
+  cancel-in-progress: false
+jobs:
+  verified-repair:
+    if: github.event_name == 'push' && github.actor == 'dlworrell'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Publish and verify exact evidence tree
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          EXPECTED_PAYLOAD_SHA256: 849a1f7ed28743001956f11b027f52d70a088d6e6539f6e495d0888c21cef3dd
+          EXPECTED_BOOTSTRAP_BRANCH: bootstrap/git-remediation-evidence-20261025
+        run: python3 .github/signing-repair/publish.py
