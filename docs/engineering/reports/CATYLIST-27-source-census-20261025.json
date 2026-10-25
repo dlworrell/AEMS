@@ -1,0 +1,322 @@
+{
+  "schema_version": "1.0.0",
+  "observed_on": "2026-10-25",
+  "review_kind": "AI-assisted authenticated read-only source census",
+  "inventory_commit": "7a1ede0bb073477be226aa572fc3c20db3312df1",
+  "source_capture_sha256": "0ddfcd1e6be16714745fbc7c66c8fc036f28effff5fe4d7a69d18b65d1e56373",
+  "repository_count": 17,
+  "workflow_files_read": 102,
+  "root_manifests_present": 7,
+  "root_manifests_missing": 10,
+  "repositories": [
+    {
+      "repository": "dlworrell/Catylist",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "authority",
+      "root_manifest_present": true,
+      "manifest_identity_status": "MATCH",
+      "manifest_findings": [],
+      "workflow_count_reviewed": 4,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "7a1ede0bb073477be226aa572fc3c20db3312df1",
+      "inventory_class_back_pointer": "EXPECTATION_UNKNOWN: AES-003 back-pointer shape remains undefined under Catylist#18",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/AES",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "authority",
+      "root_manifest_present": true,
+      "manifest_identity_status": "MATCH",
+      "manifest_findings": [],
+      "workflow_count_reviewed": 1,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "2a29348533bbc29f9e645c45316bcce33d75ae0c",
+      "inventory_class_back_pointer": "EXPECTATION_UNKNOWN: AES-003 back-pointer shape remains undefined under Catylist#18",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/AEMS",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "control-plane",
+      "root_manifest_present": true,
+      "manifest_identity_status": "MATCH",
+      "manifest_findings": [],
+      "workflow_count_reviewed": 10,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "8eeb8a03e53e2f3e1e5dc23dc1ff87c456f853bc",
+      "inventory_class_back_pointer": "EXPECTATION_UNKNOWN: AES-003 back-pointer shape remains undefined under Catylist#18",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/P0",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "control-plane",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 1,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "5d63e766ae6d5a6b4e82cb9b78e71871c7237da5",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/repo_templates",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "control-plane",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 9,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "f9e3f20efdf47daf7536759c3028acda38496303",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/engineering-docs-toolkit",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "shared-service",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 3,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "43a589fd370f6d48350e5f916cea6b2535cbd8d7",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/EWT",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "shared-service",
+      "root_manifest_present": true,
+      "manifest_identity_status": "MATCH",
+      "manifest_findings": [],
+      "workflow_count_reviewed": 1,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "13f00199cfbd8c42a99eb4fa7fff6883603c1ee0",
+      "inventory_class_back_pointer": "EXPECTATION_UNKNOWN: AES-003 back-pointer shape remains undefined under Catylist#18",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/evo",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "governed-product",
+      "root_manifest_present": true,
+      "manifest_identity_status": "MATCH",
+      "manifest_findings": [],
+      "workflow_count_reviewed": 28,
+      "unsigned_local_commit_route_detected": true,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "8fa3b5fdd2db55050f28f3b0189d9994f61761c4",
+      "inventory_class_back_pointer": "EXPECTATION_UNKNOWN: AES-003 back-pointer shape remains undefined under Catylist#18",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census",
+      "remediation_after_snapshot": {
+        "pull_request": 129,
+        "merge_commit": "ec23d960cbf5f5271306a88442023c0107cd50ff",
+        "verified_source_commits": 5,
+        "passing_pr_workflows": 18,
+        "status": "MERGED: signed automation repaired; other manifest/conformance gaps remain"
+      }
+    },
+    {
+      "repository": "dlworrell/atarix",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "governed-product",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 12,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "5854e74fd6f7053571ca562c8da92302c637b090",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/herkules-1934-english",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "governed-product",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 3,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "0bbeae193c7273cdc1cf5642c5d476fb215bd9e8",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/JAG",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "governed-product",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 1,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "fff04010fb1d4cf73e1e164c6d82570817767410",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/MayaUSD2017Bridge",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "governed-product",
+      "root_manifest_present": true,
+      "manifest_identity_status": "MATCH",
+      "manifest_findings": [
+        "Local class contradicts Catylist; correction prepared from accepted inventory"
+      ],
+      "workflow_count_reviewed": 2,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit_sha256": "0ea8a09fda92be07b2205471bc60fd5983281080e2c3b3d39dd56ffef2804a01",
+      "inventory_class_back_pointer": "DIVERGENCE: existing local class contradicts authoritative inventory; private value omitted",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/code-noodling",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "experimental",
+      "root_manifest_present": true,
+      "manifest_identity_status": "MATCH",
+      "manifest_findings": [],
+      "workflow_count_reviewed": 12,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "ede3ff33296d6c67a83688f19c09ac273bad9adb",
+      "inventory_class_back_pointer": "MATCH",
+      "scope_readiness_status": "OPEN: declared-scope enforcement is implemented in AEMS; code-noodling adoption awaits personal sign-off"
+    },
+    {
+      "repository": "dlworrell/Just-a-Geek-LLC",
+      "inventory_ownership": "organizational",
+      "inventory_class": "organizational",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 1,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "b7883261ae460abeed9dae57466272f0411ca96e",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/openCUDA",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "experimental",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 10,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "1af2228d9880f1d31f1a6833041d6621830f9cad",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/Rocket_demo",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "experimental",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 1,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit": "080cc1a5d77165cd0b6844c0970019b4344ab98a",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    },
+    {
+      "repository": "dlworrell/audiblebooks",
+      "inventory_ownership": "project-owned",
+      "inventory_class": "experimental",
+      "root_manifest_present": false,
+      "manifest_identity_status": "DIVERGENCE",
+      "manifest_findings": [
+        "root AES manifest absent"
+      ],
+      "workflow_count_reviewed": 3,
+      "unsigned_local_commit_route_detected": false,
+      "workflow_screen_limit": "Workflow text and referenced publishing helpers require separate trust-boundary review; no end-to-end automation certification is inferred.",
+      "ruleset_state": "MATCH in 2026-10-25 read-only comparison",
+      "readiness": "OPEN: manifest/conformance/scope evidence remains required",
+      "source_commit_sha256": "95d585c508d82e152d5973a2b4874939ee7f641f20c329e5785e6cca101d3734",
+      "inventory_class_back_pointer": "NOT_RUN: manifest absent",
+      "scope_readiness_status": "NOT_RUN: no scope qualification inferred from root-file census"
+    }
+  ],
+  "class_back_pointer_expectation_unknown_count": 5,
+  "source_blob_hash_validation": {
+    "algorithm": "Git blob SHA-1",
+    "verified_count": 109,
+    "mismatch_count": 0
+  },
+  "identity_core_match_count": 7,
+  "classification_explicit_divergence_count": 1
+}
