@@ -27,7 +27,7 @@ import sys
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 SECURE_PROFILE_PATH = Path("docs/engineering/SECURE-C-CXX.md")
@@ -289,6 +289,8 @@ class ScanReport:
     classification: str
     secure_profile_present: bool
     waiver_log_present: bool
+    scan_root: str = "."
+    excluded_paths: list[str] = field(default_factory=list)
     native_files: list[str] = field(default_factory=list)
     hardware_files: list[str] = field(default_factory=list)
     build_surfaces: list[str] = field(default_factory=list)
@@ -330,6 +332,8 @@ class ScanReport:
         return {
             "repository": self.repository,
             "root": self.root,
+            "scan_root": self.scan_root,
+            "excluded_paths": self.excluded_paths,
             "classification": self.classification,
             "secure_profile_present": self.secure_profile_present,
             "waiver_log_present": self.waiver_log_present,
@@ -370,6 +374,14 @@ def parse_args() -> argparse.Namespace:
         help="Repository checkout path to scan. Defaults to the current directory.",
     )
     parser.add_argument(
+        "--exclude", action="append", default=[], metavar="PREFIX",
+        help="Exclude a literal scan-root-relative path prefix; repeatable.",
+    )
+    parser.add_argument(
+        "--annotation-prefix", default="", metavar="PREFIX",
+        help="Prefix GitHub annotation paths only; JSON/Markdown identities stay scan-relative.",
+    )
+    parser.add_argument(
         "--repo-name",
         default=None,
         help="Repository name to record in the report, for example dlworrell/AEMS.",
@@ -402,15 +414,53 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def iter_files(root: Path) -> Iterable[Path]:
+def relative_prefix(value: str, *, allow_root: bool = False) -> str:
+    """Validate a literal relative path, without glob or traversal interpretation."""
+    if not isinstance(value, str) or not value or "\\" in value:
+        raise ValueError(f"invalid relative path prefix: {value!r}")
+    path = PurePosixPath(value)
+    if path.is_absolute() or ".." in path.parts or any(c in value for c in "*?[]\x00\r\n"):
+        raise ValueError(f"invalid relative path prefix: {value!r}")
+    normalized = path.as_posix()
+    if normalized == "." and not allow_root:
+        raise ValueError("path prefix must not exclude the entire scan root")
+    return normalized
+
+
+def checkout_root(root: Path) -> Path:
+    """Find a checkout boundary, including worktree/submodule .git files."""
+    root = root.resolve()
+    for candidate in (root, *root.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return root
+
+
+def scan_root_name(root: Path) -> str:
+    return root.resolve().relative_to(checkout_root(root)).as_posix()
+
+
+def is_local_file(root: Path, relative_path: Path) -> bool:
+    path = root / relative_path
+    return path.is_file() and not any(
+        (root / Path(*relative_path.parts[:index])).is_symlink()
+        for index in range(1, len(relative_path.parts) + 1)
+    )
+
+
+def iter_files(root: Path, exclude_paths: Iterable[str] = ()) -> Iterable[Path]:
+    exclusions = tuple(relative_prefix(prefix) for prefix in exclude_paths)
     for path in root.rglob("*"):
-        if not path.is_file():
+        # A scope must never borrow evidence or source through a symlink.
+        if not is_local_file(root, path.relative_to(root)):
             continue
         rel = path.relative_to(root)
         rel_parts = rel.parts
         if any(part in DEFAULT_EXCLUDED_DIRS for part in rel_parts[:-1]):
             continue
         rel_text = rel.as_posix()
+        if any(rel_text == prefix or rel_text.startswith(f"{prefix}/") for prefix in exclusions):
+            continue
         if any(
             rel_text == prefix or rel_text.startswith(f"{prefix}/")
             for prefix in DEFAULT_EXCLUDED_PATH_PREFIXES
@@ -860,7 +910,9 @@ def load_review_disposition_ledger(
 ) -> ReviewDispositionLedger:
     relative_path = DEFAULT_REVIEW_DISPOSITIONS_PATH.as_posix()
     path = root / DEFAULT_REVIEW_DISPOSITIONS_PATH
-    if not path.is_file():
+    if not is_local_file(root, DEFAULT_REVIEW_DISPOSITIONS_PATH):
+        if path.is_symlink() or path.exists():
+            raise ValueError(f"{relative_path} must be a scope-local regular file")
         return ReviewDispositionLedger(path=relative_path, present=False)
 
     try:
@@ -895,6 +947,14 @@ def load_review_disposition_ledger(
             f"{relative_path}.repository is {ledger_repository!r}, "
             f"expected {repository!r}"
         )
+
+    if "scope" in document:
+        scope = relative_prefix(document["scope"], allow_root=True)
+        expected_scope = scan_root_name(root)
+        if scope != expected_scope:
+            raise ValueError(
+                f"{relative_path}.scope is {scope!r}, expected {expected_scope!r}"
+            )
 
     baseline_document = require_mapping(
         document.get("baseline"),
@@ -1062,7 +1122,8 @@ def apply_review_dispositions(
 
 
 def scan_source_for_apis(
-    root: Path, path: Path, include_dangerous_primitives: bool
+    root: Path, path: Path, include_dangerous_primitives: bool,
+    *, identity_path: str | None = None,
 ) -> list[ApiFinding]:
     text = read_text_lossy(path)
     if text is None:
@@ -1099,7 +1160,7 @@ def scan_source_for_apis(
             text[match.start() : call_end]
         )
         finding_id, source_fingerprint = review_finding_identity(
-            rel,
+            identity_path if identity_path is not None else rel,
             symbol,
             symbol_ordinal,
             normalized_call,
@@ -1120,10 +1181,14 @@ def scan_source_for_apis(
     return findings
 
 
-def scan(root: Path, repo_name: str | None, include_dangerous_primitives: bool) -> ScanReport:
+def scan(
+    root: Path, repo_name: str | None, include_dangerous_primitives: bool,
+    *, exclude_paths: Iterable[str] = (),
+) -> ScanReport:
     root = root.resolve()
-    files = list(iter_files(root))
-    repository = repo_name or root.name
+    exclusions = sorted({relative_prefix(prefix) for prefix in exclude_paths})
+    files = list(iter_files(root, exclusions))
+    repository = repo_name or checkout_root(root).name
 
     native_files = sorted(
         path.relative_to(root).as_posix()
@@ -1152,8 +1217,8 @@ def scan(root: Path, repo_name: str | None, include_dangerous_primitives: bool) 
     )
     static_analysis, sanitizers, fuzzing, waivers = collect_signals(root, files)
 
-    secure_profile_present = (root / SECURE_PROFILE_PATH).is_file()
-    waiver_log_present = (root / DEFAULT_WAIVER_PATH).is_file()
+    secure_profile_present = is_local_file(root, SECURE_PROFILE_PATH)
+    waiver_log_present = is_local_file(root, DEFAULT_WAIVER_PATH)
 
     return ScanReport(
         repository=repository,
@@ -1161,6 +1226,8 @@ def scan(root: Path, repo_name: str | None, include_dangerous_primitives: bool) 
         classification=classify(native_files, hardware_files, build_surfaces),
         secure_profile_present=secure_profile_present,
         waiver_log_present=waiver_log_present,
+        scan_root=scan_root_name(root),
+        excluded_paths=exclusions,
         native_files=native_files,
         hardware_files=hardware_files,
         build_surfaces=build_surfaces,
@@ -1179,6 +1246,8 @@ def format_markdown(report: ScanReport) -> str:
         f"# AES-SEC-001 Scan Report: `{report.repository}`",
         "",
         f"- Classification: `{report.classification}`",
+        f"- Scan root: `{report.scan_root}`",
+        f"- Excluded paths: {', '.join(report.excluded_paths) or 'none'}",
         f"- Secure profile present: `{report.secure_profile_present}`",
         f"- Waiver log present: `{report.waiver_log_present}`",
         f"- Native files: `{len(report.native_files)}`",
@@ -1254,7 +1323,8 @@ def github_escape_property(value: str) -> str:
     )
 
 
-def format_github(report: ScanReport) -> str:
+def format_github(report: ScanReport, annotation_prefix: str = "") -> str:
+    prefix = relative_prefix(annotation_prefix, allow_root=True) if annotation_prefix else "."
     if not report.findings:
         return "::notice title=AES-SEC-001::No banned or review-required API findings."
 
@@ -1275,7 +1345,7 @@ def format_github(report: ScanReport) -> str:
             f"Remedy: {finding.remediation}"
         )
         annotations.append(
-            f"::{level} file={github_escape_property(finding.path)},"
+            f"::{level} file={github_escape_property((PurePosixPath(prefix) / finding.path).as_posix())},"
             f"line={finding.line},title={title}::{message}"
         )
     return "\n".join(annotations)
@@ -1288,14 +1358,23 @@ def main() -> int:
         print(f"error: scan root is not a directory: {root}", file=sys.stderr)
         return 2
 
-    report = scan(root, args.repo_name, args.include_dangerous_primitives)
+    try:
+        if args.annotation_prefix:
+            relative_prefix(args.annotation_prefix, allow_root=True)
+        report = scan(
+            root, args.repo_name, args.include_dangerous_primitives,
+            exclude_paths=args.exclude,
+        )
+    except (ValueError, OSError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
     if args.format == "json":
         print(json.dumps(report.to_dict(), indent=2, sort_keys=True))
     elif args.format == "markdown":
         print(format_markdown(report))
     else:
-        print(format_github(report))
+        print(format_github(report, args.annotation_prefix))
 
     if args.strict and not report.passes_minimum_adoption_gate:
         return 1

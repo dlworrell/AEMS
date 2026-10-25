@@ -4,7 +4,7 @@ AES-003 names ``aes-manifest.yaml`` as the standard repository entry point.
 AEMS therefore cannot require every inspected repository to preinstall a YAML
 package.  This module accepts JSON and the conservative YAML subset used by
 Catalyst manifests: indentation-based mappings and sequences, scalar values,
-and inline empty collections.
+inline empty collections, and single-paragraph folded (``>-``) scalar reasons.
 
 Unsupported YAML features fail closed with a line-numbered diagnostic instead
 of being guessed.
@@ -61,13 +61,40 @@ def _strip_comment(text: str) -> str:
 
 def _tokenize(text: str) -> list[_Line]:
     lines: list[_Line] = []
+    folded_until = 0
+    raw_lines = text.splitlines()
     for number, raw in enumerate(text.splitlines(), start=1):
+        if number <= folded_until:
+            continue
         if "\t" in raw[: len(raw) - len(raw.lstrip())]:
             raise StructuredDataError(f"line {number}: tabs are not valid indentation")
         stripped = _strip_comment(raw)
         if not stripped.strip() or stripped.lstrip().startswith("---"):
             continue
         indent = len(stripped) - len(stripped.lstrip(" "))
+        # AES-003 scope reasons use the conservative single-paragraph >-
+        # form. Preserve literal #/colon characters inside that paragraph.
+        # Reject blank paragraphs or extra indentation instead of guessing
+        # at the full YAML block-scalar grammar.
+        if re.search(r":\s*>-$", stripped):
+            paragraph: list[str] = []
+            content_indent = None
+            for offset in range(number, len(raw_lines)):
+                following = raw_lines[offset]
+                if not following.strip():
+                    break
+                following_indent = len(following) - len(following.lstrip(" "))
+                if following_indent <= indent:
+                    break
+                if content_indent is None:
+                    content_indent = following_indent
+                if following_indent != content_indent or "\t" in following[:following_indent]:
+                    raise StructuredDataError(f"line {offset + 1}: unsupported folded-scalar indentation")
+                paragraph.append(following[content_indent:])
+                folded_until = offset + 1
+            if not paragraph:
+                raise StructuredDataError(f"line {number}: empty folded scalar is unsupported")
+            stripped = stripped[:-2] + json.dumps(" ".join(paragraph))
         lines.append(_Line(number, indent, stripped.strip()))
     return lines
 

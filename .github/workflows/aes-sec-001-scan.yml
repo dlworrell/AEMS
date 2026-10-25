@@ -31,6 +31,8 @@ on:
       - "docs/engineering/reports/AES-SEC-001-review-required-baseline-2026-07-27.json"
       - ".clang-tidy"
       - "scripts/aes_sec_001_scan.py"
+      - "scripts/aes_sec_001_rekey.py"
+      - "scripts/aems_scope_coverage.py"
       - "scripts/aes_sec_001_aggregate.py"
       - "scripts/aes_sec_001_native.py"
       - "scripts/github_checkout.py"
@@ -41,6 +43,7 @@ on:
       - "templates/workflows/aes-sec-001-native.yml"
       - "templates/workflows/aes-sec-001-governance.yml"
       - "tests/test_aes_sec_001_scan.py"
+      - "tests/test_aes_sec_001_scopes.py"
       - "tests/test_aes_sec_001_native.py"
       - "tests/test_ecosystem_checkout.py"
       - ".github/actions/aes-sec-001/action.yml"
@@ -128,7 +131,7 @@ jobs:
         run: python3 -m unittest tests.test_ecosystem_checkout -v
 
       - name: Test banned-API filtering
-        run: python3 -m unittest tests.test_aes_sec_001_scan -v
+        run: python3 -m unittest tests.test_aes_sec_001_scan tests.test_aes_sec_001_scopes -v
 
       - name: Show scanner help
         run: |

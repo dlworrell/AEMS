@@ -3,6 +3,21 @@ name: AES-SEC-001 Distributed Governance
 on:
   workflow_call:
     inputs:
+      scan_root:
+        description: Checkout-relative scope root; defaults preserve repository-wide scans.
+        required: false
+        default: "."
+        type: string
+      exclude_paths:
+        description: Newline-separated literal scan-root-relative exclusions for the root remainder.
+        required: false
+        default: ""
+        type: string
+      evidence_name:
+        description: Optional artifact label; otherwise derived from scan_root.
+        required: false
+        default: ""
+        type: string
       include_dangerous_primitives:
         description: Report review-required primitives as warnings.
         required: false
@@ -20,6 +35,21 @@ on:
         type: boolean
   workflow_dispatch:
     inputs:
+      scan_root:
+        description: Checkout-relative scope root; defaults preserve repository-wide scans.
+        required: false
+        default: "."
+        type: string
+      exclude_paths:
+        description: Newline-separated literal scan-root-relative exclusions for the root remainder.
+        required: false
+        default: ""
+        type: string
+      evidence_name:
+        description: Optional artifact label; otherwise derived from scan_root.
+        required: false
+        default: ""
+        type: string
       include_dangerous_primitives:
         description: Report review-required primitives as warnings.
         required: false
@@ -45,6 +75,8 @@ jobs:
     steps:
       - name: Check out governed repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -56,14 +88,48 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes clang-tidy
 
-      - name: Validate repository Clang-Tidy policy
+      - name: Resolve scope and evidence identity
+        id: scope
+        env:
+          AEMS_SCAN_ROOT: ${{ inputs.scan_root }}
+          AEMS_EVIDENCE_NAME: ${{ inputs.evidence_name }}
         run: |
-          test -f .clang-tidy
-          clang-tidy --verify-config --config-file=.clang-tidy
+          python3 - <<'PYTHON'
+          import hashlib, os, re
+          from pathlib import Path
+          root = Path.cwd().resolve()
+          scope = Path(os.environ['AEMS_SCAN_ROOT']).resolve()
+          relative = scope.relative_to(root).as_posix()
+          if not scope.is_dir():
+              raise SystemExit('scan_root must be a directory inside the checkout')
+          label = os.environ['AEMS_EVIDENCE_NAME'] or relative
+          safe = re.sub(r'[^A-Za-z0-9_.-]+', '-', label).strip('.-')[:60] or 'root'
+          # Hash the unsanitized identity so names such as a/b and a-b cannot collide.
+          identity = hashlib.sha256((relative + '\0' + label).encode()).hexdigest()[:16]
+          name = f'{safe}-{identity}'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'artifact={name}\n')
+              output.write(f'output=build/aems/aes-sec-001/{name}\n')
+          PYTHON
+
+      - name: Validate repository Clang-Tidy policy
+        env:
+          AEMS_SCAN_ROOT: ${{ inputs.scan_root }}
+        run: |
+          config="$AEMS_SCAN_ROOT/.clang-tidy"
+          if [[ ! -f "$config" ]]; then
+            config=.clang-tidy
+          fi
+          test -f "$config"
+          test ! -L "$config"
+          clang-tidy --verify-config --config-file="$config"
 
       - name: Run distributed AES-SEC-001 governance scan
-        uses: dlworrell/AEMS/.github/actions/aes-sec-001@main
+        uses: dlworrell/AEMS/.github/actions/aes-sec-001@4f00a705bd3bb9fb42c512ce0581f68adc69d81c
         with:
+          scan-root: ${{ inputs.scan_root }}
+          exclude-paths: ${{ inputs.exclude_paths }}
+          output-directory: ${{ steps.scope.outputs.output }}
           include-dangerous-primitives: ${{ inputs.include_dangerous_primitives }}
           strict: ${{ inputs.strict }}
           strict-review-ratchet: ${{ inputs.strict_review_ratchet }}
@@ -72,7 +138,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: aes-sec-001-governance-${{ github.run_id }}
-          path: build/aems/aes-sec-001/
+          name: aes-sec-001-${{ steps.scope.outputs.artifact }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.scope.outputs.output }}/
           if-no-files-found: error
           retention-days: 30

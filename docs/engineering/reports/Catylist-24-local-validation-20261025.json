@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "issue": "https://github.com/dlworrell/Catylist/issues/24",
+  "review_kind": "AI-assisted implementation and self-review; no independent human approval",
+  "base_revision": "a1f3d5c6be8f39f4b752d6eafc2c4ff0028285b5",
+  "central_action_pin": "4f00a705bd3bb9fb42c512ce0581f68adc69d81c",
+  "prompt": {
+    "id": "PRM-0005",
+    "dropbox_path": "/prompt",
+    "dropbox_revision": "65e2e648ca18501b90224"
+  },
+  "local_tests": {
+    "command": "python3 -m unittest discover -s tests -q",
+    "count": 159,
+    "result": "PASS"
+  },
+  "self_scan": {
+    "strict": true,
+    "strict_review_ratchet": true,
+    "result": "PASS"
+  },
+  "legacy_comparison": {
+    "oracle_commit": "a1f3d5c6be8f39f4b752d6eafc2c4ff0028285b5",
+    "oracle_scanner_sha256": "e8a4151f7f12081f2bd1630b13a880645b41398a1c44e0e024fd4d4579d16847",
+    "comparisons": [
+      {
+        "repository": "dlworrell/AEMS",
+        "existing_report_fields_equal": true,
+        "finding_count": 0
+      },
+      {
+        "repository": "dlworrell/code-noodling",
+        "existing_report_fields_equal": true,
+        "finding_count": 22
+      }
+    ]
+  },
+  "code_noodling_preview": {
+    "revision": "ede3ff33296d6c67a83688f19c09ac273bad9adb",
+    "scope_coverage": "disjoint-and-exhaustive",
+    "dispositions_before": 22,
+    "crypto_dispositions": 19,
+    "remainder_dispositions": 3,
+    "new_approvals": 0,
+    "qualification": "Preview only: downstream ledgers and CI adoption still required."
+  },
+  "files": [
+    {
+      "path": "scripts/aes_sec_001_scan.py",
+      "sha256": "2af99be2c49dbdc384cbe6642ce9c37d02503280915e3408aff70563983358a8"
+    },
+    {
+      "path": "scripts/aes_sec_001_rekey.py",
+      "sha256": "f11f1def0d00ccfaa192ef0cc672cedd442528d38fa0b4dd9704ef135ef8fc99"
+    },
+    {
+      "path": "scripts/aems_scope_coverage.py",
+      "sha256": "219540559cd2a21d66a1a30d4e68b563109607ceffda7d573cb9e15714849449"
+    },
+    {
+      "path": "aems/structured.py",
+      "sha256": "cbf9c3b595a793b50ef8425751a673ad837c1b34d734b933c0a449c05fb0585e"
+    },
+    {
+      "path": "tests/test_aes_sec_001_scan.py",
+      "sha256": "41321352008ffe8612bbaff2a7de4b03bc6cbbbdef2874f2cdbedaae520f1d58"
+    },
+    {
+      "path": "tests/test_aes_sec_001_scopes.py",
+      "sha256": "4a7be94b2a2f40faf234566226339dfe07e0efd28194c7e1bf075ddfdcb6c981"
+    },
+    {
+      "path": "tests/test_structured.py",
+      "sha256": "331da8587f563b7841d15f6b776df9ee5e25f3ed761d6d7c3fa25a004a391c9d"
+    },
+    {
+      "path": ".github/actions/aes-sec-001/action.yml",
+      "sha256": "371e803497e229fc4a51ed6b5803a11b7e6c357580bb85bd7fa3c832ead4ac6d"
+    },
+    {
+      "path": ".github/workflows/aes-sec-001-distributed.yml",
+      "sha256": "a41c4a31269d31cb38ded87b1ee2636345eb9c1560e96ec86a1ff89b670a45e6"
+    },
+    {
+      "path": ".github/workflows/aes-sec-001-scan.yml",
+      "sha256": "e14256ef0f0d07f668ed642bdd5f1b4a42343dd4743f3ac2cffb4424282c66bf"
+    },
+    {
+      "path": "schemas/aes-sec-001-review-dispositions-v1.schema.json",
+      "sha256": "d83bb7de8e602d76a3f7e4f9caa0c4dda84c783768dfb2de01bc2a7c2bd7ff4c"
+    },
+    {
+      "path": "scripts/aes_sec_001_aggregate.py",
+      "sha256": "2b17bafd96109cc6f07e6382137e9745d4eafa62ab988676fb83016c9789dd2d"
+    }
+  ]
+}
