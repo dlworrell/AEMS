@@ -176,6 +176,8 @@ class ScopeTests(unittest.TestCase):
         ledger,new=self.moved_history()
         with self.assertRaisesRegex(ValueError,'ambiguous path map'):
             rekey(ledger,self.root,'alpha',{'old.c':'new.c','other.c':'new.c'})
+        with self.assertRaisesRegex(ValueError,'multiple aliases'):
+            rekey(ledger,self.root,'alpha',{'old.c':'new.c','./old.c':'different.c'})
         with self.assertRaisesRegex(ValueError,'no retained history'):
             rekey(ledger,self.root,'alpha',{'unknown.c':'new.c'})
 
@@ -195,6 +197,10 @@ class ScopeTests(unittest.TestCase):
         self.assertEqual(second.returncode,2)
         self.assertIn('refusing to overwrite',second.stderr)
         self.assertEqual(input_path.read_bytes(),before)
+        mapping.write_text('{\"old.c\":\"new.c\",\"old.c\":\"new.c\"}')
+        duplicate=subprocess.run(command,capture_output=True,text=True)
+        self.assertEqual(duplicate.returncode,2)
+        self.assertIn('duplicate JSON key',duplicate.stderr)
 
     def test_coverage_assigns_every_tracked_path_once_with_root_remainder(self):
         report=coverage(self.root,{'scopes':[{'id':'alpha','path':'alpha/'}]},
@@ -318,6 +324,7 @@ class ScopeTests(unittest.TestCase):
         self.assertEqual(report['findings'][0]['path'],'alpha/new.c')
         self.assertEqual(report['findings'][0]['finding_id'],expected)
         self.assertEqual(report['native_file_count'],1)
+        self.assertTrue(report['summary']['requires_secure_profile'])
         self.assertTrue(report['summary']['passes_minimum_adoption_gate'])
         self.assertTrue(report['review_dispositions']['passes_ratchet'])
 

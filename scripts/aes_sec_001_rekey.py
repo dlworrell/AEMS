@@ -28,6 +28,8 @@ def rekey(ledger: dict, repository_root: Path, new_scope: str, path_map: dict) -
     if not isinstance(path_map, dict) or not path_map:
         raise ValueError("path map must be a nonempty object of old paths to new scope-relative paths")
     mapping = {relative_prefix(old): relative_prefix(new) for old, new in path_map.items()}
+    if len(mapping) != len(path_map):
+        raise ValueError("ambiguous path map: multiple aliases identify one old path")
     if len(set(mapping.values())) != len(mapping):
         raise ValueError("ambiguous path map: multiple old paths map to one destination")
     if ledger.get("scope", ".").rstrip("/") != ".":
@@ -92,6 +94,15 @@ def rekey(ledger: dict, repository_root: Path, new_scope: str, path_map: dict) -
     return moved, remainder, report
 
 
+def unique_json_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("repository_root", type=Path)
@@ -106,7 +117,7 @@ def main() -> int:
             raise ValueError("input ledger must be the repository-root ledger")
         raw = json.loads(args.ledger.read_text())
         load_review_disposition_ledger(root, raw["repository"])
-        result = rekey(raw, root, args.new_scope, json.loads(args.path_map.read_text()))
+        result = rekey(raw, root, args.new_scope, json.loads(args.path_map.read_text(), object_pairs_hook=unique_json_object))
         output = args.output_directory.resolve()
         names = ("scope-ledger.json", "remainder-ledger.json", "rekey-report.json")
         if any((output / name).exists() for name in names):
