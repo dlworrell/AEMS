@@ -10,6 +10,10 @@ inputs:
     description: Repository name recorded in generated evidence.
     required: false
     default: ""
+  exclude-paths:
+    description: Newline-separated literal path prefixes relative to scan-root.
+    required: false
+    default: ""
   include-dangerous-primitives:
     description: Report review-required native primitives in addition to bans.
     required: false
@@ -35,11 +39,13 @@ runs:
       env:
         AEMS_SCAN_ROOT: ${{ inputs.scan-root }}
         AEMS_REPOSITORY: ${{ inputs.repository }}
+        AEMS_EXCLUDE_PATHS: ${{ inputs.exclude-paths }}
         AEMS_INCLUDE_DANGEROUS: ${{ inputs.include-dangerous-primitives }}
         AEMS_STRICT: ${{ inputs.strict }}
         AEMS_STRICT_REVIEW_RATCHET: ${{ inputs.strict-review-ratchet }}
         AEMS_OUTPUT_DIRECTORY: ${{ inputs.output-directory }}
       run: |
+        set -euo pipefail
         scanner="$GITHUB_ACTION_PATH/../../../scripts/aes_sec_001_scan.py"
         repository="$AEMS_REPOSITORY"
         if [[ -z "$repository" ]]; then
@@ -50,6 +56,15 @@ runs:
           "$AEMS_SCAN_ROOT"
           --repo-name "$repository"
         )
+        while IFS= read -r prefix || [[ -n "$prefix" ]]; do
+          [[ -z "$prefix" ]] || args+=(--exclude "$prefix")
+        done <<< "$AEMS_EXCLUDE_PATHS"
+        annotation_prefix="$(python3 - "$AEMS_SCAN_ROOT" <<'PY'
+        from pathlib import Path
+        import sys
+        print(Path(sys.argv[1]).resolve().relative_to(Path.cwd().resolve()).as_posix())
+        PY
+        )"
         if [[ "$AEMS_INCLUDE_DANGEROUS" == "true" ]]; then
           args+=(--include-dangerous-primitives)
         fi
@@ -66,4 +81,4 @@ runs:
         if [[ "$AEMS_STRICT_REVIEW_RATCHET" == "true" ]]; then
           args+=(--strict-review-ratchet)
         fi
-        python3 "$scanner" "${args[@]}" --format github
+        python3 "$scanner" "${args[@]}" --annotation-prefix "$annotation_prefix" --format github
