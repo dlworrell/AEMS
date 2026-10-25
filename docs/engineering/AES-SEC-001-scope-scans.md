@@ -46,6 +46,22 @@ engineering applicability or successful project tests. The constrained YAML
 loader now accepts the single-paragraph `>-` reason form used by AES-003
 manifests; unsupported forms still fail with diagnostics.
 
+## Ecosystem aggregation and phased adoption
+
+The aggregate scanner retains its existing whole-repository gate while declared
+scopes remain documentation-only (no declared scope has a scope-bound ledger).
+It labels that mode explicitly. Once any declared scope installs a ledger with
+`scope`, aggregation evaluates every declared scope and the root remainder.
+Missing sibling adoption evidence, unresolved applicability and native/build
+surfaces in a not-applicable scope then fail visibly. Nested reports preserve
+scope-relative IDs; the combined ecosystem view prefixes displayed paths with
+their scope. Counts and ratchets include all scopes and the remainder.
+
+Adopt scope and remainder ledgers together, with a caller pinned to this
+implementation. Removing a scoped ledger cannot reset the remaining root
+ledger's ratchet; newly exposed findings are unresolved. The repository's CI
+should call each declared scope explicitly and retain the coverage plan.
+
 ## Re-key existing history after path-only movement
 
 Provide a JSON object mapping each old repository-relative native source path
