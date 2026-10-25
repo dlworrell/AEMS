@@ -26,6 +26,11 @@
       "items": {
         "$ref": "#/$defs/disposition"
       }
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional checkout-relative scan-root path (or .); finding paths remain relative to that scope. Absent preserves legacy repository-root behavior."
     }
   },
   "$defs": {
