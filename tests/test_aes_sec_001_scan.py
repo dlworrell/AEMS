@@ -618,10 +618,10 @@ void copy(char *dst, const char *src) {
 
         self.assertIn("scripts/aes_sec_001_scan.py", action)
         self.assertIn("--format github", action)
-        self.assertIn("clang-tidy --verify-config --config-file=.clang-tidy", reusable)
-        self.assertIn(
-            "uses: dlworrell/AEMS/.github/actions/aes-sec-001@main",
+        self.assertIn('clang-tidy --verify-config --config-file="$config"', reusable)
+        self.assertRegex(
             reusable,
+            r"uses: dlworrell/AEMS/\.github/actions/aes-sec-001@[0-9a-f]{40}\b",
         )
         self.assertIn(
             "uses: dlworrell/AEMS/.github/workflows/"

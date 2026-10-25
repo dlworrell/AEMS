@@ -41,6 +41,22 @@ class StructuredDataTests(unittest.TestCase):
         with self.assertRaises(StructuredDataError):
             loads_structured("description: |\n  unsupported\n")
 
+    def test_scope_reason_folded_paragraph_preserves_literal_characters(self) -> None:
+        value = loads_structured(
+            "scopes:\n  - id: python\n    reason: >-\n"
+            "      Python only: no native source (#24).\n"
+            "      Reassess when source changes.\n    active: true\n"
+        )
+        self.assertEqual(value["scopes"][0]["reason"],
+                         "Python only: no native source (#24). Reassess when source changes.")
+        self.assertTrue(value["scopes"][0]["active"])
+
+    def test_unsupported_folded_scalar_forms_fail_closed(self) -> None:
+        for text in ("reason: >-\n", "reason: >-\n  first\n    indented\n",
+                     "reason: >-\n  first\n\n  second paragraph\n"):
+            with self.subTest(text=text), self.assertRaises(StructuredDataError):
+                loads_structured(text)
+
     def test_url_sequence_is_parsed_as_scalars_not_mappings(self) -> None:
         value = loads_structured(
             "evidence:\n"
