@@ -14,12 +14,16 @@ import argparse
 import json
 import shutil
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from aes_sec_001_scan import ScanReport, scan
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from aems.structured import load_structured
+from aems_scope_coverage import coverage
+from aes_sec_001_scan import DEFAULT_REVIEW_DISPOSITIONS_PATH, classify, is_local_file, scan
 from github_checkout import (
     DEFAULT_GITHUB_TOKEN_ENV,
     git_clone_environment,
@@ -28,6 +32,100 @@ from github_checkout import (
 )
 
 DEFAULT_MANIFEST = Path("config/aes-sec-001-repositories.json")
+
+
+def scan_checkout(root: Path, repository: str, include_dangerous: bool) -> dict:
+    """Keep legacy whole-root gates until explicit scope-bound ledger adoption.
+
+    Once any declared scope installs a scope-bound ledger, every declared
+    scope and the remainder are evaluated. Missing/invalid sibling evidence
+    then fails visibly rather than silently returning to root-only scanning.
+    """
+    manifest_path = Path("aes-manifest.yaml")
+    if not is_local_file(root, manifest_path):
+        return scan(root, repository, include_dangerous).to_dict()
+    manifest = load_structured(root / manifest_path)
+    if not isinstance(manifest, dict):
+        raise ValueError("repository manifest must be a mapping")
+    scopes = manifest.get("scopes", [])
+    if not scopes:
+        return scan(root, repository, include_dangerous).to_dict()
+    plan = coverage(root, manifest, [])  # Structural disjointness, not a tracked-file census.
+    adopted = False
+    for item in plan["scan_plan"][1:]:
+        directory = root / item["scan_root"]
+        if is_local_file(directory, DEFAULT_REVIEW_DISPOSITIONS_PATH):
+            document = json.loads((directory / DEFAULT_REVIEW_DISPOSITIONS_PATH).read_text())
+            adopted = adopted or (isinstance(document, dict) and "scope" in document)
+    if not adopted:
+        report = scan(root, repository, include_dangerous).to_dict()
+        report["scope_mode"] = "documentation-only; legacy whole-repository gates retained"
+        return report
+
+    remainder = scan(root, repository, include_dangerous,
+                     exclude_paths=plan["scan_plan"][0]["exclude_paths"]).to_dict()
+    reports = [remainder]
+    for declaration in scopes:
+        prefix = declaration["path"].rstrip("/")
+        report = scan(root / prefix, repository, include_dangerous).to_dict()
+        standards = declaration.get("standards", [])
+        if not isinstance(standards, list):
+            raise ValueError(f"{prefix}: standards must be an array")
+        security = [s for s in standards if isinstance(s, dict) and s.get("id") == "AES-SEC-001"]
+        if len(security) != 1:
+            raise ValueError(f"{prefix}: exactly one AES-SEC-001 applicability record is required")
+        applicability = security[0].get("applicability")
+        report["applicability"] = applicability
+        if applicability == "not-applicable":
+            reason = security[0].get("reason")
+            if not isinstance(reason, str) or not reason.strip():
+                raise ValueError(f"{prefix}: not-applicable requires a reason")
+            if report["native_files"] or report["build_surfaces"] or any(
+                p.suffix in {".cu", ".cuh"} for p in (root / prefix).rglob("*") if p.is_file()
+            ):
+                raise ValueError(f"{prefix}: native/build surface contradicts not-applicable")
+            report["applicability_reason"] = reason
+            report["scope_gate_passes"] = True
+        elif applicability == "applicable":
+            report["scope_gate_passes"] = bool(
+                report["summary"]["passes_minimum_adoption_gate"]
+                and report["review_dispositions"]["present"])
+        else:
+            raise ValueError(f"{prefix}: unresolved AES-SEC-001 applicability")
+        reports.append(report)
+
+    result = dict(remainder)
+    result["scope_mode"] = "scope-bound-ledgers"
+    result["scope_reports"] = reports
+    for key in ("native_files", "hardware_files", "build_surfaces", "findings",
+                "static_analysis_signals", "sanitizer_signals", "fuzz_signals", "waiver_signals"):
+        combined = []
+        for report in reports:
+            prefix = report["scan_root"]
+            for value in report[key]:
+                if key == "findings":
+                    value = {**value, "scan_root": prefix,
+                             "path": value["path"] if prefix == "." else prefix + "/" + value["path"]}
+                elif prefix != ".":
+                    value = prefix + "/" + value
+                combined.append(value)
+        result[key] = combined
+    result["classification"] = classify(result["native_files"], result["hardware_files"], result["build_surfaces"])
+    for kind in ("native", "hardware", "build_surface"):
+        result[kind + "_file_count" if kind != "build_surface" else "build_surface_count"] = len(
+            result[kind + "_files" if kind != "build_surface" else "build_surfaces"])
+    review = dict(remainder["review_dispositions"])
+    for key in ("baseline_count", "disposition_count", "total", "reviewed", "unresolved", "new", "source_drifted", "stale"):
+        review[key] = sum(report["review_dispositions"][key] for report in reports)
+    review["passes_ratchet"] = all(report["review_dispositions"]["passes_ratchet"] for report in reports)
+    result["review_dispositions"] = review
+    result["summary"] = {**remainder["summary"],
+        "has_native_code": bool(result["native_files"]),
+        "has_banned_api_findings": any(f["severity"] == "banned" for f in result["findings"]),
+        "passes_minimum_adoption_gate": bool(remainder["summary"]["passes_minimum_adoption_gate"]
+            and all(r["scope_gate_passes"] for r in reports[1:])),
+        "passes_review_ratchet": review["passes_ratchet"]}
+    return result
 
 
 @dataclass
@@ -406,7 +504,7 @@ def scan_entry(
         )
 
     try:
-        scan_report: ScanReport = scan(destination, entry.full_name, include_dangerous_primitives)
+        scan_report = scan_checkout(destination, entry.full_name, include_dangerous_primitives)
     except Exception as exc:  # noqa: BLE001 - aggregate reporting must continue across repositories.
         return AggregateEntry(
             repository=entry,
@@ -419,7 +517,7 @@ def scan_entry(
         repository=entry,
         status="scanned",
         checkout_path=str(destination),
-        scan=scan_report.to_dict(),
+        scan=scan_report,
     )
 
 
