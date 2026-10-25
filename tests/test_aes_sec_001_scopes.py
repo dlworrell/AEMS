@@ -15,6 +15,7 @@ from aes_sec_001_scan import (DEFAULT_REVIEW_DISPOSITIONS_PATH, format_github,
     format_markdown, scan, scan_source_for_apis)
 from aes_sec_001_rekey import rekey
 from aems_scope_coverage import coverage
+from aes_sec_001_aggregate import scan_checkout
 from tests import test_aes_sec_001_scan as scan_tests
 
 
@@ -280,6 +281,63 @@ class ScopeTests(unittest.TestCase):
         self.assertIn('--config-file=alpha/.clang-tidy',(self.root/'trace').read_text())
         config.unlink();config.symlink_to(self.root/'.clang-tidy')
         self.assertNotEqual(run().returncode,0)
+
+    def declare(self, scopes):
+        self.write('aes-manifest.yaml',json.dumps({'scopes':scopes}))
+
+    def alpha_declaration(self):
+        return {'id':'alpha','path':'alpha/','standards':[{'id':'AES-SEC-001','applicability':'applicable'}]}
+
+    def test_aggregate_keeps_legacy_gates_for_documentation_only_scopes(self):
+        self.adoption()
+        path=self.write('alpha/source.c','void f(){memset(d,0,n);}')
+        finding=scan_source_for_apis(self.root,path,True)[0]
+        self.write(DEFAULT_REVIEW_DISPOSITIONS_PATH.as_posix(),json.dumps(self.ledger(finding)))
+        self.declare([self.alpha_declaration()])
+        report=scan_checkout(self.root,'example/native',True)
+        self.assertIn('documentation-only',report['scope_mode'])
+        self.assertTrue(report['review_dispositions']['passes_ratchet'])
+        self.assertEqual(report['findings'][0]['path'],'alpha/source.c')
+
+    def adopted_scope(self):
+        self.adoption();self.adoption('alpha/')
+        ledger,new=self.moved_history()
+        moved,remainder,_=rekey(ledger,self.root,'alpha',{'old.c':'new.c'})
+        self.write(DEFAULT_REVIEW_DISPOSITIONS_PATH.as_posix(),json.dumps(remainder))
+        self.write('alpha/'+DEFAULT_REVIEW_DISPOSITIONS_PATH.as_posix(),json.dumps(moved))
+        self.declare([self.alpha_declaration()])
+
+    def test_aggregate_combines_scope_and_remainder_without_resetting_ids(self):
+        self.adopted_scope()
+        expected=scan(self.scope,'example/native',True).findings[0].finding_id
+        report=scan_checkout(self.root,'example/native',True)
+        self.assertEqual(report['scope_mode'],'scope-bound-ledgers')
+        self.assertEqual(len(report['scope_reports']),2)
+        self.assertEqual(report['scope_reports'][0]['excluded_paths'],['alpha'])
+        self.assertEqual(report['review_dispositions']['reviewed'],1)
+        self.assertEqual(report['findings'][0]['path'],'alpha/new.c')
+        self.assertEqual(report['findings'][0]['finding_id'],expected)
+        self.assertEqual(report['native_file_count'],1)
+        self.assertTrue(report['summary']['passes_minimum_adoption_gate'])
+        self.assertTrue(report['review_dispositions']['passes_ratchet'])
+
+    def test_aggregate_refuses_unresolved_applicability_and_native_not_applicable(self):
+        self.adopted_scope();(self.root/'beta').mkdir()
+        beta={'id':'beta','path':'beta','standards':[{'id':'AES-SEC-001','applicability':'unknown'}]}
+        self.declare([self.alpha_declaration(),beta])
+        with self.assertRaisesRegex(ValueError,'unresolved'):scan_checkout(self.root,'example/native',True)
+        beta['standards'][0].update(applicability='not-applicable',reason='Python only')
+        self.declare([self.alpha_declaration(),beta])
+        self.assertTrue(scan_checkout(self.root,'example/native',True)['summary']['passes_minimum_adoption_gate'])
+        self.write('beta/new.cu','void native(){}')
+        with self.assertRaisesRegex(ValueError,'contradicts'):scan_checkout(self.root,'example/native',True)
+
+    def test_aggregate_does_not_ignore_missing_applicable_sibling_evidence(self):
+        self.adopted_scope();(self.root/'beta').mkdir()
+        beta=self.alpha_declaration();beta.update(id='beta',path='beta')
+        self.declare([self.alpha_declaration(),beta])
+        report=scan_checkout(self.root,'example/native',True)
+        self.assertFalse(report['summary']['passes_minimum_adoption_gate'])
 
 
 if __name__=='__main__':unittest.main()
