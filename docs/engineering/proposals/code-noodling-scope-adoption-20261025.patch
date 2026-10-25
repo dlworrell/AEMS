@@ -1,5 +1,5 @@
 diff --git a/.github/workflows/aes-sec-001-governance.yml b/.github/workflows/aes-sec-001-governance.yml
-index 14d5c939a463636135022676fd9224288203eae6..604bddf2ee7a424dd9631cb75fad46e83f2145a7 100644
+index 14d5c939a463636135022676fd9224288203eae6..e5f01383918ac1199da4837a5476208b1fa15a49 100644
 --- a/.github/workflows/aes-sec-001-governance.yml
 +++ b/.github/workflows/aes-sec-001-governance.yml
 @@ -3,16 +3,66 @@ name: AES-SEC-001 Governance
@@ -28,7 +28,7 @@ index 14d5c939a463636135022676fd9224288203eae6..604bddf2ee7a424dd9631cb75fad46e8
 +        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 +        with:
 +          repository: dlworrell/AEMS
-+          ref: bfc43ae1adde2785d750c5e2ed68f2aaeb1f2be2
++          ref: 4df3a37418536d97865c9774701d910eb6f11bdb
 +          path: .aems-scope-engine
 +          persist-credentials: false
 +      - name: Verify scope coverage and election applicability
@@ -55,7 +55,7 @@ index 14d5c939a463636135022676fd9224288203eae6..604bddf2ee7a424dd9631cb75fad46e8
 +          if-no-files-found: error
 +  crypto:
 +    name: Crypto scope
-+    uses: dlworrell/AEMS/.github/workflows/aes-sec-001-distributed.yml@bfc43ae1adde2785d750c5e2ed68f2aaeb1f2be2
++    uses: dlworrell/AEMS/.github/workflows/aes-sec-001-distributed.yml@4df3a37418536d97865c9774701d910eb6f11bdb
      with:
 +      scan_root: crypto_pipeline
 +      evidence_name: crypto-pipeline
@@ -64,7 +64,7 @@ index 14d5c939a463636135022676fd9224288203eae6..604bddf2ee7a424dd9631cb75fad46e8
 +      strict_review_ratchet: true
 +  remainder:
 +    name: Repository remainder
-+    uses: dlworrell/AEMS/.github/workflows/aes-sec-001-distributed.yml@bfc43ae1adde2785d750c5e2ed68f2aaeb1f2be2
++    uses: dlworrell/AEMS/.github/workflows/aes-sec-001-distributed.yml@4df3a37418536d97865c9774701d910eb6f11bdb
 +    with:
 +      exclude_paths: |
 +        crypto_pipeline

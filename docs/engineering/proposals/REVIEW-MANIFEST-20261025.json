@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "status": "PROPOSED; personal sign-off and owning ADR decisions outstanding",
+  "prepared_on": "2026-10-25",
+  "code_noodling_base_commit": "ede3ff33296d6c67a83688f19c09ac273bad9adb",
+  "catylist_base_commit": "7a1ede0bb073477be226aa572fc3c20db3312df1",
+  "aems_engine_pin": "4df3a37418536d97865c9774701d910eb6f11bdb",
+  "code_noodling_changed_files": 9,
+  "catylist_changed_files": 2,
+  "files": [
+    {
+      "path": "AES-003-governance-back-pointer-20261025.md",
+      "sha256": "2ccf3c3fddd394f7280744eb8e510a6e0a2309368cf61e8796c8b96c2afdc359"
+    },
+    {
+      "path": "ATARIX-SQLite-evidence-index-20261025.md",
+      "sha256": "5713d0a19980ed2ac8a4c611015dd6d6b4553adbedc966b1ce73ffe1acd52bf7"
+    },
+    {
+      "path": "CATYLIST-19-organization-placement-20261025.md",
+      "sha256": "c858145ed774622c8aef881e53603db2f1bf7a1b4b2de7c7be254a8d9cab295e"
+    },
+    {
+      "path": "Catylist-ruleset-closure-20261025.patch",
+      "sha256": "99d40cdd36662a9b3ab29f95cf975808e85ec5bf824e461a9cb9b492583f508a"
+    },
+    {
+      "path": "code-noodling-scope-adoption-20261025.patch",
+      "sha256": "e9f773b6f3c303cfa851eb93fabfffa840a9e9d8c8e248b3d02a1b9a19ebb8d8"
+    }
+  ],
+  "validation": {
+    "code_noodling_patch": "forward and reverse applicability checks pass on matching source files",
+    "catylist_patch": "reverse applicability check passes against prepared content",
+    "scoped_ratchets": {
+      "reviewed": 22,
+      "crypto": 19,
+      "remainder": 3,
+      "unresolved": 0,
+      "stale": 0,
+      "new_approvals": 0
+    },
+    "downstream_ci": "NOT RUN: target sign-off/publication pending"
+  }
+}
