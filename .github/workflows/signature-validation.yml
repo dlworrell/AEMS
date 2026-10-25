@@ -1,0 +1,37 @@
+name: Validate reviewed PR signature preflight
+on:
+  push:
+    branches: [validation/pr-signatures-20261025]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out the exact reviewed tool and regression suite
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: bd440a238d16de98475a50ffc1c4ea1aebc33785
+          persist-credentials: false
+      - name: Run all signature regression cases
+        run: python3 -m unittest discover -s tests -p test_pr_signatures.py -v
+      - name: Validate the current PR against its immutable head
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          python3 scripts/pr_signatures.py
+          --repository dlworrell/AEMS --pr 36
+          --expected-head bd440a238d16de98475a50ffc1c4ea1aebc33785
+          --output build/pr-signatures.json
+      - name: Retain the bounded evidence summary
+        if: always()
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          p = Path("build/pr-signatures.json")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("Reviewed source: bd440a238d16de98475a50ffc1c4ea1aebc33785\n\n")
+              f.write(p.read_text() if p.exists() else "No completed live evidence.\n")
