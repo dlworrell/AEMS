@@ -1,0 +1,2180 @@
+{
+  "schema": "catylist.git-signing-remediation.v1",
+  "observed_at": "2026-10-25T21:53:17.376Z",
+  "status": "verified-repair-prs-open",
+  "authority": {
+    "inventory": "https://github.com/dlworrell/Catylist/blob/7a1ede0bb073477be226aa572fc3c20db3312df1/inventory/repositories.json",
+    "adr_0006": "accepted; verified landing commits, pull requests and merge-only default history",
+    "adr_0007_adoption_pr": "https://github.com/dlworrell/Catylist/pull/38"
+  },
+  "instruction_source": {
+    "provider": "Dropbox",
+    "path": "/prompt/github-dlworrell/agency-agents/engineering/engineering-git-workflow-master.md",
+    "revision": "65eacc6d2803601b90224",
+    "modified_at": "2026-10-25T16:33:43Z",
+    "application": "Atomic conventional commits, reviewable branches, CI and leased updates; accepted ADR-0006 overrides generic squash/rebase suggestions."
+  },
+  "scope": {
+    "governed_repositories": 17,
+    "workflow_files_read": 102,
+    "unique_source_blobs_read": 92,
+    "source_locations_read": 111,
+    "publisher_families": 3,
+    "publisher_locations": 5,
+    "external_reference_repositories_excluded": 8,
+    "private_repository_source_content_and_paths_redacted": true
+  },
+  "default_tip_verification": [
+    {
+      "repo": "dlworrell/Catylist",
+      "main_sha": "7a1ede0bb073477be226aa572fc3c20db3312df1",
+      "tree_sha": "c96ddaa90c3be6f9cb3f3b1b635de39c4d2f0e54",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.001Z"
+    },
+    {
+      "repo": "dlworrell/AES",
+      "main_sha": "2a29348533bbc29f9e645c45316bcce33d75ae0c",
+      "tree_sha": "3fb0f280e35d45db0b98756f155c2377b3e3c93d",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.021Z"
+    },
+    {
+      "repo": "dlworrell/AEMS",
+      "main_sha": "dac93871987b3234743854cc39c8b3dc89009a4d",
+      "tree_sha": "0fcf2b906594e0cf0834089ba3a721802e40d404",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:16.956Z"
+    },
+    {
+      "repo": "dlworrell/P0",
+      "main_sha": "5d63e766ae6d5a6b4e82cb9b78e71871c7237da5",
+      "tree_sha": "6205cb235dc40effc59c4c90161db9b28e67caf2",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.001Z"
+    },
+    {
+      "repo": "dlworrell/repo_templates",
+      "main_sha": "f9e3f20efdf47daf7536759c3028acda38496303",
+      "tree_sha": "cc7b7e39fd36de9a71fd716a1ec9981f435330e1",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.001Z"
+    },
+    {
+      "repo": "dlworrell/engineering-docs-toolkit",
+      "main_sha": "43a589fd370f6d48350e5f916cea6b2535cbd8d7",
+      "tree_sha": "79432eac96d923775eba71656dc61cd7bfee4e35",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:16.942Z"
+    },
+    {
+      "repo": "dlworrell/EWT",
+      "main_sha": "13f00199cfbd8c42a99eb4fa7fff6883603c1ee0",
+      "tree_sha": "ef3d88c9cbf035989e203e285e9736ef31b23d74",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.174Z"
+    },
+    {
+      "repo": "dlworrell/evo",
+      "main_sha": "ec23d960cbf5f5271306a88442023c0107cd50ff",
+      "tree_sha": "c0c602c2cafbc2e3d85d10b64b37fdeaef0467e9",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:16.922Z"
+    },
+    {
+      "repo": "dlworrell/atarix",
+      "main_sha": "5854e74fd6f7053571ca562c8da92302c637b090",
+      "tree_sha": "b973be9a408491e809840dd740754c5143130dd4",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.083Z"
+    },
+    {
+      "repo": "dlworrell/herkules-1934-english",
+      "main_sha": "0bbeae193c7273cdc1cf5642c5d476fb215bd9e8",
+      "tree_sha": "38444e1b77a30af28bd97b5500cc33f53f41a49c",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:16.968Z"
+    },
+    {
+      "repo": "dlworrell/JAG",
+      "main_sha": "fff04010fb1d4cf73e1e164c6d82570817767410",
+      "tree_sha": "c0841536857a29459ddce4410e80a90753f90a76",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.078Z"
+    },
+    {
+      "repo": "dlworrell/MayaUSD2017Bridge",
+      "main_sha": "d3c72e64f0386d51c7dfc0d0af6782d187bfe7a8",
+      "tree_sha": "9af80b6245ee1ca15bc39f83af27088a5545ad55",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:16.958Z"
+    },
+    {
+      "repo": "dlworrell/code-noodling",
+      "main_sha": "6bcb01586ade4024f32f0779c2376596ec839eb0",
+      "tree_sha": "15b20a83d29f1df11c81a4e38ab252981a86c416",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.008Z"
+    },
+    {
+      "repo": "dlworrell/Just-a-Geek-LLC",
+      "main_sha": "b7883261ae460abeed9dae57466272f0411ca96e",
+      "tree_sha": "a97b62aee758001faba12fd1f87a5e3cea2c0d63",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.376Z"
+    },
+    {
+      "repo": "dlworrell/openCUDA",
+      "main_sha": "1af2228d9880f1d31f1a6833041d6621830f9cad",
+      "tree_sha": "4ada7406345f77a2c0cda2db85bc331497c4edef",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.118Z"
+    },
+    {
+      "repo": "dlworrell/Rocket_demo",
+      "main_sha": "080cc1a5d77165cd0b6844c0970019b4344ab98a",
+      "tree_sha": "c6375f1b4542e416e0eb08e5d002dfbb96f4be88",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.004Z"
+    },
+    {
+      "repo": "dlworrell/audiblebooks",
+      "main_sha": "54bf65474f777bd9a8749a9f2d7f21814cb8196a",
+      "tree_sha": "4e988616e047eb8844df312c0c9e67373c9a642c",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "observed_at": "2026-10-25T21:53:17.052Z"
+    }
+  ],
+  "original_captured_baselines": [
+    {
+      "repo": "dlworrell/Catylist",
+      "main_sha": "7a1ede0bb073477be226aa572fc3c20db3312df1",
+      "tree_sha": "c96ddaa90c3be6f9cb3f3b1b635de39c4d2f0e54",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/AES",
+      "main_sha": "2a29348533bbc29f9e645c45316bcce33d75ae0c",
+      "tree_sha": "3fb0f280e35d45db0b98756f155c2377b3e3c93d",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/AEMS",
+      "main_sha": "dac93871987b3234743854cc39c8b3dc89009a4d",
+      "tree_sha": "0fcf2b906594e0cf0834089ba3a721802e40d404",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/P0",
+      "main_sha": "5d63e766ae6d5a6b4e82cb9b78e71871c7237da5",
+      "tree_sha": "6205cb235dc40effc59c4c90161db9b28e67caf2",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/repo_templates",
+      "main_sha": "f9e3f20efdf47daf7536759c3028acda38496303",
+      "tree_sha": "cc7b7e39fd36de9a71fd716a1ec9981f435330e1",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/engineering-docs-toolkit",
+      "main_sha": "43a589fd370f6d48350e5f916cea6b2535cbd8d7",
+      "tree_sha": "79432eac96d923775eba71656dc61cd7bfee4e35",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/EWT",
+      "main_sha": "13f00199cfbd8c42a99eb4fa7fff6883603c1ee0",
+      "tree_sha": "ef3d88c9cbf035989e203e285e9736ef31b23d74",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/evo",
+      "main_sha": "ec23d960cbf5f5271306a88442023c0107cd50ff",
+      "tree_sha": "c0c602c2cafbc2e3d85d10b64b37fdeaef0467e9",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/atarix",
+      "main_sha": "5854e74fd6f7053571ca562c8da92302c637b090",
+      "tree_sha": "b973be9a408491e809840dd740754c5143130dd4",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": [
+        {
+          "number": 58,
+          "title": "ADR (proposed): SQLite AEMS evidence and traceability index",
+          "head": "9edd9014fb70d1a6e50db4b4706d1cd6743125e4",
+          "branch": "proposal/aems-sqlite-adr",
+          "draft": false,
+          "base": "main"
+        }
+      ]
+    },
+    {
+      "repo": "dlworrell/herkules-1934-english",
+      "main_sha": "0bbeae193c7273cdc1cf5642c5d476fb215bd9e8",
+      "tree_sha": "38444e1b77a30af28bd97b5500cc33f53f41a49c",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/JAG",
+      "main_sha": "fff04010fb1d4cf73e1e164c6d82570817767410",
+      "tree_sha": "c0841536857a29459ddce4410e80a90753f90a76",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/MayaUSD2017Bridge",
+      "main_sha": "d3c72e64f0386d51c7dfc0d0af6782d187bfe7a8",
+      "tree_sha": "9af80b6245ee1ca15bc39f83af27088a5545ad55",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/code-noodling",
+      "main_sha": "ede3ff33296d6c67a83688f19c09ac273bad9adb",
+      "tree_sha": "f117eb464261addea432a56245b8ceef65da59fd",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": [
+        {
+          "number": 72,
+          "title": "Adopt pinned AEMS governance for crypto scope and repository remainder",
+          "head": "de2f0a8cf0ce1ce25bc7c13800b82739c213c95a",
+          "branch": "governance/crypto-scope-adoption-2026-10-25",
+          "draft": false,
+          "base": "main"
+        }
+      ]
+    },
+    {
+      "repo": "dlworrell/Just-a-Geek-LLC",
+      "main_sha": "b7883261ae460abeed9dae57466272f0411ca96e",
+      "tree_sha": "a97b62aee758001faba12fd1f87a5e3cea2c0d63",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/openCUDA",
+      "main_sha": "1af2228d9880f1d31f1a6833041d6621830f9cad",
+      "tree_sha": "4ada7406345f77a2c0cda2db85bc331497c4edef",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/Rocket_demo",
+      "main_sha": "080cc1a5d77165cd0b6844c0970019b4344ab98a",
+      "tree_sha": "c6375f1b4542e416e0eb08e5d002dfbb96f4be88",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      },
+      "open_prs": []
+    },
+    {
+      "repo": "dlworrell/audiblebooks",
+      "main_sha": "54bf65474f777bd9a8749a9f2d7f21814cb8196a",
+      "tree_sha": "4e988616e047eb8844df312c0c9e67373c9a642c",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      }
+    }
+  ],
+  "public_source_index": [
+    {
+      "blob_sha": "4ca74df37dade3503d79b90197e95a7d57609193",
+      "locations": [
+        {
+          "repo": "dlworrell/Catylist",
+          "path": ".github/workflows/aes-compliance.yml",
+          "ref": "7a1ede0bb073477be226aa572fc3c20db3312df1"
+        }
+      ]
+    },
+    {
+      "blob_sha": "14d5c939a463636135022676fd9224288203eae6",
+      "locations": [
+        {
+          "repo": "dlworrell/Catylist",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "7a1ede0bb073477be226aa572fc3c20db3312df1"
+        },
+        {
+          "repo": "dlworrell/AES",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "2a29348533bbc29f9e645c45316bcce33d75ae0c"
+        },
+        {
+          "repo": "dlworrell/P0",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "5d63e766ae6d5a6b4e82cb9b78e71871c7237da5"
+        },
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        },
+        {
+          "repo": "dlworrell/engineering-docs-toolkit",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "43a589fd370f6d48350e5f916cea6b2535cbd8d7"
+        },
+        {
+          "repo": "dlworrell/EWT",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "13f00199cfbd8c42a99eb4fa7fff6883603c1ee0"
+        },
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        },
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        },
+        {
+          "repo": "dlworrell/herkules-1934-english",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "0bbeae193c7273cdc1cf5642c5d476fb215bd9e8"
+        },
+        {
+          "repo": "dlworrell/JAG",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "fff04010fb1d4cf73e1e164c6d82570817767410"
+        },
+        {
+          "repo": "dlworrell/MayaUSD2017Bridge",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "d3c72e64f0386d51c7dfc0d0af6782d187bfe7a8"
+        },
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        },
+        {
+          "repo": "dlworrell/Just-a-Geek-LLC",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "b7883261ae460abeed9dae57466272f0411ca96e"
+        },
+        {
+          "repo": "dlworrell/Rocket_demo",
+          "path": ".github/workflows/aes-sec-001-governance.yml",
+          "ref": "080cc1a5d77165cd0b6844c0970019b4344ab98a"
+        }
+      ]
+    },
+    {
+      "blob_sha": "c24ccf5bc3e566aef64a5f27444406050ab96149",
+      "locations": [
+        {
+          "repo": "dlworrell/Catylist",
+          "path": ".github/workflows/closure-schema-validation.yml",
+          "ref": "7a1ede0bb073477be226aa572fc3c20db3312df1"
+        }
+      ]
+    },
+    {
+      "blob_sha": "8fb8535a4f2c83f86e0bdb5bca99c3a17d8de33c",
+      "locations": [
+        {
+          "repo": "dlworrell/Catylist",
+          "path": ".github/workflows/documentation.yml",
+          "ref": "7a1ede0bb073477be226aa572fc3c20db3312df1"
+        }
+      ]
+    },
+    {
+      "blob_sha": "4c872c3dcff3ca259bf3aa6968cd90d5b40c0f58",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/aes-bld-001-distributed.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "20d57bc76069b7def6994ffab652e30b253a8088",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/aes-bld-001-scan.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "9dff670dbaa64790e05ac2db545d11c92b5f0a82",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/aes-codeql-tests.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "1faf81e079e112c3fa88a8d4cc9043f12effcb5c",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/aes-dev-001-scan.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "51eede8854db5be4441ba6670ba747883fc1374f",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/aes-sec-001-distributed.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "1d9b4b2662bf82a571444c23e2c4db935dc1ea17",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/aes-sec-001-scan.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f435016b0377bef398c2d34a78bfa75aac2a13ed",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/aes-sec-002-report.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "9c97c1b22654b4af561c2e48e2973f33116664ba",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/apply-catylist-rulesets.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f27308645bf619921558e034fab4675f5ff5c74a",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/cleanup-merged-branches.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "37473728c26131f0cda048c581baaca3f3147e5d",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": ".github/workflows/project-zero.yml",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "52edbd5ebc28e4beafa01d0b9a45a896590aff92",
+      "locations": [
+        {
+          "repo": "dlworrell/AEMS",
+          "path": "scripts/aes_dev_001_scan.py",
+          "ref": "dac93871987b3234743854cc39c8b3dc89009a4d"
+        }
+      ]
+    },
+    {
+      "blob_sha": "2db09a415cd03a35ada81780774792e1d96b5ac0",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": ".github/workflows/compliance.yml",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        }
+      ]
+    },
+    {
+      "blob_sha": "c03f179e95d2c1f9e160577340e577851d54640d",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": ".github/workflows/documentation.yml",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        }
+      ]
+    },
+    {
+      "blob_sha": "a84f8bfd42bc6711a5ffb8fcb5a48fc86ce14e06",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": ".github/workflows/optimization.yml",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        }
+      ]
+    },
+    {
+      "blob_sha": "62818d4ed75f5d0e9dd166cb7baedffe248b06f6",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": ".github/workflows/p0.yml",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        },
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/p0.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "233309c51671c9008ba1829f489928686e5ba2f5",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": ".github/workflows/project-zero-self-test.yml",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        }
+      ]
+    },
+    {
+      "blob_sha": "0dfb0b1376e414d731f259d22eeefffa87d1f3ef",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": ".github/workflows/project-zero.yml",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f6c27fcbad0d85fc15032aa17758a0532ddb35b3",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": ".github/workflows/release.yml",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        }
+      ]
+    },
+    {
+      "blob_sha": "342c4116783d6eb0010450908faca8b5ef6b6d70",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": ".github/workflows/verify.yml",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        }
+      ]
+    },
+    {
+      "blob_sha": "ed0628e8beeae928dc9fa0b1103fa4a3dd7050d3",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": "tests/test_project_zero_commit.py",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        },
+        {
+          "repo": "dlworrell/evo",
+          "path": "tests/test_project_zero_commit.py",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "3712ad64caa48695dd2777c3516861620f9b77ea",
+      "locations": [
+        {
+          "repo": "dlworrell/repo_templates",
+          "path": "tools/project_zero_commit.py",
+          "ref": "f9e3f20efdf47daf7536759c3028acda38496303"
+        },
+        {
+          "repo": "dlworrell/evo",
+          "path": "tools/project_zero_commit.py",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "4b117209896876f6f9c0afc291df34a64393420f",
+      "locations": [
+        {
+          "repo": "dlworrell/engineering-docs-toolkit",
+          "path": ".github/workflows/ci.yml",
+          "ref": "43a589fd370f6d48350e5f916cea6b2535cbd8d7"
+        }
+      ]
+    },
+    {
+      "blob_sha": "6497232a720973e278e749538d8985e46ffa584f",
+      "locations": [
+        {
+          "repo": "dlworrell/engineering-docs-toolkit",
+          "path": ".github/workflows/test.yml",
+          "ref": "43a589fd370f6d48350e5f916cea6b2535cbd8d7"
+        }
+      ]
+    },
+    {
+      "blob_sha": "2d7784a5d72ca69a10f790c132afe7ba7c8e6d3c",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/aes-bld-001.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "dd0fe72e9fe06bc7bc2101d8f8210302ea082b76",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/archive-audit.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "99af3da88276c7f7f07a4ae00f9a2defe3380969",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/benchmarks.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f035c33e074d9e1c0b05319334cc7e0555ae933b",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/ci.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "6cec1a6d1a8f4c0c949c827efd3385d6744312f6",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/compliance.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f57b8358a2af80351e0daa1b90fa373cde95c5ee",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/documentation.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "5d71486697da921205bf74fd54f84cb3bfcd8764",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/optimization.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "313c9a73aa9ae025091043b25aef97de6cf87163",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/production-provider-async.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "1093eea84414fcb8321681e9598cbf56be5f7255",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/production-providers.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f63b3de91cedc4f9a5b70957560f990e878d63a3",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-analysis.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "2fa7ccea0da83485e69ab4ad2be533fc34355900",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-assurance.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "1114a8bff221ddb68d81704bc5ebfc39b4b34022",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-candidate.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "00abf1aa5622b8a53ae072c2184d4c49fd6885b9",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-ingestion.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "304431a17bab030069944cb9970ed48e7851d102",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-measurement.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "8b90c84a456b31ddffb71dc98b2ea1e61f8d10bc",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-orchestration.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "62ff52411062141e7f3370f305a01d58c2c97a2b",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-recipe.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "95db1e7d0d1ea9c0cd4037106a5731faa1c81888",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-search.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "4cf59272b65e0e515e32a37cc9ec0287e0746b82",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-transformation.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "082135eaaf36f48d6b4a616628554b5ddba221a4",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-zero-self-test.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "95a9af694d5c5803b940f733da6ad4d81882a282",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/project-zero.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "13fc7bd8ab3c1a1ed727741d325b5368e1e2066b",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/quality.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "7d452ee6754b3926499d474d283fb019ce2d22bf",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/reference-adapters.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "61bc0f48218fce3ff7a743d85861b2a80c448d1e",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/release.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "5634c32fc83a7b1417c87bcaf54a5bb900bb5fad",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/sanitizers.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "271094a8adbe7c7864cde7c8495cf3d137a0f0d1",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/verify.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "2094694dbc662da834b9934b8c269c355feaf595",
+      "locations": [
+        {
+          "repo": "dlworrell/evo",
+          "path": ".github/workflows/version-parity.yml",
+          "ref": "ec23d960cbf5f5271306a88442023c0107cd50ff"
+        }
+      ]
+    },
+    {
+      "blob_sha": "afbe279a226768a6cada75c7199f415951d6473b",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/scripts/publish_signed_pr.py",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        },
+        {
+          "repo": "dlworrell/herkules-1934-english",
+          "path": ".github/scripts/publish_signed_pr.py",
+          "ref": "0bbeae193c7273cdc1cf5642c5d476fb215bd9e8"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f8b4d3ba28283f542433dac0f4715de01941f9f2",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/aems-historical-inventory.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "9fafa733f3302dc77218ab9535887b0049773f9d",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/aems-release-evidence-tests.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "e3056ddb6ef9aa6588da85e577c2de56686309b9",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/atx100-book.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "381279715dca38951597139611dabbf549c1a54f",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/autocommit.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "6a11121719474f9d9a1f0e6898602c1ae8d501bd",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/check-md-links.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f218a3c6060815a443a4557d847f321cc3822384",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/ci.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "5c936df1ae5b0c63e791e26957b5843c8e91e1e0",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/create-engineering-tag.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "ed78ca1aaf26653d62688f534d7f1ce6bbe70ce1",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/document-authority-census.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "63400e0d03ebd01c9c75781b80aad947b33f64ea",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/engineering-gate.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "dea3b2fb68516d82706bbe563225b85bf7f48a70",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/project-zero-inventory.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "0955e836e008de7b5ed7ef6da27172810ffa286d",
+      "locations": [
+        {
+          "repo": "dlworrell/atarix",
+          "path": ".github/workflows/rtl-atx-spec-020.yml",
+          "ref": "5854e74fd6f7053571ca562c8da92302c637b090"
+        }
+      ]
+    },
+    {
+      "blob_sha": "4bf07d615fafee6e34987ac1f409570633fcccc7",
+      "locations": [
+        {
+          "repo": "dlworrell/herkules-1934-english",
+          "path": ".github/workflows/build.yaml",
+          "ref": "0bbeae193c7273cdc1cf5642c5d476fb215bd9e8"
+        }
+      ]
+    },
+    {
+      "blob_sha": "0114684107a8be78dad2e2cf0df428635d2a3fd7",
+      "locations": [
+        {
+          "repo": "dlworrell/herkules-1934-english",
+          "path": ".github/workflows/ci.yml",
+          "ref": "0bbeae193c7273cdc1cf5642c5d476fb215bd9e8"
+        }
+      ]
+    },
+    {
+      "blob_sha": "ee9a2de5ce3bce5fcb08d17af83dd41f8ba09562",
+      "locations": [
+        {
+          "repo": "dlworrell/MayaUSD2017Bridge",
+          "path": ".github/workflows/core.yml",
+          "ref": "d3c72e64f0386d51c7dfc0d0af6782d187bfe7a8"
+        }
+      ]
+    },
+    {
+      "blob_sha": "237c620865e0dbb8b4e1f9af4aaa60b809ac7227",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/crypto_ci.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "3ff9bef2113a22617d7f213a1215269cc6c5a2aa",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/crypto_constant_flow.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "452312f37c824dabb13dc0e251ef6fadd7becf90",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/crypto_formal.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f658072a3f5e19d4863d1d48df293bd98c4b55ac",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/crypto_provenance.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "2baf693f6e6a5852d582888b971604e33e07f355",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/dice-autotools.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "4426a03e8333e19f5b4f8ea5cd88a183c2ee9d83",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/election-result-reports.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "bedf4b4ad74c7685e90e1c37ae58d3ae03ddc964",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/election-source-watch.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "faba9548e22d31cce5fbf3e4d472875e9b3529d8",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/election_provenance.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "ca067ba7f3e3443ba3cb3554d46fbdbf0f003ec5",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/k80-hardware.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "11bea5713628c1825c686de05e5191658a887c5e",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/prime-suite.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "01354d54c3305e4417d21d0f00fe03fb97b904b0",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": ".github/workflows/public-runner-policy.yml",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        },
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/public-runner-policy.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    },
+    {
+      "blob_sha": "096ab44154a63b72de7449a089838f343e98f2f5",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": "election-analysis/election_reporting/ci/publish_reports.py",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "f9773874772d5474d447b48b4ff07a0de153392e",
+      "locations": [
+        {
+          "repo": "dlworrell/code-noodling",
+          "path": "election-analysis/tests/test_publish_reports.py",
+          "ref": "ede3ff33296d6c67a83688f19c09ac273bad9adb"
+        }
+      ]
+    },
+    {
+      "blob_sha": "0156676923296e47846064928b8f8a165dc6a08d",
+      "locations": [
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/bootstrap-discussions.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    },
+    {
+      "blob_sha": "fde2a5ac8161c848861343fd8b0a20682d7e5a04",
+      "locations": [
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/ci.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    },
+    {
+      "blob_sha": "035f27448441ef364149408a364cf5a31bf05030",
+      "locations": [
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/compliance.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    },
+    {
+      "blob_sha": "08bd341ddf9870db67578c81a9fb182b83ea4616",
+      "locations": [
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/content-moderation.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    },
+    {
+      "blob_sha": "06ad95d629d022e0bc35c33f29782a2f64fe3506",
+      "locations": [
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/issue-routing.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    },
+    {
+      "blob_sha": "78b555dfd526ab7c20844507e9bdb6c071a6c8b8",
+      "locations": [
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/kepler-self-hosted.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    },
+    {
+      "blob_sha": "a971cc2cb5e93bc47b538fa1f207b9ae518145fc",
+      "locations": [
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/liveusb-image.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    },
+    {
+      "blob_sha": "a42b951cc4afd6a60bf2d5414c6e606a85138ebb",
+      "locations": [
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/r470-kernel-compat.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    },
+    {
+      "blob_sha": "3eaec7865e2796e9806b2702a342d3f825254e5b",
+      "locations": [
+        {
+          "repo": "dlworrell/openCUDA",
+          "path": ".github/workflows/repository-audit.yml",
+          "ref": "1af2228d9880f1d31f1a6833041d6621830f9cad"
+        }
+      ]
+    }
+  ],
+  "unsigned_pr_repairs": [
+    {
+      "repository": "dlworrell/code-noodling",
+      "pr": 72,
+      "old_head": "de2f0a8cf0ce1ce25bc7c13800b82739c213c95a",
+      "new_head": "dcb0816ae400c3ae33fa1915fea3b627fef08191",
+      "tree": "15b20a83d29f1df11c81a4e38ab252981a86c416",
+      "verified": true,
+      "reason": "valid",
+      "signer": "web-flow",
+      "branch": "governance/crypto-scope-adoption-2026-10-25",
+      "run": "https://github.com/dlworrell/code-noodling/actions/runs/40236109310"
+    },
+    {
+      "repository": "dlworrell/atarix",
+      "pr": 58,
+      "old_head": "9edd9014fb70d1a6e50db4b4706d1cd6743125e4",
+      "new_head": "b0a8d13e5dccf574076e322dba0d9e082b76bb6a",
+      "tree": "2347a7f700b900c4ff3cd6896d0519f6dae9690f",
+      "verified": true,
+      "reason": "valid",
+      "signer": "web-flow",
+      "branch": "proposal/aems-sqlite-adr",
+      "run": "https://github.com/dlworrell/atarix/actions/runs/40236158895"
+    }
+  ],
+  "existing_pr_state": [
+    {
+      "repository": "dlworrell/code-noodling",
+      "number": 72,
+      "head": "dcb0816ae400c3ae33fa1915fea3b627fef08191",
+      "merge_commit": "6bcb01586ade4024f32f0779c2376596ec839eb0",
+      "merged": true,
+      "merged_at": "2026-10-25T21:40:16Z",
+      "mergeable": null,
+      "mergeable_state": "unknown",
+      "url": "https://github.com/dlworrell/code-noodling/pull/72"
+    },
+    {
+      "repository": "dlworrell/atarix",
+      "number": 58,
+      "head": "b0a8d13e5dccf574076e322dba0d9e082b76bb6a",
+      "merge_commit": "da325d217abc9d489dbe347eb7f2df265dc03878",
+      "merged": false,
+      "merged_at": null,
+      "mergeable": true,
+      "mergeable_state": "clean",
+      "url": "https://github.com/dlworrell/atarix/pull/58"
+    }
+  ],
+  "publisher_repair_prs": [
+    {
+      "repository": "dlworrell/repo_templates",
+      "number": 12,
+      "url": "https://github.com/dlworrell/repo_templates/pull/12",
+      "head": "45143268deceab2f6a9c664a7e68c68ec6c0bb52",
+      "tree": "3e82ffce82bb3f3d66d38d572731e24ffdb1fcca",
+      "base": "f9e3f20efdf47daf7536759c3028acda38496303",
+      "verified": true,
+      "tests": 16,
+      "run": "https://github.com/dlworrell/repo_templates/actions/runs/40236860364",
+      "files": [
+        {
+          "path": "tests/test_project_zero_commit.py",
+          "blob_sha": "1c0d59633ba7e160870b0f35edbe65d817607e6a",
+          "status": "modified",
+          "sha256": "db291a3e53a9d040a7e1a0daf068d3ae21bdfcf84adf15b56cc17287c0731b4f",
+          "bytes": 9826
+        },
+        {
+          "path": "tools/project_zero_commit.py",
+          "blob_sha": "1b0c3780030dbc27580766c1da5a271c8936d4e8",
+          "status": "modified",
+          "sha256": "cadf3b17d7a5d25b767cf46186b8133d8dc1c5ef3ff2b56d89e11e4272323057",
+          "bytes": 13116
+        }
+      ],
+      "reason": "valid",
+      "verified_at": "2026-10-25T21:44:03Z",
+      "hosted_checks": {
+        "repository": "dlworrell/repo_templates",
+        "pr": 12,
+        "head": "45143268deceab2f6a9c664a7e68c68ec6c0bb52",
+        "observed_at": "2026-10-25T21:53:02.178Z",
+        "checks": [
+          {
+            "id": 121300632639,
+            "name": "governance / governance",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/repo_templates/actions/runs/40237017204/job/121300632639"
+          },
+          {
+            "id": 121300631386,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/repo_templates/actions/runs/40237016871/job/121300631386"
+          },
+          {
+            "id": 121300631227,
+            "name": "self-test",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/repo_templates/actions/runs/40237016834/job/121300631227"
+          }
+        ]
+      }
+    },
+    {
+      "repository": "dlworrell/evo",
+      "number": 130,
+      "url": "https://github.com/dlworrell/evo/pull/130",
+      "head": "9bbdab947836176d4657469deeb9293ef34c788a",
+      "tree": "2b937e7d5d289d4a8ce843c828d10edacdc74258",
+      "base": "ec23d960cbf5f5271306a88442023c0107cd50ff",
+      "verified": true,
+      "tests": 16,
+      "run": "https://github.com/dlworrell/evo/actions/runs/40236862533",
+      "files": [
+        {
+          "path": "tests/test_project_zero_commit.py",
+          "blob_sha": "1c0d59633ba7e160870b0f35edbe65d817607e6a",
+          "status": "modified",
+          "sha256": "db291a3e53a9d040a7e1a0daf068d3ae21bdfcf84adf15b56cc17287c0731b4f",
+          "bytes": 9826
+        },
+        {
+          "path": "tools/project_zero_commit.py",
+          "blob_sha": "1b0c3780030dbc27580766c1da5a271c8936d4e8",
+          "status": "modified",
+          "sha256": "cadf3b17d7a5d25b767cf46186b8133d8dc1c5ef3ff2b56d89e11e4272323057",
+          "bytes": 13116
+        }
+      ],
+      "reason": "valid",
+      "verified_at": "2026-10-25T21:44:05Z",
+      "hosted_checks": {
+        "repository": "dlworrell/evo",
+        "pr": 130,
+        "head": "9bbdab947836176d4657469deeb9293ef34c788a",
+        "observed_at": "2026-10-25T21:53:02.414Z",
+        "checks": [
+          {
+            "id": 121302112351,
+            "name": "native-build-parity / AES-BLD-001 / clang-tidy",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020278/job/121302112351"
+          },
+          {
+            "id": 121302111497,
+            "name": "native-build-parity / AES-BLD-001 / CMake / gcc",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020278/job/121302111497"
+          },
+          {
+            "id": 121302109311,
+            "name": "native-build-parity / AES-BLD-001 / Autotools / clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020278/job/121302109311"
+          },
+          {
+            "id": 121302108038,
+            "name": "native-build-parity / AES-BLD-001 / structure",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020278/job/121302108038"
+          },
+          {
+            "id": 121302106613,
+            "name": "native-build-parity / AES-BLD-001 / install and consumer parity",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020278/job/121302106613"
+          },
+          {
+            "id": 121302106604,
+            "name": "native-build-parity / AES-BLD-001 / distcheck",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020278/job/121302106604"
+          },
+          {
+            "id": 121302074961,
+            "name": "native-build-parity / AES-BLD-001 / Autotools / gcc",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020278/job/121302074961"
+          },
+          {
+            "id": 121302074770,
+            "name": "native-build-parity / AES-BLD-001 / Clang ASan+UBSan",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020278/job/121302074770"
+          },
+          {
+            "id": 121302073709,
+            "name": "native-build-parity / AES-BLD-001 / CMake / clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020278/job/121302073709"
+          },
+          {
+            "id": 121300641612,
+            "name": "macos-latest / clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019982/job/121300641612"
+          },
+          {
+            "id": 121300641374,
+            "name": "governance / governance",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020252/job/121300641374"
+          },
+          {
+            "id": 121300641046,
+            "name": "cmake-clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019986/job/121300641046"
+          },
+          {
+            "id": 121300640987,
+            "name": "autotools-gcc",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019975/job/121300640987"
+          },
+          {
+            "id": 121300640816,
+            "name": "self-test",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020090/job/121300640816"
+          },
+          {
+            "id": 121300640813,
+            "name": "autotools-gcc",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019986/job/121300640813"
+          },
+          {
+            "id": 121300640767,
+            "name": "autotools-gcc",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020034/job/121300640767"
+          },
+          {
+            "id": 121300640755,
+            "name": "verify",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020081/job/121300640755"
+          },
+          {
+            "id": 121300640686,
+            "name": "formatting",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019962/job/121300640686"
+          },
+          {
+            "id": 121300640661,
+            "name": "thread-sanitizer",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019972/job/121300640661"
+          },
+          {
+            "id": 121300640657,
+            "name": "Linux Clang and Bubblewrap providers",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020062/job/121300640657"
+          },
+          {
+            "id": 121300640634,
+            "name": "Autotools staged core version",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019971/job/121300640634"
+          },
+          {
+            "id": 121300640623,
+            "name": "cmake-clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019975/job/121300640623"
+          },
+          {
+            "id": 121300640608,
+            "name": "release readiness authority semantics",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019982/job/121300640608"
+          },
+          {
+            "id": 121300640572,
+            "name": "cmake-clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019976/job/121300640572"
+          },
+          {
+            "id": 121300640560,
+            "name": "product command contract",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019982/job/121300640560"
+          },
+          {
+            "id": 121300640559,
+            "name": "autotools-staged-install",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019995/job/121300640559"
+          },
+          {
+            "id": 121300640501,
+            "name": "core-benchmark",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019970/job/121300640501"
+          },
+          {
+            "id": 121300640499,
+            "name": "ubuntu-latest / gcc",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019982/job/121300640499"
+          },
+          {
+            "id": 121300640486,
+            "name": "cmake-clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019981/job/121300640486"
+          },
+          {
+            "id": 121300640484,
+            "name": "CMake staged core version",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019971/job/121300640484"
+          },
+          {
+            "id": 121300640471,
+            "name": "cmake-clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237020034/job/121300640471"
+          },
+          {
+            "id": 121300640468,
+            "name": "cmake-macos-clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019975/job/121300640468"
+          },
+          {
+            "id": 121300640466,
+            "name": "static-analysis",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019962/job/121300640466"
+          },
+          {
+            "id": 121300640463,
+            "name": "ubuntu-latest / clang",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019982/job/121300640463"
+          },
+          {
+            "id": 121300640397,
+            "name": "sanitizers",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019972/job/121300640397"
+          },
+          {
+            "id": 121300640388,
+            "name": "Local evaluation start poll cancel join",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019974/job/121300640388"
+          },
+          {
+            "id": 121300640361,
+            "name": "autotools-gcc",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019976/job/121300640361"
+          },
+          {
+            "id": 121300640358,
+            "name": "cmake-staged-install",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019995/job/121300640358"
+          },
+          {
+            "id": 121300640316,
+            "name": "autotools-gcc",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/evo/actions/runs/40237019981/job/121300640316"
+          }
+        ]
+      }
+    },
+    {
+      "repository": "dlworrell/code-noodling",
+      "number": 73,
+      "url": "https://github.com/dlworrell/code-noodling/pull/73",
+      "head": "ce9c8bddf800f0fecb4e71b21f7bfb4881508238",
+      "tree": "c62b3b1dbc503b221905afdb37cbd6ce11d7acf8",
+      "base": "6bcb01586ade4024f32f0779c2376596ec839eb0",
+      "verified": true,
+      "tests": 19,
+      "run": "https://github.com/dlworrell/code-noodling/actions/runs/40236868842",
+      "files": [
+        {
+          "path": "election-analysis/election_reporting/ci/publish_reports.py",
+          "blob_sha": "bfcb468a2263f66e2b7a50c5eabbe60fdedf9d7a",
+          "status": "modified",
+          "sha256": "1980ee8c38258e7f31a25b4c81c40acde590a115093089e16ed550487cf00a7f",
+          "bytes": 16035
+        },
+        {
+          "path": "election-analysis/tests/test_publish_reports.py",
+          "blob_sha": "a98c5e58e4b80ad2a2b8f602974bbf90376c98ba",
+          "status": "modified",
+          "sha256": "8c8f3e11016d1875ce459cacdebbeab9d7e602756a81c715617c1106ce3a8f09",
+          "bytes": 18670
+        }
+      ],
+      "reason": "valid",
+      "verified_at": "2026-10-25T21:44:11Z",
+      "hosted_checks": {
+        "repository": "dlworrell/code-noodling",
+        "pr": 73,
+        "head": "ce9c8bddf800f0fecb4e71b21f7bfb4881508238",
+        "observed_at": "2026-10-25T21:53:02.373Z",
+        "checks": [
+          {
+            "id": 121301210390,
+            "name": "attest",
+            "status": "completed",
+            "conclusion": "skipped",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023350/job/121301210390"
+          },
+          {
+            "id": 121300788200,
+            "name": "publish-pull-request",
+            "status": "completed",
+            "conclusion": "skipped",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023333/job/121300788200"
+          },
+          {
+            "id": 121300770302,
+            "name": "attest",
+            "status": "completed",
+            "conclusion": "skipped",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023360/job/121300770302"
+          },
+          {
+            "id": 121300652260,
+            "name": "Repository remainder / governance",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023653/job/121300652260"
+          },
+          {
+            "id": 121300652247,
+            "name": "Crypto scope / governance",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023653/job/121300652247"
+          },
+          {
+            "id": 121300652243,
+            "name": "timing-experiment",
+            "status": "completed",
+            "conclusion": "skipped",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023345/job/121300652243"
+          },
+          {
+            "id": 121300652128,
+            "name": "Scope coverage and applicability",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023653/job/121300652128"
+          },
+          {
+            "id": 121300651513,
+            "name": "analyze",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023333/job/121300651513"
+          },
+          {
+            "id": 121300651387,
+            "name": "constant-flow (gcc, O2)",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023345/job/121300651387"
+          },
+          {
+            "id": 121300651375,
+            "name": "constant-flow (clang, O3)",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023345/job/121300651375"
+          },
+          {
+            "id": 121300651356,
+            "name": "constant-flow (gcc, O3)",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023345/job/121300651356"
+          },
+          {
+            "id": 121300651223,
+            "name": "audit-and-test",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023356/job/121300651223"
+          },
+          {
+            "id": 121300651136,
+            "name": "report",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023350/job/121300651136"
+          },
+          {
+            "id": 121300651112,
+            "name": "report",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023360/job/121300651112"
+          },
+          {
+            "id": 121300651108,
+            "name": "constant-flow (clang, O2)",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023345/job/121300651108"
+          },
+          {
+            "id": 121300650963,
+            "name": "source-and-lemmas",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023340/job/121300650963"
+          },
+          {
+            "id": 121300650920,
+            "name": "hosted-only",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/code-noodling/actions/runs/40237023342/job/121300650920"
+          }
+        ]
+      }
+    },
+    {
+      "repository": "dlworrell/atarix",
+      "number": 62,
+      "url": "https://github.com/dlworrell/atarix/pull/62",
+      "head": "da0682382bd0108aa2c33721ec854377511491aa",
+      "tree": "4933f54c1ba04ffe1bdd44cded710937916692a9",
+      "base": "5854e74fd6f7053571ca562c8da92302c637b090",
+      "verified": true,
+      "tests": 6,
+      "files": [
+        {
+          "path": ".github/scripts/publish_signed_pr.py",
+          "blob_sha": "9270a69cdb33e26faf5c23c52f7f7280ae675d7e",
+          "status": "modified",
+          "sha256": "c8e11fc797659eddf5f11098e6d8dbdc0fa86b41a2d9e9cc5805110df353ffb5",
+          "bytes": 5024
+        },
+        {
+          "path": "tests/test_publish_signed_pr.py",
+          "blob_sha": "217c14ea5041962508ed121e62924bcabfe6e4b4",
+          "status": "added",
+          "sha256": "74c51789261ff317243e9ed53af84ab486c08551bee160449534bbdc8e6b40c0",
+          "bytes": 3995
+        }
+      ],
+      "reason": "valid",
+      "verified_at": "2026-10-25T21:47:48Z",
+      "hosted_checks": {
+        "repository": "dlworrell/atarix",
+        "pr": 62,
+        "head": "da0682382bd0108aa2c33721ec854377511491aa",
+        "observed_at": "2026-10-25T21:53:02.224Z",
+        "checks": [
+          {
+            "id": 121301971196,
+            "name": "governance / governance",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/atarix/actions/runs/40237464297/job/121301971196"
+          },
+          {
+            "id": 121301970524,
+            "name": "check-md-links",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/atarix/actions/runs/40237464046/job/121301970524"
+          },
+          {
+            "id": 121301970516,
+            "name": "build-test",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/atarix/actions/runs/40237464055/job/121301970516"
+          },
+          {
+            "id": 121301970505,
+            "name": "engineering-gate",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/atarix/actions/runs/40237464086/job/121301970505"
+          },
+          {
+            "id": 121301970401,
+            "name": "census",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/atarix/actions/runs/40237464069/job/121301970401"
+          },
+          {
+            "id": 121301970351,
+            "name": "atx100-book",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/atarix/actions/runs/40237464043/job/121301970351"
+          }
+        ]
+      }
+    },
+    {
+      "repository": "dlworrell/herkules-1934-english",
+      "number": 7,
+      "url": "https://github.com/dlworrell/herkules-1934-english/pull/7",
+      "head": "2b5af722741c132e9329481b5f738b32b92d270c",
+      "tree": "d10714549b9a45dba1eacaa2015d6aa59cc6a197",
+      "base": "0bbeae193c7273cdc1cf5642c5d476fb215bd9e8",
+      "verified": true,
+      "tests": 6,
+      "files": [
+        {
+          "path": ".github/scripts/publish_signed_pr.py",
+          "blob_sha": "9270a69cdb33e26faf5c23c52f7f7280ae675d7e",
+          "status": "modified",
+          "sha256": "c8e11fc797659eddf5f11098e6d8dbdc0fa86b41a2d9e9cc5805110df353ffb5",
+          "bytes": 5024
+        },
+        {
+          "path": "tests/test_publish_signed_pr.py",
+          "blob_sha": "217c14ea5041962508ed121e62924bcabfe6e4b4",
+          "status": "added",
+          "sha256": "74c51789261ff317243e9ed53af84ab486c08551bee160449534bbdc8e6b40c0",
+          "bytes": 3995
+        }
+      ],
+      "reason": "valid",
+      "verified_at": "2026-10-25T21:47:54Z",
+      "hosted_checks": {
+        "repository": "dlworrell/herkules-1934-english",
+        "pr": 7,
+        "head": "2b5af722741c132e9329481b5f738b32b92d270c",
+        "observed_at": "2026-10-25T21:54:11.699Z",
+        "checks": [
+          {
+            "id": 121301977474,
+            "name": "governance / governance",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/herkules-1934-english/actions/runs/40237466287/job/121301977474"
+          },
+          {
+            "id": 121301976060,
+            "name": "build",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/dlworrell/herkules-1934-english/actions/runs/40237465846/job/121301976060"
+          },
+          {
+            "id": 121301976014,
+            "name": "test",
+            "status": "in_progress",
+            "conclusion": null,
+            "url": "https://github.com/dlworrell/herkules-1934-english/actions/runs/40237465868/job/121301976014"
+          }
+        ]
+      }
+    }
+  ],
+  "focused_tests": {
+    "repo_templates": {
+      "passed": 16,
+      "command": "python -m unittest discover -s tests -p test_project_zero_commit.py"
+    },
+    "evo": {
+      "passed": 16,
+      "command": "python -m unittest discover -s tests -p test_project_zero_commit.py"
+    },
+    "atarix": {
+      "passed": 6,
+      "command": "python -m unittest discover -s tests -p test_publish_signed_pr.py"
+    },
+    "herkules-1934-english": {
+      "passed": 6,
+      "command": "python -m unittest discover -s tests -p test_publish_signed_pr.py"
+    },
+    "code-noodling": {
+      "passed": 19,
+      "cwd": "election-analysis",
+      "command": "python -m unittest discover -s tests -p test_publish_reports.py"
+    },
+    "total_test_executions_passed": 63,
+    "coverage": [
+      "unsigned, missing, invalid and nonboolean verification",
+      "exact commit and parent binding",
+      "leased ref concurrency",
+      "default-branch and unsafe event guards",
+      "unsigned same-tree head replacement"
+    ]
+  },
+  "connector_limit_probe": {
+    "repository": "dlworrell/ruleset-sandbox",
+    "commit": "81661c3d8039f5729986c9b114ca356f0a62c466",
+    "branch": "test/connector-signing-path-2026-10-25",
+    "verification": {
+      "verified": false,
+      "reason": "unsigned"
+    },
+    "result": "Connector Contents and low-level commit creation were not used as final mergeable heads."
+  },
+  "publication_method": {
+    "commit_api": "GraphQL createCommitOnBranch using the existing repository GITHUB_TOKEN",
+    "actor": "github-actions[bot]",
+    "signature": "GitHub-managed web-flow signing",
+    "validation": [
+      "payload SHA256",
+      "Git blob identities",
+      "current default baseline",
+      "exact resulting tree",
+      "single expected parent",
+      "GitHub verified true and reason valid"
+    ],
+    "temporary_bootstrap_branches_are_unsigned_and_must_never_merge": true,
+    "final_prs_exclude_bootstrap_files_and_history": true,
+    "generic_publisher_mode_assertion": "Initial expected-tree preparation used 100644; GraphQL correctly preserved existing script mode 100755. Full independent tree comparison verified the two intended file changes and no others before the ATARIX and Herkules PRs were opened."
+  },
+  "remaining": [
+    {
+      "action": "Maintainer review and merge of the five verified publisher repair PRs",
+      "status": "open"
+    },
+    {
+      "action": "Review Proposed ATARIX SQLite ADR PR #58",
+      "status": "open; signature blocker removed; architectural decision remains Proposed"
+    },
+    {
+      "action": "Maintainer phone-origin verified commit and sandbox PR acceptance evidence",
+      "status": "not exercised",
+      "issue": "https://github.com/dlworrell/Catylist/issues/29"
+    },
+    {
+      "action": "Broader per-repository conformance rollout and whole-pilot crypto/EVO qualification",
+      "status": "separately tracked; not closed by signing repair"
+    }
+  ],
+  "changes_not_performed": [
+    "repository settings or protection changes",
+    "new signing-key generation or registration",
+    "Working Copy restoration",
+    "human approval or DCO signoff assertion",
+    "default-branch history rewriting",
+    "merge of the newly opened repair PRs"
+  ],
+  "artifact_binding": {
+    "image": "evidence/GIT-signing-verified-20261025.jpg",
+    "image_sha256": "aa6940e592b4f36042c7e81636428340bd2e969bec53b1c4e0a1abdf8fcdcdc7",
+    "image_source": "https://github.com/dlworrell/code-noodling/actions/runs/40236868842"
+  }
+}
