@@ -975,6 +975,7 @@ class PublishTarget:
     branch: str
     paths: tuple[str, ...]
     authors: tuple[str, ...]
+    base: str | None = None  # None: the default branch; "dev-daily" once a repository adopts Catylist ADR-0013
 
     @classmethod
     def parse(cls, value: Any, where: str) -> "PublishTarget":
@@ -989,7 +990,11 @@ class PublishTarget:
             raise Ring0Error(f"{where}: {branch} needs relative paths")
         if not authors or not all(isinstance(x, str) and x for x in authors):
             raise Ring0Error(f"{where}: {branch} needs the bot logins allowed to author its commit")
-        return cls(branch, tuple(paths), tuple(a.lower() for a in authors))
+        base = value.get("base")
+        if base is not None and (not isinstance(base, str) or not re.fullmatch(r"[A-Za-z0-9._/-]+", base)
+                                 or ".." in base or base.startswith("automation/")):
+            raise Ring0Error(f"{where}: {branch} has an invalid base {base!r}")
+        return cls(branch, tuple(paths), tuple(a.lower() for a in authors), base)
 
     def covers(self, filename: str) -> bool:
         return any(filename == p or filename.startswith(p.rstrip("/") + "/") for p in self.paths)
@@ -1186,8 +1191,9 @@ class Sweep:
             if target.branch == default:
                 self.errors.append(f"{repository}: refusing to publish the default branch")
                 continue
+            base = target.base or default
             try:
-                compare = self.gh.get(f"/repos/{repository}/compare/{default}...{target.branch}") or {}
+                compare = self.gh.get(f"/repos/{repository}/compare/{base}...{target.branch}") or {}
             except GitHubError as exc:
                 if exc.status == 404:
                     continue  # the workflow has not published this branch yet
@@ -1195,7 +1201,7 @@ class Sweep:
             if compare.get("ahead_by") == 0:
                 continue  # already merged, or nothing generated
             existing = self.gh.get_all(
-                f"/repos/{repository}/pulls?state=open&head={owner}:{target.branch}&base={default}&per_page=10")
+                f"/repos/{repository}/pulls?state=open&head={owner}:{target.branch}&base={base}&per_page=10")
             if existing:
                 continue
             refusal = publication_refusal(target, compare)
@@ -1217,7 +1223,7 @@ class Sweep:
             action = "would open a pull request (dry run)"
             if not self.dry_run:
                 opened = self.gh.post(f"/repos/{repository}/pulls", {
-                    "title": message.splitlines()[0][:200], "head": target.branch, "base": default,
+                    "title": message.splitlines()[0][:200], "head": target.branch, "base": base,
                     "body": body, "maintainer_can_modify": False})
                 action = f"opened pull request #{(opened or {}).get('number', '?')}"
             self.record(repository=repository, kind="automation_publication", ref=ref, url=url, author=author,

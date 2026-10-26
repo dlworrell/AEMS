@@ -736,6 +736,25 @@ class PublicationSweepTests(unittest.TestCase):
         gh, sweep, status = self.run_sweep(r0.GitHubError(404, "missing"))
         self.assertEqual((status, gh.posts), (0, []))
 
+    def test_configured_base_is_compared_and_targeted(self):
+        # Catylist ADR-0013: an adopted repository's reports go to dev-daily.
+        target = r0.PublishTarget(PUB_BRANCH, PUB_TARGET.paths, PUB_TARGET.authors, "dev-daily")
+        gh = FakeGitHub(routes(**{
+            "/installation/repositories": {"repositories": [{"full_name": REPO}, {"full_name": PUB_REPO}]},
+            f"/repos/{PUB_REPO}": {"default_branch": "main"},
+            f"/repos/{PUB_REPO}/compare/dev-daily...{PUB_BRANCH}": compare(),
+            f"/repos/{PUB_REPO}/pulls?state=open&head=dlworrell:{PUB_BRANCH}&base=dev-daily&per_page=10": [],
+        }))
+        sweep, _ = make_sweep(gh, tmp=self.tmp.name, publishing={PUB_REPO: [target]})
+        self.assertEqual(sweep.run(), 0, sweep.errors)
+        opened = [b for p, b in gh.posts if p == f"/repos/{PUB_REPO}/pulls"]
+        self.assertEqual(opened[0]["base"], "dev-daily")
+
+    def test_invalid_base_is_refused(self):
+        for base in ("../main", "automation/x", 7):
+            with self.subTest(base=base), self.assertRaises(r0.Ring0Error):
+                r0.PublishTarget.parse({"branch": PUB_BRANCH, "paths": ["a/"], "authors": ["b"], "base": base}, "t")
+
     def test_dry_run_only_records(self):
         gh, sweep, _ = self.run_sweep(compare(), dry_run=True)
         self.assertEqual(gh.posts, [])
