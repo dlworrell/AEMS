@@ -1,0 +1,10 @@
+{
+  "schema": "aems.fitment-config.v1",
+  "description": "Repositories that adopted Catylist ADR-0013 (daily, fitment and release branches). Each needs dev-daily and fitment created from its default branch and the catylist-ring-0 App installed. The ruleset planner also applies protect-integration-branches to these repositories.",
+  "ledger_repository": "dlworrell/AEMS",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "repositories": [
+    "dlworrell/ruleset-sandbox"
+  ]
+}

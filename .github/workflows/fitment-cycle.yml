@@ -1,0 +1,109 @@
+name: Fitment Cycle
+
+# Catylist ADR-0013: reviews work promoted to each adopted repository's
+# fitment branch with the AEMS fitment reviewer (documentation and tests),
+# files findings as issues assigned to the authors, posts the fitment and
+# fitment/source checks, and opens the dev-daily -> fitment and
+# fitment -> main promotion pull requests. Acts as the catylist-ring-0 App.
+# Adopted repositories are config/fitment.json. See
+# docs/engineering/fitment-cycle.md.
+
+on:
+  schedule:
+    - cron: '15,45 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Report only. Set to false to post checks, file issues and open promotion pull requests.
+        required: false
+        default: true
+        type: boolean
+      repos:
+        description: Optional comma-separated full_name filter
+        required: false
+        default: ''
+        type: string
+
+# contents: write reaches only AEMS itself, for fitment/state.json on the
+# ring0/ledger branch. Everything in other repositories uses the App token.
+permissions:
+  contents: write
+
+concurrency:
+  group: fitment-cycle
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  cycle:
+    name: Fitment cycle
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment: ring-0
+
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.x'
+
+      - name: Test the cycle
+        run: python3 -m unittest tests.test_fitment_cycle -v
+
+      - name: Install the Anthropic SDK
+        run: python3 -m pip install --disable-pip-version-check --no-input -r requirements/ring0.txt
+
+      - name: Create catylist-ring-0 installation token
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: '5474337'
+          private-key: ${{ secrets.RING0_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-checks: write
+          permission-contents: read
+          permission-issues: write
+          permission-pull-requests: write
+
+      - name: Run the cycle
+        env:
+          RING0_APP_TOKEN: ${{ steps.app.outputs.token }}
+          LEDGER_TOKEN: ${{ github.token }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_REPOS: ${{ inputs.repos }}
+        run: |
+          set -euo pipefail
+          mode=--enforce
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$INPUT_DRY_RUN" != "false" ]; then
+            mode=--dry-run
+          fi
+          python3 scripts/fitment_cycle.py "$mode" --repos "${INPUT_REPOS:-}" --output-dir build/aems/fitment
+
+      - name: Add cycle report to summary
+        if: ${{ always() }}
+        run: |
+          if [ -f build/aems/fitment/summary.md ]; then
+            cat build/aems/fitment/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No cycle report was produced; see the job log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload cycle report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fitment-cycle
+          path: |
+            build/aems/fitment/summary.md
+            build/aems/fitment/fitment-state.json
+          if-no-files-found: warn
