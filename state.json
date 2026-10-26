@@ -1,0 +1,15 @@
+{
+  "checked": {
+    "dlworrell/ruleset-sandbox#pr1": {
+      "at": "2026-10-26T09:06:30Z",
+      "outcome": "violation",
+      "sha256": "839beb67f1063e224f6c484ce5a2b106224282a3737f5ffd28a0cba16c033d3a"
+    }
+  },
+  "hidden": {},
+  "issues": {},
+  "last_sweep": {
+    "dlworrell/ruleset-sandbox": "2026-10-26T09:06:30Z"
+  },
+  "schema": "aems.ring0-state.v1"
+}
