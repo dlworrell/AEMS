@@ -7,6 +7,7 @@
     "dlworrell/atarix:fitment/source:ea5e0508f24a098886cd434f0161249ab0801b3c": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:044ea6c344e5",
     "dlworrell/atarix:fitment:1b6c52c2861b7cc85073069dac34376d64cd3e16": "failure:Not ready for release:e77e252a8413",
     "dlworrell/atarix:fitment:43ee45d5af3486d24852201f39d6efad3bf23825": "success:Ready for release:991487332e4d",
+    "dlworrell/atarix:fitment:756eea9fa28733be55ab2e01c515f8105be0bcfb": "failure:Not ready for release:e77e252a8413",
     "dlworrell/atarix:fitment:eaa04cd9a586bb21106042320f279f372ac79c2f": "failure:Not ready for release:e77e252a8413"
   },
   "repos": {
