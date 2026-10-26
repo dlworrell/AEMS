@@ -74,8 +74,10 @@ cryptographic or live-host evidence. Results are retained in the
 | Moved default; empty signing branch | Same `Default branch moved` exception as supplied | Refused with expected/observed SHAs and re-preparation instructions | 0 / 0 |
 | Fresh base; existing empty signing branch | HTTP 422 creating an existing ref | Resumed; published and verified | 1 failed / 1 successful |
 | Moved default; complete exact verified signing head | Stale-base exception | `already_published`, read only | 0 / 0 |
+| Moved default; exact merged PR whose signing branch was deleted | Stale-base exception | Exact merged-PR/head verification, then `already_published` | 0 / 0 |
 
-All three predictions held. Stale payload rejection is retained because it
+All three predictions held; the fifth case was added after the live post-merge
+experiment below exposed branch deletion. Stale payload rejection is retained because it
 protects reviewed tree/base identity. The operational repair is to reconstruct
 the still-needed delta on the latest inspected default and recompute its tree
 and SHA-256, then execute the maintained publisher in a new workflow run.
@@ -104,6 +106,42 @@ must report `already_published` for the same verified commit. Its signed branch
 starts at the freshly inspected default and excludes bootstrap ancestry.
 The resulting PR and workflow retain the exact payload/tree/parent/run mapping;
 publication is not human approval or architectural acceptance.
+
+## Live post-merge experiment and second correction
+
+[PR #42](https://github.com/dlworrell/AEMS/pull/42) delivered the first repair
+and merged at 2026-10-26T04:59:20Z. Its signed head was
+`fbc4837f9c885b612d149cc5d31b0936b102e7ee`; the verified merge
+`85b5e1d26d6dfc9a9bb06015234d1110be138d58` has tree
+`332d5f4fe5b0231ff24f56582977047fc4cdb2ff` and parents consisting of the old
+default `9fe3e55a2823c10086f7dc0eabc9cee175f15aba` plus that head.
+In [run 40271707114, attempt 1](https://github.com/dlworrell/AEMS/actions/runs/40271707114/attempts/1),
+35 tests passed, publication succeeded and the immediate second invocation
+returned `already_published` for the same commit.
+
+The deliberate [post-merge rerun, attempt 2](https://github.com/dlworrell/AEMS/actions/runs/40271707114/attempts/2),
+job `121406277225`, then **failed** at 05:00:05Z. GitHub had deleted the
+temporary signing branch after merge. The first repair saw a missing branch
+and an advanced default, and could not distinguish merged work from incomplete
+work. This is a discovered gap in the first repair, not a passing test.
+
+The second correction performs a read-only, paginated closed-PR lookup when
+the ref is missing and the default moved. An actually merged PR must match the
+same repository, head and base refs; its immutable head must independently
+match the reviewed tree, single parent, commit identity and valid signature.
+The signing ref is reread and must remain absent. The result retains
+`already_published` and adds the completion PR number. No merged evidence means
+the original stale-base refusal remains. A closed unmerged PR is insufficient.
+
+Six additional regression cases cover deleted merged refs, wrong/unmerged PR
+metadata, unsigned/altered artifacts, branch recreation during verification,
+unavailable API evidence and pagination. Final focused local validation is
+**41 passed**: 28 publisher tests plus the 13 existing signature tests. The
+updated hosted workflow requires those 41 tests, a fresh signed publication and
+an identical read-only repeat. After merging that correction, the same workflow
+is rerun against the advanced default and deleted branch to validate this live
+condition. Exact hosted and final merge results are retained in the correction
+PR and the user-facing completion report.
 
 ## Recovery and limits
 

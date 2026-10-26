@@ -82,6 +82,7 @@ implemented or inferred.
 | Missing signing branch; default still equals reviewed base | Create the separate branch, then publish using `expectedHeadOid` |
 | Signing branch still equals reviewed base | Resume the unfinished publication without creating the ref again |
 | Existing signing head has the exact tree, single reviewed parent, commit identity and a valid GitHub signature | Report `already_published` without any write, even if the default has advanced |
+| Signing branch was deleted after merge | Locate its closed PRs, verify an actually merged PR for the same repository/head/base refs and the exact signed head/tree/parent; report `already_published` with its PR number and no write |
 | Default advanced and the requested publication is incomplete | Refuse with `STALE_BASE`, expected SHA, observed SHA and re-preparation instructions |
 | Existing signing head is divergent, unsigned, malformed or changes during verification | Refuse; inspect evidence and prepare a separate reviewed repair |
 
@@ -107,7 +108,13 @@ python3 scripts/publish_reviewed_repair.py --payload reviewed-payload.json
 
 The JSON result distinguishes `published` from `already_published`. Both
 require independent verification of the exact commit/tree/parent, followed by
-a re-read of the signing ref. The latter is evidence about that artifact, not
+a re-read of the signing ref. If the branch was deleted after merge, the result
+adds `completion_source: merged_pull_request`, `pull_request` and
+`branch_present: false`; the final ref read must still be absent. This is an
+additive result extension with the existing status values preserved. Closed
+unmerged PRs, foreign refs/repositories and unavailable evidence cannot prove
+completion. Closed-PR lookup is paginated with a bounded 2,000-record limit.
+The latter status is evidence about that artifact, not
 evidence that it was merged or that a later default still contains its files.
 The feature-head lease is atomic; default freshness is a separate observation
 and recheck before commit creation, not a cross-ref transaction. A later base
