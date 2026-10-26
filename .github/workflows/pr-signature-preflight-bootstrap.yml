@@ -5,6 +5,7 @@ name: Publish reviewed signing repair and validate safe retries
     - bootstrap/pr-signature-preflight-v2-20261025
 permissions:
   contents: write
+  pull-requests: read
 concurrency:
   group: codeql-review-signing-repair
   cancel-in-progress: false
