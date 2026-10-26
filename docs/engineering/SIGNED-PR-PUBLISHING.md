@@ -66,6 +66,78 @@ protection remains the merge boundary throughout.
 A passing signature check does not prove functional correctness, security,
 review approval, standards conformance, or complete merge readiness.
 
+## Resume a content-bound repair or recover from a stale base
+
+`scripts/publish_reviewed_repair.py` is the maintained replacement for the
+one-off inline signing bootstrap. It keeps the original JSON payload shape:
+`repository`, `branch`, `base_sha`, `tree_sha`, `file_changes` and `message`.
+Each addition includes `path`, base64 `contents` and its Git `blob_sha`;
+deletions include only `path`. The entire serialized payload is bound by an
+explicit SHA-256. This interface is limited to owner-triggered jobs in
+`dlworrell/*` personal repositories; organization/delegated ownership is not
+implemented or inferred.
+
+| Observed state | Action |
+|---|---|
+| Missing signing branch; default still equals reviewed base | Create the separate branch, then publish using `expectedHeadOid` |
+| Signing branch still equals reviewed base | Resume the unfinished publication without creating the ref again |
+| Existing signing head has the exact tree, single reviewed parent, commit identity and a valid GitHub signature | Report `already_published` without any write, even if the default has advanced |
+| Default advanced and the requested publication is incomplete | Refuse with `STALE_BASE`, expected SHA, observed SHA and re-preparation instructions |
+| Existing signing head is divergent, unsigned, malformed or changes during verification | Refuse; inspect evidence and prepare a separate reviewed repair |
+
+For `STALE_BASE`, read the current default and the actual intended file delta.
+First check whether a superseding PR delivered that work. If publication is
+still needed, reconstruct and review the delta on the current base, preserve
+file modes and unrelated changes, recompute the complete tree and payload
+SHA-256, and use a new signing branch. Changing only `base_sha` invalidates the
+reviewed tree. The publisher never rebases, refreshes the payload, force-pushes
+or relaxes signature protection automatically.
+
+Run the publisher from reviewed source in an owner-triggered `push` or
+`workflow_dispatch` job on the explicit `EXPECTED_BOOTSTRAP_BRANCH`. Bind
+`EXPECTED_PAYLOAD_SHA256` in that reviewed workflow and supply the existing
+repository `GITHUB_TOKEN`; platform repository/event/actor/ref variables are
+checked, including the rerun actor when available. Do not execute PR-provided
+source with this write token. Supply payload bytes either as
+`REVIEWED_PAYLOAD_BASE64` or through the file option:
+
+```sh
+python3 scripts/publish_reviewed_repair.py --payload reviewed-payload.json
+```
+
+The JSON result distinguishes `published` from `already_published`. Both
+require independent verification of the exact commit/tree/parent, followed by
+a re-read of the signing ref. The latter is evidence about that artifact, not
+evidence that it was merged or that a later default still contains its files.
+The feature-head lease is atomic; default freshness is a separate observation
+and recheck before commit creation, not a cross-ref transaction. A later base
+change still requires ordinary PR reconciliation and review.
+
+If GraphQL rejects creation, the error preserves its bounded type/message
+diagnostics without printing the request or token. A failed attempt can leave
+an empty signing branch; that is safe to resume while its base remains current.
+Failed or unavailable signature evidence never becomes a successful no-op.
+
+Re-running an old GitHub Actions run uses its original workflow revision and
+event SHA/ref. Editing the bootstrap does not repair a historical attempt;
+use the new push-triggered run. Retain the original failure as evidence.
+See the [2026-10-25 incident report](reports/GIT-bootstrap-stale-base-20261025.md)
+for the original/superseding payload distinction and controlled before/after
+results. GitHub's [rerun semantics](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs)
+and [signed commit mutation](https://docs.github.com/en/graphql/reference/commits)
+explain the platform behavior; actual returned evidence remains mandatory.
+
+Verification command for this path:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_publish_reviewed_repair.py' -v
+```
+
+Rollback is a reviewed revert of the publisher and documentation change.
+Never roll back by merging a disposable bootstrap branch or rewriting the
+default. Existing inline workflows are not silently upgraded; each consumer
+must explicitly select and pin the maintained source.
+
 ## Observed repair on 2026-10-25
 
 | PR | Unsigned head | Verified identical-tree replacement |
@@ -82,3 +154,4 @@ were preserved. This evidence does not establish phone-origin commit signing.
 Sources: [GitHub signed mutation](https://docs.github.com/en/graphql/reference/commits),
 [Catylist ADR-0006](https://github.com/dlworrell/Catylist/blob/7a1ede0bb073477be226aa572fc3c20db3312df1/docs/adr/ADR-0006-default-branch-protection-and-signed-commits.md),
 [canonical publisher](https://github.com/dlworrell/repo_templates/blob/3f26587d7f3f84df0c2a510cd2d1cae4c2d25af7/tools/project_zero_commit.py).
+
