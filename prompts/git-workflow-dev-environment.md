@@ -78,21 +78,32 @@ Finish with a short table: each step, its result (`ok`, `fixed`, or
 
 ## The workflow
 
+Repositories that adopt Catylist ADR-0013 have three long-lived branches:
+
+| Branch | What it is | You |
+|---|---|---|
+| `dev-daily` | The daily merge scope for bug fixes and current issues | Branch from it and open pull requests into it |
+| `fitment` | Promoted daily work, where AEMS's agents review documentation and tests | Never target it directly; AEMS opens the promotion |
+| `main` | Released work | Never target it directly; AEMS opens the release candidate |
+
+In a repository without `dev-daily`, use `main` in its place below.
+
 ### Start work
 
 ```bash
 git fetch origin
-git switch --no-track -c feat/short-description origin/main
-git push -u origin feat/short-description
+git switch --no-track -c fix/42-short-description origin/dev-daily
+git push -u origin fix/42-short-description
 ```
 
-Use `feat/`, `fix/`, `docs/`, `chore/`, `refactor/` or `test/` with a short
-description. For parallel work, use a worktree instead of a second branch in
-the same checkout:
+Use `fix/<issue>-`, `feat/`, `docs/`, `chore/`, `refactor/` or `test/` with a
+short description. Check in at least daily: push your branch and open a draft
+pull request into `dev-daily` early, so CI and ring-0 run on your work. For
+parallel work, use a worktree instead of a second branch in the same checkout:
 
 ```bash
 git fetch origin
-git worktree add --no-track -b feat/other-work ../other-work origin/main
+git worktree add --no-track -b feat/other-work ../other-work origin/dev-daily
 ```
 
 ### Commit
@@ -100,22 +111,29 @@ git worktree add --no-track -b feat/other-work ../other-work origin/main
 - One logical change per commit, so it can be reverted or bisected on its own.
 - Subject in conventional form: `fix(parser): reject empty input`.
 - Body: what changed and why.
+- A commit that fixes an issue says `Fixes #<issue>` in its message. For a
+  fitment finding, that is what closes the issue once the fix reaches
+  `fitment`.
 - Agents add their trailers, for example
   `Co-Authored-By: Claude <noreply@anthropic.com>`.
 - Every commit is signed. If signing fails, stop and fix signing; never fall
   back to an unsigned commit.
 
-### Keep up with the default branch
+### Keep up with `dev-daily`
 
 ```bash
 git fetch origin
-git merge origin/main      # a merge commit, not a rebase
+git merge origin/dev-daily      # a merge commit, not a rebase
 ```
 
 Resolve conflicts in the merge, run the tests, and push. Never rebase or
 force-push a branch that has been pushed.
 
 ### Open the pull request
+
+- It targets `dev-daily` (or `main` in a repository without it). Pull
+  requests into `fitment` or `main` from anything but the promotion branches
+  fail the `fitment/source` check.
 
 - The body starts, for an agent, with its title line:
   `**Claude for @dlworrell**` (ADR-0011).
@@ -130,6 +148,19 @@ force-push a branch that has been pushed.
 - The `ring-0` and `ring-0/conduct` checks must pass. Don't skip, disable or
   weaken a test or check to get there (Law 6).
 
+### When the fitment review finds something
+
+AEMS reviews work after it is promoted to `fitment`. A finding arrives as an
+issue labelled `fitment` and assigned to whoever last changed the file.
+
+1. Read the finding and its remedy. If it is wrong, say why on the issue; the
+   owner closes it as not planned. Don't argue it away in code.
+2. Otherwise fix it on `fix/<issue>-<slug>` from `dev-daily`, with
+   `Fixes #<issue>` in the fix commit's message, and open the pull request
+   into `dev-daily`.
+3. `blocker` and `major` findings hold the release until their fixes reach
+   `fitment`. Fix those first.
+
 ### Merge and clean up
 
 - The pull request merges with a merge commit, by the owner. An agent never
@@ -137,7 +168,7 @@ force-push a branch that has been pushed.
 - After the merge, delete the remote branch and the local branch:
 
 ```bash
-git switch main && git pull --ff-only
+git switch dev-daily && git pull --ff-only
 git branch -d feat/short-description
 git push origin --delete feat/short-description
 ```
