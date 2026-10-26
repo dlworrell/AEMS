@@ -98,6 +98,25 @@ and the prompting user are listed and the post comes from that user's account.
 - It never approves, merges or deletes anything, and its check run states that
   it is AI review, not human review (ADR-0007 §2.6).
 
+## Opening automation pull requests (Catylist ADR-0012)
+
+Some repositories turn off "Allow GitHub Actions to create and approve pull
+requests", so a workflow can push its signed output branch but cannot open the
+pull request. For the branches listed under `automation_publishing` in
+`config/ring0.json`, the sweep opens it instead, with the token it already has.
+It opens one only when all of these hold:
+
+- the branch is one commit ahead of the default branch;
+- that commit was created and signed by GitHub (`web-flow`, verified, reason
+  `valid`) and authored by a listed workflow bot;
+- it changes only the listed paths; and
+- no pull request for the branch is already open.
+
+Anything else is recorded as a violation and reported in Catylist; the pull
+request is not opened. ring-0 never approves or merges these pull requests:
+the owner does. A repository needs only the App installed; it does not have
+to be in sweep coverage.
+
 ## Ledger
 
 Every evaluated input appends one JSON line to `ledger/YYYY/MM/DD.jsonl` on the

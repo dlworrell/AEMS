@@ -961,6 +961,84 @@ def prune_state(state: dict[str, Any], now: dt.datetime, days: int = 30) -> None
 
 
 # ---------------------------------------------------------------------------
+# Automation publication (Catylist ADR-0012)
+# ---------------------------------------------------------------------------
+
+PUBLICATION_ADR = "Catylist ADR-0012"
+GITHUB_COMMITTER = "web-flow"  # GitHub's own committer for API-created, GitHub-signed commits
+
+
+@dataclasses.dataclass(frozen=True)
+class PublishTarget:
+    """One workflow-owned branch that ring-0 may open a pull request for."""
+
+    branch: str
+    paths: tuple[str, ...]
+    authors: tuple[str, ...]
+
+    @classmethod
+    def parse(cls, value: Any, where: str) -> "PublishTarget":
+        if not isinstance(value, dict):
+            raise Ring0Error(f"{where}: each publishing target is an object")
+        branch = value.get("branch", "")
+        paths = value.get("paths") or []
+        authors = value.get("authors") or []
+        if not re.fullmatch(r"automation/[A-Za-z0-9._/-]+", branch) or ".." in branch:
+            raise Ring0Error(f"{where}: publishing branch {branch!r} must be under automation/")
+        if not paths or not all(isinstance(x, str) and x and not x.startswith("/") and ".." not in x for x in paths):
+            raise Ring0Error(f"{where}: {branch} needs relative paths")
+        if not authors or not all(isinstance(x, str) and x for x in authors):
+            raise Ring0Error(f"{where}: {branch} needs the bot logins allowed to author its commit")
+        return cls(branch, tuple(paths), tuple(a.lower() for a in authors))
+
+    def covers(self, filename: str) -> bool:
+        return any(filename == p or filename.startswith(p.rstrip("/") + "/") for p in self.paths)
+
+
+def publication_refusal(target: PublishTarget, compare: dict[str, Any]) -> str | None:
+    """Why ring-0 must not open a pull request for this branch, or None if it may.
+
+    The branch must hold exactly one commit beyond the default branch, created
+    and signed by GitHub, authored by an allowed workflow bot, and touching only
+    the target's paths. Anything else is not the workflow's verified output.
+    """
+    commits = compare.get("commits") or []
+    if compare.get("ahead_by") != 1 or len(commits) != 1:
+        return f"{target.branch} is {compare.get('ahead_by')} commits ahead; exactly one generated commit is expected"
+    commit = commits[0]
+    verification = (commit.get("commit") or {}).get("verification") or {}
+    if verification.get("verified") is not True or verification.get("reason") != "valid":
+        return f"{target.branch} head {str(commit.get('sha', ''))[:12]} is not GitHub-verified"
+    author = ((commit.get("author") or {}).get("login") or "").lower()
+    if author not in target.authors:
+        return f"{target.branch} head is authored by {author or 'an unknown account'}, not {', '.join(target.authors)}"
+    if ((commit.get("committer") or {}).get("login") or "") != GITHUB_COMMITTER:
+        return f"{target.branch} head was not committed and signed by GitHub"
+    files = [f.get("filename", "") for f in compare.get("files") or []]
+    if not files:
+        return f"{target.branch} changes no files"
+    outside = [f for f in files if not target.covers(f)]
+    if outside:
+        return f"{target.branch} changes files outside {', '.join(target.paths)}: {', '.join(outside[:5])}"
+    return None
+
+
+def publication_body(target: PublishTarget, owner: str, commit: dict[str, Any], files: int) -> str:
+    sha = commit.get("sha", "")
+    author = (commit.get("author") or {}).get("login", "")
+    return "\n".join([
+        f"ring-0 opened this pull request for the workflow-generated branch `{target.branch}`.",
+        "",
+        f"- Commit: {sha} (signed by GitHub, authored by {author})",
+        f"- Files: {files} under {', '.join(f'`{p}`' for p in target.paths)}",
+        "",
+        f"ring-0 only opens it; it never approves or merges. @{owner} reviews and merges.",
+        "",
+        f"ADR: {PUBLICATION_ADR} (ring-0 opens verified automation pull requests)",
+    ])
+
+
+# ---------------------------------------------------------------------------
 # Sweep
 # ---------------------------------------------------------------------------
 
@@ -973,6 +1051,7 @@ class Config:
     effort: str
     repositories: list[str]
     standing_adr: dict[str, dict[str, str]]
+    publishing: dict[str, list["PublishTarget"]] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def load(cls, path: Path) -> "Config":
@@ -985,9 +1064,15 @@ class Config:
                 raise Ring0Error(f"{path}: invalid repository name {name!r}")
         if data.get("effort") not in ("low", "medium", "high", "xhigh", "max"):
             raise Ring0Error(f"{path}: effort must be low, medium, high, xhigh or max")
+        publishing: dict[str, list[PublishTarget]] = {}
+        for name, targets in (data.get("automation_publishing") or {}).items():
+            if not FULL_NAME_PATTERN.match(name) or not isinstance(targets, list):
+                raise Ring0Error(f"{path}: invalid automation_publishing entry {name!r}")
+            publishing[name] = [PublishTarget.parse(t, f"{path}: {name}") for t in targets]
         return cls(data["catylist"], data["ledger_repository"], data["model"], data["effort"],
                    sorted(set(repos)), {k: {a.lower(): v for a, v in m.items()}
-                                        for k, m in (data.get("standing_adr") or {}).items()})
+                                        for k, m in (data.get("standing_adr") or {}).items()},
+                   publishing)
 
 
 class Sweep:
@@ -1060,6 +1145,16 @@ class Sweep:
         self.trusted = self.trusted | parse_trust_file(trust)
         installed = {r["full_name"] for r in self.gh.get_all("/installation/repositories?per_page=100")}
         targets = [r for r in self.config.repositories if not repo_filter or r in repo_filter]
+        for repository in sorted(self.config.publishing):
+            if repo_filter and repository not in repo_filter:
+                continue
+            if repository not in installed:
+                self.errors.append(f"{repository}: the {APP_SLUG} App is not installed")
+                continue
+            try:
+                self.publish_automation(repository)
+            except GitHubError as exc:
+                self.errors.append(f"{repository}: {exc}")
         for repository in targets:
             if repository not in installed:
                 self.errors.append(f"{repository}: the {APP_SLUG} App is not installed")
@@ -1081,6 +1176,52 @@ class Sweep:
         for item in self.conversation_items(repository, since):
             self.evaluate_conversation(repository, item)
         self.evaluate_events(repository, since)
+
+    # -- automation publication (Catylist ADR-0012) ----------------------
+
+    def publish_automation(self, repository: str) -> None:
+        owner = repository.split("/")[0]
+        default = (self.gh.get(f"/repos/{repository}") or {}).get("default_branch") or "main"
+        for target in self.config.publishing[repository]:
+            if target.branch == default:
+                self.errors.append(f"{repository}: refusing to publish the default branch")
+                continue
+            try:
+                compare = self.gh.get(f"/repos/{repository}/compare/{default}...{target.branch}") or {}
+            except GitHubError as exc:
+                if exc.status == 404:
+                    continue  # the workflow has not published this branch yet
+                raise
+            if compare.get("ahead_by") == 0:
+                continue  # already merged, or nothing generated
+            existing = self.gh.get_all(
+                f"/repos/{repository}/pulls?state=open&head={owner}:{target.branch}&base={default}&per_page=10")
+            if existing:
+                continue
+            refusal = publication_refusal(target, compare)
+            commit = (compare.get("commits") or [{}])[-1]
+            ref = f"{target.branch}@{str(commit.get('sha', ''))[:12]}"
+            url = compare.get("html_url", f"https://github.com/{repository}/tree/{target.branch}")
+            key = f"{repository}#publish:{target.branch}:{commit.get('sha', '')}"
+            author = (commit.get("author") or {}).get("login", "")
+            if refusal:
+                findings = [Finding(3, VIOLATION, refusal, target.branch,
+                                    "Regenerate the branch with the signed publisher; ring-0 will not open it.")]
+                record = self.record(repository=repository, kind="automation_publication", ref=ref, url=url,
+                                     author=author, trusted=False, body=refusal, outcome=VIOLATION,
+                                     findings=findings, action="not opened")
+                self.report_violation(key, record, findings)
+                continue
+            message = (commit.get("commit") or {}).get("message") or target.branch
+            body = publication_body(target, owner, commit, len(compare.get("files") or []))
+            action = "would open a pull request (dry run)"
+            if not self.dry_run:
+                opened = self.gh.post(f"/repos/{repository}/pulls", {
+                    "title": message.splitlines()[0][:200], "head": target.branch, "base": default,
+                    "body": body, "maintainer_can_modify": False})
+                action = f"opened pull request #{(opened or {}).get('number', '?')}"
+            self.record(repository=repository, kind="automation_publication", ref=ref, url=url, author=author,
+                        trusted=False, body=body, outcome=PASS, findings=[], action=action)
 
     # -- pull requests ---------------------------------------------------
 
@@ -1388,8 +1529,8 @@ def main(argv: list[str] | None = None) -> int:
         raise Ring0Error("RING0_APP_TOKEN is required (the catylist-ring-0 installation token)")
     repo_filter = [r.strip() for r in args.repos.split(",") if r.strip()]
     for name in repo_filter:
-        if name not in config.repositories:
-            raise Ring0Error(f"{name} is not a covered repository in {args.config}")
+        if name not in config.repositories and name not in config.publishing:
+            raise Ring0Error(f"{name} is neither covered nor published for in {args.config}")
     github = GitHubClient(app_token)
     ledger_token = os.environ.get("LEDGER_TOKEN")
     ledger = LedgerStore(GitHubClient(ledger_token) if ledger_token else None, config.ledger_repository,

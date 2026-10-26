@@ -393,8 +393,8 @@ def comment(body: str, user: str = "visitor", node: str = "IC_1", updated: str =
 
 
 def make_sweep(gh: FakeGitHub, responder=None, key=FAKE_ANTHROPIC_KEY, trusted=frozenset(), dry_run=False,
-               state=None, tmp=None):
-    config = r0.Config(CATYLIST, "dlworrell/AEMS", "claude-opus-5-5", "medium", [REPO], {})
+               state=None, tmp=None, publishing=None):
+    config = r0.Config(CATYLIST, "dlworrell/AEMS", "claude-opus-5-5", "medium", [REPO], {}, publishing or {})
     ledger = r0.LedgerStore(None, "dlworrell/AEMS", dry_run, Path(tmp))
     if state is not None:
         ledger.load_state = lambda: state  # type: ignore[assignment]
@@ -636,6 +636,110 @@ class ConfigTests(unittest.TestCase):
         for change in ({"schema": "x"}, {"repositories": ["not a repo"]}, {"effort": "extreme"}):
             with self.assertRaises(r0.Ring0Error):
                 r0.Config.load(self.write({**good, **change}))
+
+
+PUB_REPO = "dlworrell/atarix"
+PUB_BRANCH = "automation/project-zero-inventory"
+PUB_TARGET = r0.PublishTarget(PUB_BRANCH, ("project-zero/inventory/current/",), ("github-actions[bot]",))
+GEN = "c" * 40
+
+
+def generated(sha=GEN, verified=True, reason="valid", author="github-actions[bot]", committer="web-flow"):
+    return {"sha": sha, "author": {"login": author}, "committer": {"login": committer},
+            "commit": {"message": "chore: update Project Zero inventory\n\nbody",
+                       "verification": {"verified": verified, "reason": reason}}}
+
+
+def compare(commits=None, files=None, ahead=None):
+    commits = [generated()] if commits is None else commits
+    return {"ahead_by": len(commits) if ahead is None else ahead, "commits": commits,
+            "html_url": f"https://github.com/{PUB_REPO}/compare/main...{PUB_BRANCH}",
+            "files": [{"filename": f} for f in (files or ["project-zero/inventory/current/README.md"])]}
+
+
+class PublicationRefusalTests(unittest.TestCase):
+    def test_single_github_signed_generated_commit_is_accepted(self):
+        self.assertIsNone(r0.publication_refusal(PUB_TARGET, compare()))
+
+    def test_everything_else_is_refused(self):
+        cases = {
+            "commits ahead": compare(commits=[generated(), generated("d" * 40)]),
+            "not GitHub-verified": compare(commits=[generated(verified=False, reason="unsigned")]),
+            "not GitHub-verified ": compare(commits=[generated(reason="unknown_key")]),
+            "authored by dlworrell": compare(commits=[generated(author="dlworrell")]),
+            "not committed and signed by GitHub": compare(commits=[generated(committer="someone")]),
+            "outside": compare(files=["project-zero/inventory/current/x.txt", ".github/workflows/ci.yml"]),
+            "changes no files": {**compare(), "files": []},
+        }
+        for expected, value in cases.items():
+            with self.subTest(expected):
+                self.assertIn(expected.strip(), r0.publication_refusal(PUB_TARGET, value) or "")
+
+    def test_path_prefix_is_a_directory_boundary(self):
+        self.assertTrue(PUB_TARGET.covers("project-zero/inventory/current/a.txt"))
+        self.assertFalse(PUB_TARGET.covers("project-zero/inventory/current-evil/a.txt"))
+
+    def test_config_rejects_unsafe_targets(self):
+        for value in ({"branch": "main", "paths": ["a/"], "authors": ["b"]},
+                      {"branch": "automation/../main", "paths": ["a/"], "authors": ["b"]},
+                      {"branch": "automation/x", "paths": [], "authors": ["b"]},
+                      {"branch": "automation/x", "paths": ["../a"], "authors": ["b"]},
+                      {"branch": "automation/x", "paths": ["a/"], "authors": []}):
+            with self.subTest(value=value), self.assertRaises(r0.Ring0Error):
+                r0.PublishTarget.parse(value, "test")
+
+
+class PublicationSweepTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def run_sweep(self, comparison, open_prs=None, dry_run=False):
+        gh = FakeGitHub(routes(**{
+            "/installation/repositories": {"repositories": [{"full_name": REPO}, {"full_name": PUB_REPO}]},
+            f"/repos/{PUB_REPO}": {"default_branch": "main"},
+            f"/repos/{PUB_REPO}/compare/main...{PUB_BRANCH}": comparison,
+            f"/repos/{PUB_REPO}/pulls?state=open&head=dlworrell:{PUB_BRANCH}&base=main&per_page=10": open_prs or [],
+        }))
+        sweep, _ = make_sweep(gh, dry_run=dry_run, tmp=self.tmp.name, publishing={PUB_REPO: [PUB_TARGET]})
+        status = sweep.run()
+        return gh, sweep, status
+
+    def test_verified_branch_gets_a_pull_request_without_approval(self):
+        gh, sweep, status = self.run_sweep(compare())
+        self.assertEqual(status, 0, sweep.errors)
+        opened = [b for p, b in gh.posts if p == f"/repos/{PUB_REPO}/pulls"]
+        self.assertEqual(len(opened), 1)
+        self.assertEqual((opened[0]["head"], opened[0]["base"]), (PUB_BRANCH, "main"))
+        self.assertEqual(opened[0]["title"], "chore: update Project Zero inventory")
+        self.assertIn(GEN, opened[0]["body"])
+        self.assertEqual(r0.parse_adr_line(opened[0]["body"])[0], "refs")
+        self.assertIn("never approves or merges", opened[0]["body"])
+        self.assertFalse(any("/reviews" in p or "/merge" in p for p, _ in gh.posts + gh.puts))
+        self.assertEqual(sweep.ledger.records[0]["action"], "opened pull request #1")
+
+    def test_existing_pull_request_is_not_duplicated(self):
+        gh, _, _ = self.run_sweep(compare(), open_prs=[{"number": 63}])
+        self.assertFalse([p for p, _ in gh.posts if p == f"/repos/{PUB_REPO}/pulls"])
+
+    def test_unverified_branch_is_reported_not_opened(self):
+        gh, sweep, _ = self.run_sweep(compare(commits=[generated(verified=False, reason="unsigned")]))
+        self.assertFalse([p for p, _ in gh.posts if p == f"/repos/{PUB_REPO}/pulls"])
+        self.assertEqual(len([p for p, _ in gh.posts if p == f"/repos/{CATYLIST}/issues"]), 1)
+        self.assertEqual(sweep.ledger.records[0]["outcome"], "violation")
+
+    def test_merged_or_missing_branch_is_skipped(self):
+        gh, sweep, status = self.run_sweep(compare(commits=[], ahead=0))
+        self.assertEqual((status, gh.posts, sweep.ledger.records), (0, [], []))
+        gh, sweep, status = self.run_sweep(r0.GitHubError(404, "missing"))
+        self.assertEqual((status, gh.posts), (0, []))
+
+    def test_dry_run_only_records(self):
+        gh, sweep, _ = self.run_sweep(compare(), dry_run=True)
+        self.assertEqual(gh.posts, [])
+        self.assertIn("dry run", sweep.ledger.records[0]["action"])
 
 
 if __name__ == "__main__":
