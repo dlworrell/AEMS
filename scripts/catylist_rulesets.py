@@ -51,8 +51,10 @@ INTEGRATION_BRANCHES = ("dev-daily", "fitment")
 FITMENT_CONFIG_SCHEMA = "aems.fitment-config.v1"
 DEFAULT_FITMENT_CONFIG = Path(__file__).resolve().parents[1] / "config" / "fitment.json"
 
-# Legacy explicit opt-in for the optional experimental ruleset sandbox. It is
-# never a required testbed or adoption gate (Catylist ADR-0014). Once its
+# Legacy explicit opt-in for ruleset sandbox experiments. Pending Catylist
+# ADR-0014 proposes removing the named testbed/adoption prerequisite; it has
+# not been accepted upstream. See the retained proposal in
+# docs/engineering/Catylist-experimental-sandbox-20261026.patch. Once its
 # experimental inventory entry lands, normal inventory selection applies.
 SANDBOX_REPOSITORY = "dlworrell/ruleset-sandbox"
 
