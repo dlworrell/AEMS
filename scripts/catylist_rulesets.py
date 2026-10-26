@@ -41,6 +41,16 @@ TAG_RULESET_PATH = "rulesets/protect-release-tags.json"
 BRANCH_RULESET_NAME = "protect-default-branch"
 TAG_RULESET_NAME = "protect-release-tags"
 
+# Catylist ADR-0013: dev-daily and fitment get the default-branch rules, but
+# only in repositories that have adopted the daily and fitment branches. The
+# adopted set is AEMS config/fitment.json, and both branches must exist before
+# the ruleset is applied.
+INTEGRATION_RULESET_PATH = "rulesets/protect-integration-branches.json"
+INTEGRATION_RULESET_NAME = "protect-integration-branches"
+INTEGRATION_BRANCHES = ("dev-daily", "fitment")
+FITMENT_CONFIG_SCHEMA = "aems.fitment-config.v1"
+DEFAULT_FITMENT_CONFIG = Path(__file__).resolve().parents[1] / "config" / "fitment.json"
+
 # The ruleset sandbox is not a Catalyst repository and is therefore not in the
 # inventory. It is the only name the repository filter may select outside the
 # inventory, so that a rollout can start there (ADR-0006 rollout order).
@@ -236,6 +246,32 @@ def validate_desired_ruleset(
         "bypass_actors": [],
         "rules": copy.deepcopy(rules),
     }
+
+
+def load_adopted(path: Path) -> frozenset[str]:
+    """Return the lower-cased repositories that adopted Catylist ADR-0013."""
+
+    if not path.is_file():
+        return frozenset()
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or data.get("schema") != FITMENT_CONFIG_SCHEMA:
+        raise PlanError(f"{path}: schema must be {FITMENT_CONFIG_SCHEMA}")
+    names = data.get("repositories")
+    if not isinstance(names, list) or not all(
+        isinstance(n, str) and FULL_NAME_PATTERN.fullmatch(n) for n in names
+    ):
+        raise PlanError(f"{path}: repositories must be a list of owner/name")
+    return frozenset(n.lower() for n in names)
+
+
+def desired_for(
+    repository: str, desired: list[dict[str, Any]], adopted: frozenset[str]
+) -> list[dict[str, Any]]:
+    """The baseline rulesets that apply to one repository."""
+
+    if repository.lower() in adopted:
+        return list(desired)
+    return [r for r in desired if r["name"] != INTEGRATION_RULESET_NAME]
 
 
 # ---------------------------------------------------------------------------
@@ -439,7 +475,7 @@ def build_report(
             },
             "rulesets": {
                 "repository": TEMPLATES_REPOSITORY,
-                "paths": [BRANCH_RULESET_PATH, TAG_RULESET_PATH],
+                "paths": [BRANCH_RULESET_PATH, TAG_RULESET_PATH, INTEGRATION_RULESET_PATH],
                 "ref": templates_ref,
             },
         },
@@ -742,6 +778,18 @@ def process_repository(
         "after": None,
     }
     try:
+        if INTEGRATION_RULESET_NAME in names:
+            for branch in INTEGRATION_BRANCHES:
+                try:
+                    client.request("GET", f"/repos/{repository}/branches/{branch}")
+                except GitHubError as exc:
+                    if exc.status == 404:
+                        raise PlanError(
+                            f"{repository}: create the {branch} branch from the "
+                            "default branch before applying "
+                            f"{INTEGRATION_RULESET_NAME}"
+                        ) from None
+                    raise
         managed, settings, unmanaged = collect_state(client, repository, names)
         result["unmanaged_rulesets"] = unmanaged
         before = plan_repository(repository, desired_rulesets, managed, settings)
@@ -768,9 +816,9 @@ def process_repository(
 
 
 def load_desired_rulesets(
-    client: GitHubClient, templates_ref: str
+    client: GitHubClient, templates_ref: str, *, integration: bool = False
 ) -> list[dict[str, Any]]:
-    return [
+    rulesets = [
         validate_desired_ruleset(
             client.get_file(TEMPLATES_REPOSITORY, BRANCH_RULESET_PATH, templates_ref),
             expected_name=BRANCH_RULESET_NAME,
@@ -782,6 +830,15 @@ def load_desired_rulesets(
             expected_target="tag",
         ),
     ]
+    if integration:
+        rulesets.append(
+            validate_desired_ruleset(
+                client.get_file(TEMPLATES_REPOSITORY, INTEGRATION_RULESET_PATH, templates_ref),
+                expected_name=INTEGRATION_RULESET_NAME,
+                expected_target="branch",
+            )
+        )
+    return rulesets
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -806,6 +863,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.set_defaults(apply=False)
     parser.add_argument("--output-dir", type=Path,
                         default=Path("build/aems/catylist-rulesets"))
+    parser.add_argument("--fitment-config", type=Path, default=DEFAULT_FITMENT_CONFIG,
+                        help="repositories that adopted Catylist ADR-0013 (integration-branch ruleset)")
     return parser.parse_args(argv)
 
 
@@ -833,13 +892,19 @@ def main(argv: list[str] | None = None) -> int:
     try:
         inventory = source.get_file(CATYLIST_REPOSITORY, INVENTORY_PATH, catylist_ref)
         selected, skipped = select_repositories(inventory, repos_filter)
-        desired = load_desired_rulesets(source, templates_ref)
+        adopted = load_adopted(args.fitment_config)
+        desired = load_desired_rulesets(
+            source, templates_ref,
+            integration=any(r.lower() in adopted for r in selected),
+        )
     except (GitHubError, PlanError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
     results = [
-        process_repository(admin, repository, desired, apply=args.apply)
+        process_repository(
+            admin, repository, desired_for(repository, desired, adopted), apply=args.apply
+        )
         for repository in selected
     ]
     report = build_report(

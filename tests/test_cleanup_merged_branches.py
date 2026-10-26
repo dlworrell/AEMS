@@ -377,10 +377,10 @@ class InputTests(unittest.TestCase):
         self.assertNotIn(cmb.SANDBOX_REPOSITORY, selected)
 
     def test_keep_patterns_always_include_backup(self) -> None:
-        self.assertEqual(cmb.parse_keep_patterns(""), ["backup/*"])
+        self.assertEqual(cmb.parse_keep_patterns(""), ["backup/*", "dev-daily", "fitment"])
         self.assertEqual(
             cmb.parse_keep_patterns(" release/*, ,backup/*"),
-            ["backup/*", "release/*"],
+            ["backup/*", "dev-daily", "fitment", "release/*"],
         )
 
 

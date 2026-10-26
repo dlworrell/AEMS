@@ -362,5 +362,67 @@ class ProcessTests(unittest.TestCase):
         self.assertIn("dlworrell/CLK", markdown)
 
 
+INTEGRATION_RULESET = dict(
+    copy.deepcopy(BRANCH_RULESET),
+    name="protect-integration-branches",
+    conditions={"ref_name": {"include": ["refs/heads/dev-daily", "refs/heads/fitment"], "exclude": []}},
+)
+
+
+def desired_with_integration() -> list[dict]:
+    return desired() + [cr.validate_desired_ruleset(
+        INTEGRATION_RULESET, expected_name="protect-integration-branches", expected_target="branch")]
+
+
+class MissingBranchClient(FakeClient):
+    def __init__(self, missing: str, *args) -> None:
+        super().__init__(*args)
+        self.missing = missing
+
+    def request(self, method: str, path: str, body=None):
+        if method == "GET" and path.endswith(f"/branches/{self.missing}"):
+            raise cr.GitHubError(404, "Branch not found")
+        return super().request(method, path, body)
+
+
+class IntegrationBranchTests(unittest.TestCase):
+    """Catylist ADR-0013: dev-daily and fitment only where adopted."""
+
+    def write_config(self, names: list[str]) -> Path:
+        import json, tempfile
+        tmp = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        json.dump({"schema": "aems.fitment-config.v1", "repositories": names}, tmp)
+        tmp.close()
+        self.addCleanup(Path(tmp.name).unlink)
+        return Path(tmp.name)
+
+    def test_only_adopted_repositories_get_the_integration_ruleset(self) -> None:
+        adopted = cr.load_adopted(self.write_config(["dlworrell/ruleset-sandbox"]))
+        names = lambda repo: [r["name"] for r in cr.desired_for(repo, desired_with_integration(), adopted)]
+        self.assertIn("protect-integration-branches", names("dlworrell/Ruleset-Sandbox"))
+        self.assertNotIn("protect-integration-branches", names("dlworrell/AEMS"))
+
+    def test_missing_config_adopts_nothing_and_bad_config_is_refused(self) -> None:
+        self.assertEqual(cr.load_adopted(Path("/nonexistent/fitment.json")), frozenset())
+        with self.assertRaises(cr.PlanError):
+            cr.load_adopted(self.write_config(["not a repo"]))
+
+    def test_branches_must_exist_before_the_ruleset_is_applied(self) -> None:
+        for branch in ("dev-daily", "fitment"):
+            with self.subTest(branch=branch):
+                client = MissingBranchClient(branch, [], COMPLIANT_SETTINGS)
+                result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+                self.assertEqual(result["status"], "error")
+                self.assertIn(f"create the {branch} branch", result["error"])
+                self.assertEqual(client.writes, [])
+
+    def test_existing_branches_get_the_ruleset_created(self) -> None:
+        client = FakeClient([], COMPLIANT_SETTINGS)
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+        self.assertEqual(result["status"], "applied", result.get("error"))
+        created = {r["name"] for r in client.rulesets.values()}
+        self.assertIn("protect-integration-branches", created)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -33,7 +33,8 @@ A branch is deleted only if ALL of the following hold:
    (`protected: true` in the branches API).
 2. It is not the head or the base of any OPEN pull request in that
    repository.
-3. Its name does not match a keep pattern: `backup/*` always, plus the
+3. Its name does not match a keep pattern: `backup/*`, `dev-daily` and
+   `fitment` (Catylist ADR-0013) always, plus the
    optional `keep` input (comma-separated `fnmatch` patterns).
 4. EITHER (a) a MERGED pull request (`merged_at` non-null) has this branch as
    its head AND the branch's current tip SHA equals that pull request's
@@ -78,7 +79,7 @@ commits that are in neither place are kept by rule 4.
 |---|---|---|---|
 | `dry_run` | no | `true` | Report only. Set it to `false` to delete. |
 | `repos` | no | empty | A comma-separated `full_name` filter, applied after the policy filter. |
-| `keep` | no | empty | Extra comma-separated `fnmatch` keep patterns. `backup/*` is always kept. |
+| `keep` | no | empty | Extra comma-separated `fnmatch` keep patterns. `backup/*`, `dev-daily` and `fitment` are always kept. |
 | `catylist_ref` | yes | none | The 40-hex commit SHA of dlworrell/Catylist. |
 
 The target set is every entry in `inventory/repositories.json`
