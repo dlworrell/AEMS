@@ -37,7 +37,10 @@ repository in `config/fitment.json` it:
 | Gate | `fitment` on the `fitment` head fails while another check on it fails, a `blocker` or `major` fitment issue is open, or the review could not run |
 | Promotion | Opens `dev-daily` → `fitment` when `dev-daily` is ahead and its CI is green, and `fitment` → `main` when the gate passes |
 
-It never approves, merges or pushes. The owner merges every promotion.
+It never approves, merges or pushes. The owner merges every promotion. It opens a promotion
+only from a branch a ruleset protects from deletion (`protect-integration-branches`);
+otherwise merging it would let "delete branch on merge" remove `dev-daily` or
+`fitment`, as happened once in the atarix trial.
 
 ## For contributors
 

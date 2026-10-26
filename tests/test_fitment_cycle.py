@@ -125,6 +125,8 @@ def routes(**extra) -> dict:
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:dev-daily&base=fitment&per_page=10": [],
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:fitment&base=main&per_page=10": [],
         f"/repos/{REPO}/commits": [{"author": {"login": "contributor"}}],
+        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}, {"type": "pull_request"}],
+        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}, {"type": "pull_request"}],
     }
     base.update(extra)
     return base
@@ -358,6 +360,19 @@ class CycleTests(unittest.TestCase):
         }))
         self.make(gh, state={"repos": {REPO: {"reviewed": FIT}}, "posted": {}}).run()
         self.assertFalse([b for p, b in gh.posts if p == f"/repos/{REPO}/pulls"])
+
+    def test_unprotected_head_branch_is_never_promoted(self):
+        # Regression: atarix #86 merged dev-daily into fitment before
+        # protect-integration-branches applied; delete-on-merge removed
+        # dev-daily and GitHub retargeted atarix #83 to fitment.
+        for branch, extra in (("dev-daily", {f"/repos/{REPO}/compare/fitment...dev-daily": {"ahead_by": 2}}),
+                              ("fitment", {f"/repos/{REPO}/compare/main...fitment": promoted()})):
+            with self.subTest(branch=branch):
+                gh = FakeGitHub(routes(**extra, **{f"/repos/{REPO}/rules/branches/{branch}": []}))
+                cycle = self.make(gh, state={"repos": {REPO: {"reviewed": FIT}}, "posted": {}})
+                self.assertEqual(cycle.run(), 1)
+                self.assertFalse([b for p, b in gh.posts if p == f"/repos/{REPO}/pulls"])
+                self.assertIn("not protected from deletion", cycle.errors[0])
 
     def test_red_dev_daily_is_not_promoted(self):
         gh = FakeGitHub(routes(**{
