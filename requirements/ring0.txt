@@ -1,0 +1,3 @@
+# Installed only by .github/workflows/ring-0-sweep.yml for the AI enforcer.
+# The rest of AEMS stays standard-library only.
+anthropic==2.3.0

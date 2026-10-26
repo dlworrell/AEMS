@@ -1,0 +1,35 @@
+{
+  "schema": "aems.ring0-config.v1",
+  "description": "Ring 0 sweep coverage (Catylist ADR-0000 and ADR-0010). A repository is added here when it adopts ADR-0000, after the ruleset-sandbox trial. standing_adr maps a repository to bot logins whose automated pull requests are covered by a standing ADR (Code, Law 1). automation_publishing lists workflow-owned automation/ branches that ring-0 may open pull requests for (Catylist ADR-0012): exactly one GitHub-signed commit by an allowed bot, touching only the listed paths.",
+  "catylist": "dlworrell/Catylist",
+  "ledger_repository": "dlworrell/AEMS",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "repositories": [
+    "dlworrell/ruleset-sandbox"
+  ],
+  "standing_adr": {},
+  "automation_publishing": {
+    "dlworrell/atarix": [
+      {
+        "branch": "automation/project-zero-inventory",
+        "paths": [
+          "project-zero/inventory/current/"
+        ],
+        "authors": [
+          "github-actions[bot]"
+        ]
+      },
+      {
+        "branch": "automation/document-authority-census",
+        "paths": [
+          "docs/engineering/reports/document-authority-census.md",
+          "docs/engineering/reports/document-authority-census.json"
+        ],
+        "authors": [
+          "github-actions[bot]"
+        ]
+      }
+    ]
+  }
+}
