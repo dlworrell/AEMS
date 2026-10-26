@@ -593,6 +593,22 @@ class SweepTests(unittest.TestCase):
         self.assertEqual(gh.mutations, [])
         self.assertEqual(sweep.ledger.records[0]["trust"], "trusted")
 
+    def test_trust_file_in_catylist_is_read(self):
+        trust = {"schema": r0.TRUST_SCHEMA, "people": [{"login": "visitor"}],
+                 "agents": [{"name": "claude", "github_login": "claude"}, {"name": "notion", "github_login": None}]}
+        gh = FakeGitHub(routes(**{f"/repos/{CATYLIST}/contents/{r0.TRUST_FILE}": b64(json.dumps(trust)),
+                                  f"/repos/{REPO}/issues/comments": [comment("hello", user="visitor")]}))
+        sweep, _ = make_sweep(gh, key=None, tmp=self.tmp.name)
+        sweep.run()
+        self.assertEqual(sweep.trusted, frozenset({"visitor", "claude", "notion"}))
+        self.assertEqual(gh.mutations, [])
+
+    def test_bad_trust_file_stops_the_sweep(self):
+        gh = FakeGitHub(routes(**{f"/repos/{CATYLIST}/contents/{r0.TRUST_FILE}": b64("{\"schema\": \"x\"}")}))
+        sweep, _ = make_sweep(gh, tmp=self.tmp.name)
+        with self.assertRaises(r0.Ring0Error):
+            sweep.run()
+
     def test_uninstalled_repository_is_an_error(self):
         gh = FakeGitHub(routes(**{"/installation/repositories": {"repositories": []}}))
         sweep, _ = make_sweep(gh, tmp=self.tmp.name)

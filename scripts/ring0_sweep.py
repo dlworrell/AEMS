@@ -171,6 +171,28 @@ def moderation_action(outcome: str, trusted: bool) -> str:
     return "show"
 
 
+TRUST_FILE = "inventory/trusted-contributors.json"
+TRUST_SCHEMA = "catylist.trusted-contributors.v1"
+
+
+def parse_trust_file(text: str | None) -> frozenset[str]:
+    """Read Catylist's trusted-contributor file (ADR-0011): people and agents."""
+    if not text:
+        return frozenset()
+    try:
+        document = json.loads(text)
+    except ValueError:
+        raise Ring0Error(f"{TRUST_FILE} is not valid JSON") from None
+    if document.get("schema") != TRUST_SCHEMA:
+        raise Ring0Error(f"{TRUST_FILE}: schema must be {TRUST_SCHEMA}")
+    names = {p.get("login", "") for p in document.get("people") or [] if isinstance(p, dict)}
+    for agent in document.get("agents") or []:
+        if isinstance(agent, dict):
+            names.add(agent.get("name") or "")
+            names.add(agent.get("github_login") or "")
+    return frozenset(n.lower() for n in names if n)
+
+
 def parse_trusted(value: str | None) -> frozenset[str]:
     if not value:
         return frozenset()
@@ -1029,6 +1051,13 @@ class Sweep:
         self.state = self.ledger.load_state()
         code = self.gh.get(f"/repos/{self.config.catylist}/contents/CODE_OF_CONDUCT.md")
         self.code_version = parse_code_version(decode_content(code))
+        try:
+            trust = decode_content(self.gh.get(f"/repos/{self.config.catylist}/contents/{TRUST_FILE}"))
+        except GitHubError as exc:
+            if exc.status != 404:
+                raise
+            trust = None
+        self.trusted = self.trusted | parse_trust_file(trust)
         installed = {r["full_name"] for r in self.gh.get_all("/installation/repositories?per_page=100")}
         targets = [r for r in self.config.repositories if not repo_filter or r in repo_filter]
         for repository in targets:
@@ -1328,7 +1357,7 @@ def render_summary(sweep: Sweep) -> str:
              f"- Code version: {sweep.code_version or 'unknown'}",
              f"- Mode: {'dry run (nothing written to GitHub)' if sweep.dry_run else 'enforce'}",
              f"- AI enforcer: {'configured' if sweep.enforcer.available else 'not configured (conduct results are indeterminate)'}",
-             f"- Trusted contributors: {len(sweep.trusted)}",
+             f"- Trusted entries: {', '.join(sorted(sweep.trusted)) or 'none (everyone is untrusted)'}",
              f"- Inputs evaluated: {len(sweep.summary)}", ""]
     if sweep.summary:
         lines += ["| Repository | Kind | Ref | Outcome | Action |", "|---|---|---|---|---|"]

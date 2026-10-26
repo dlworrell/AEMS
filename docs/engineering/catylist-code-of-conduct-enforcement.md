@@ -69,9 +69,11 @@ The sweep checks it on every input (Law 4):
 ## Trust
 
 Every contributor is untrusted until listed in the trusted-contributor list
-(ADR-0010 section 3). The sweep reads it from the AEMS secret `RING0_TRUSTED`
-(entries separated by commas or newlines) until Catylist decides where it
-lives. An empty or missing list means everyone is untrusted.
+(ADR-0010 section 3). The list is Catylist's
+`inventory/trusted-contributors.json` (ADR-0011), read at Catylist's default
+branch on every sweep; a malformed file stops the sweep. The optional AEMS
+secret `RING0_TRUSTED` (entries separated by commas or newlines) adds entries
+for testing. An empty or missing list means everyone is untrusted.
 
 Entries are GitHub logins (for example `dlworrell`) and agent names (`claude`,
 `chatgpt`, `notion`). An agent-titled post is trusted only when both the agent
@@ -116,7 +118,7 @@ are retried on every sweep.
   required checks from the `catylist-ring-0` App.
 - **Secrets (AEMS):** `RING0_APP_PRIVATE_KEY` (required), `ANTHROPIC_API_KEY`
   (without it `ring-0/conduct` is always indeterminate), `RING0_TRUSTED`
-  (optional). The workflow uses the `ring-0` environment; restricting that
+  (optional; the trusted list itself is the Catylist file). The workflow uses the `ring-0` environment; restricting that
   environment to the `main` branch keeps the secrets out of other branches.
 
 ## Known limits
