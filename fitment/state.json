@@ -1,23 +1,21 @@
 {
   "posted": {
-    "dlworrell/AEMS:fitment:031e1ee09c603ace8f9d442b3aabba74916af87c": "failure:Not ready for release:e77e252a8413",
+    "dlworrell/AEMS:fitment:031e1ee09c603ace8f9d442b3aabba74916af87c": "success:Ready for release:a2986abf84d7",
     "dlworrell/AEMS:fitment:268089d78e4c58f16fbcc2edfdcdcd2914543c81": "failure:Not ready for release:3ac74736bd47",
     "dlworrell/AEMS:fitment:ecad36ecca1ac98628fa3ea9e4422e6b6bca73b7": "failure:Not ready for release:e77e252a8413",
     "dlworrell/atarix:fitment/source:cc1f3519b4bc0a6849705335be70e579644025ef": "failure:Pull requests into fitment come from dev-daily, not automation/project-zero-inventory:946740c28533",
     "dlworrell/atarix:fitment/source:ea5e0508f24a098886cd434f0161249ab0801b3c": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:044ea6c344e5",
     "dlworrell/atarix:fitment:1b6c52c2861b7cc85073069dac34376d64cd3e16": "failure:Not ready for release:e77e252a8413",
     "dlworrell/atarix:fitment:43ee45d5af3486d24852201f39d6efad3bf23825": "success:Ready for release:991487332e4d",
-    "dlworrell/atarix:fitment:756eea9fa28733be55ab2e01c515f8105be0bcfb": "failure:Not ready for release:e77e252a8413",
+    "dlworrell/atarix:fitment:756eea9fa28733be55ab2e01c515f8105be0bcfb": "success:Ready for release:965f24ceeece",
     "dlworrell/atarix:fitment:eaa04cd9a586bb21106042320f279f372ac79c2f": "failure:Not ready for release:e77e252a8413"
   },
   "repos": {
     "dlworrell/AEMS": {
-      "review_error": "ANTHROPIC_API_KEY is not configured",
-      "reviewed": "268089d78e4c58f16fbcc2edfdcdcd2914543c81"
+      "reviewed": "031e1ee09c603ace8f9d442b3aabba74916af87c"
     },
     "dlworrell/atarix": {
-      "review_error": "ANTHROPIC_API_KEY is not configured",
-      "reviewed": "43ee45d5af3486d24852201f39d6efad3bf23825"
+      "reviewed": "756eea9fa28733be55ab2e01c515f8105be0bcfb"
     }
   },
   "schema": "aems.fitment-state.v1"
