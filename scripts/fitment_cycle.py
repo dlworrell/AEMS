@@ -46,6 +46,7 @@ from ring0_sweep import (  # noqa: E402  (shared GitHub I/O and limits)
     Client,
     GitHubClient,
     GitHubError,
+    LedgerStore,
     decode_content,
 )
 
@@ -397,6 +398,10 @@ class StateStore:
         if self._dry_run:
             return
         import base64
+
+        # The fitment cycle can run before the first ring-0 sweep has created
+        # the ledger branch, so create it here too if it is missing.
+        LedgerStore(self._client, self._repository, False, self._output_dir).ensure_branch()
 
         body: dict[str, Any] = {"message": f"fitment state ({now.strftime('%Y-%m-%dT%H:%MZ')})",
                                 "branch": LEDGER_BRANCH,
