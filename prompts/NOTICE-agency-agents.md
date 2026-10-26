@@ -1,7 +1,9 @@
 # Notice: agency-agents
 
 `prompts/organizational-psychologist-code-enforcer.md` is derived from
-`specialized/organizational-psychologist.md` in
+`specialized/organizational-psychologist.md`, and
+`prompts/git-workflow-dev-environment.md` from
+`engineering/engineering-git-workflow-master.md`, in
 [agency-agents](https://github.com/msitarzewski/agency-agents), taken from the
 fork [dlworrell/agency-agents](https://github.com/dlworrell/agency-agents) at
 commit `4e3ac3ca6604c75113f52c695dbddcc7af928b46`. That work is distributed
