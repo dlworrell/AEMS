@@ -1,0 +1,111 @@
+name: Ring 0 Sweep
+
+# Enforces the Catylist Code of Conduct on every input of every covered
+# repository (Catylist ADR-0000 and ADR-0010): pull requests get the ring-0
+# and ring-0/conduct checks, failing comments are hidden, and every result
+# goes to the append-only ledger on the ring0/ledger branch. Acts as the
+# catylist-ring-0 GitHub App. Coverage is config/ring0.json. See
+# docs/engineering/catylist-code-of-conduct-enforcement.md.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Report only. Set to false to post checks, hide failing posts and write the ledger.
+        required: false
+        default: true
+        type: boolean
+      repos:
+        description: Optional comma-separated full_name filter, for example dlworrell/ruleset-sandbox
+        required: false
+        default: ''
+        type: string
+
+# contents: write reaches only AEMS itself, for the ring0/ledger branch. The
+# default branch is protected by its ruleset, so this token cannot change it.
+# Everything in other repositories is done with the App's own token.
+permissions:
+  contents: write
+
+concurrency:
+  group: ring-0-sweep
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  sweep:
+    name: Sweep covered repositories
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment: ring-0
+
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.x'
+
+      - name: Test the sweep
+        run: python3 -m unittest tests.test_ring0_sweep -v
+
+      - name: Install the Anthropic SDK
+        run: python3 -m pip install --disable-pip-version-check --no-input -r requirements/ring0.txt
+
+      - name: Create catylist-ring-0 installation token
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: '5474337'
+          private-key: ${{ secrets.RING0_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-checks: write
+          permission-contents: read
+          permission-discussions: write
+          permission-issues: write
+          permission-pull-requests: write
+
+      - name: Sweep
+        env:
+          RING0_APP_TOKEN: ${{ steps.app.outputs.token }}
+          LEDGER_TOKEN: ${{ github.token }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RING0_TRUSTED: ${{ secrets.RING0_TRUSTED }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_REPOS: ${{ inputs.repos }}
+        run: |
+          set -euo pipefail
+          mode=--enforce
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$INPUT_DRY_RUN" != "false" ]; then
+            mode=--dry-run
+          fi
+          python3 scripts/ring0_sweep.py "$mode" --repos "${INPUT_REPOS:-}" --output-dir build/aems/ring0
+
+      - name: Add sweep report to summary
+        if: ${{ always() }}
+        run: |
+          if [ -f build/aems/ring0/summary.md ]; then
+            cat build/aems/ring0/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No sweep report was produced; see the job log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload sweep report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ring0-sweep
+          path: |
+            build/aems/ring0/summary.md
+            build/aems/ring0/ledger.jsonl
+          if-no-files-found: warn
