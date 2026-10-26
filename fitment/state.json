@@ -4,6 +4,7 @@
     "dlworrell/AEMS:fitment:268089d78e4c58f16fbcc2edfdcdcd2914543c81": "failure:Not ready for release:3ac74736bd47",
     "dlworrell/AEMS:fitment:ecad36ecca1ac98628fa3ea9e4422e6b6bca73b7": "failure:Not ready for release:e77e252a8413",
     "dlworrell/atarix:fitment/source:cc1f3519b4bc0a6849705335be70e579644025ef": "failure:Pull requests into fitment come from dev-daily, not automation/project-zero-inventory:946740c28533",
+    "dlworrell/atarix:fitment:1b6c52c2861b7cc85073069dac34376d64cd3e16": "failure:Not ready for release:e77e252a8413",
     "dlworrell/atarix:fitment:43ee45d5af3486d24852201f39d6efad3bf23825": "success:Ready for release:991487332e4d",
     "dlworrell/atarix:fitment:eaa04cd9a586bb21106042320f279f372ac79c2f": "failure:Not ready for release:e77e252a8413"
   },
