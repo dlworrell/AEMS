@@ -24,6 +24,9 @@ on:
   push:
     branches:
       - main
+      # Catylist ADR-0013: the fitment gate reads this result on each branch head.
+      - dev-daily
+      - fitment
   workflow_dispatch:
 
 permissions:

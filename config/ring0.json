@@ -18,7 +18,8 @@
         ],
         "authors": [
           "github-actions[bot]"
-        ]
+        ],
+        "base": "dev-daily"
       },
       {
         "branch": "automation/document-authority-census",
@@ -28,7 +29,8 @@
         ],
         "authors": [
           "github-actions[bot]"
-        ]
+        ],
+        "base": "dev-daily"
       }
     ]
   }

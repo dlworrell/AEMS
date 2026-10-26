@@ -5,6 +5,7 @@
   "model": "claude-opus-5-5",
   "effort": "medium",
   "repositories": [
-    "dlworrell/ruleset-sandbox"
+    "dlworrell/AEMS",
+    "dlworrell/atarix"
   ]
 }

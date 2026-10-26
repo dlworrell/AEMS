@@ -1,0 +1,84 @@
+name: Release
+
+# Catylist ADR-0013 section 5. Dispatched by the owner with a version after
+# the release candidate pull request (fitment -> main) has merged. It tests
+# main, then parks at the `release` environment until the owner approves.
+# Only the approved job can create the v<version> tag, which ADR-0006 makes
+# immutable. Create the `release` environment with the owner as required
+# reviewer, restricted to the main branch, before the first release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, for example 0.1.0 (no leading v)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify main
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.target.outputs.sha }}
+    steps:
+      - name: Refuse anything but main and a plain version
+        env:
+          REF: ${{ github.ref }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [ "$REF" != "refs/heads/main" ]; then
+            echo "::error::Releases are cut from main only (dispatched from $REF)."
+            exit 1
+          fi
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+            echo "::error::Version must look like 0.1.0 or 0.1.0-rc.1."
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Refuse an existing tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null; then
+            echo "::error::Tag v$VERSION already exists; release tags are immutable."
+            exit 1
+          fi
+      - name: Run tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Record the tested commit
+        id: target
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: Publish (parks for owner approval)
+    needs: verify
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - name: Tag the tested commit and publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ needs.verify.outputs.sha }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          prerelease=()
+          case "$VERSION" in *-*) prerelease=(--prerelease) ;; esac
+          gh release create "v$VERSION" --repo "$REPO" --target "$SHA" \
+            --title "v$VERSION" --generate-notes "${prerelease[@]}"
+          echo "Released v$VERSION at $SHA." >> "$GITHUB_STEP_SUMMARY"

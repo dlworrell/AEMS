@@ -45,6 +45,13 @@ It never approves, merges or pushes. The owner merges every promotion.
 2. If the fitment review assigns you an issue, fix it on `fix/<issue>-<slug>` into `dev-daily` with `Fixes #<issue>` in the fix commit's message.
 3. If a finding is wrong, say why on the issue. The owner closes it as not planned.
 
+## Trial
+
+The cycle is trialled on AEMS itself and on atarix, which give the reviewer
+real source code to review. In atarix, the generated reports that ring-0
+publishes (Catylist ADR-0012) target `dev-daily`, so they are promoted and
+reviewed with everything else.
+
 ## Operating it
 
 - **Adopt a repository:** create `dev-daily` and `fitment` from its default
