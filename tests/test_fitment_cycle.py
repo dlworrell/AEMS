@@ -389,5 +389,29 @@ class CycleTests(unittest.TestCase):
             self.assertNotRegex(path, r"/reviews|/merge|/git/refs|/contents/")
 
 
+class StateStoreTests(unittest.TestCase):
+    def test_save_creates_the_ledger_branch_when_missing(self):
+        # Regression: the first scheduled cycle ran before any ring-0 sweep had
+        # created ring0/ledger, and the state write failed with 404.
+        gh = FakeGitHub({
+            "/repos/dlworrell/AEMS/git/ref/heads/ring0/ledger": fc.GitHubError(404, "Not Found"),
+            "/repos/dlworrell/AEMS": {"default_branch": "main"},
+            "/repos/dlworrell/AEMS/git/ref/heads/main": {"object": {"sha": MAIN}},
+        })
+        with tempfile.TemporaryDirectory() as tmp:
+            store = fc.StateStore(gh, "dlworrell/AEMS", False, Path(tmp))
+            store.save({"schema": fc.STATE_SCHEMA, "repos": {}, "posted": {}}, NOW)
+        self.assertEqual(gh.posts, [("/repos/dlworrell/AEMS/git/refs",
+                                     {"ref": "refs/heads/ring0/ledger", "sha": MAIN})])
+        self.assertEqual(gh.puts[0][1]["branch"], "ring0/ledger")
+
+    def test_save_leaves_an_existing_ledger_branch_alone(self):
+        gh = FakeGitHub({"/repos/dlworrell/AEMS/git/ref/heads/ring0/ledger": {"object": {"sha": MAIN}}})
+        with tempfile.TemporaryDirectory() as tmp:
+            fc.StateStore(gh, "dlworrell/AEMS", False, Path(tmp)).save({"repos": {}, "posted": {}}, NOW)
+        self.assertEqual(gh.posts, [])
+        self.assertEqual(len(gh.puts), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
