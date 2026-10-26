@@ -269,6 +269,59 @@ def is_governance_path(path: str) -> bool:
     return any(p.search(path) for p in GOVERNANCE_PATTERNS)
 
 
+# Agent attribution (Catylist ADR-0011). An AI agent acting under a person's
+# prompt posts from that person's account and opens every post, pull request
+# body and comment with a title line naming itself and the prompting user:
+#     **Claude for @dlworrell**
+AGENT_TITLE_PATTERN = re.compile(
+    r"\A\s*(?:\*\*)?\s*(Claude|ChatGPT|Notion|Copilot)\s+for\s+@([A-Za-z0-9-]+)\b", re.IGNORECASE
+)
+# Markers that show text was written by an agent even without a title line.
+AGENT_MARK_PATTERN = re.compile(
+    r"Generated (?:by|with) \[?Claude Code|^Co-Authored-By:\s*Claude\b", re.IGNORECASE | re.MULTILINE
+)
+
+
+@dataclasses.dataclass(frozen=True)
+class Attribution:
+    agent: str | None
+    prompted_by: str | None
+    marked: bool
+
+
+def agent_attribution(body: str | None) -> Attribution:
+    text = body or ""
+    match = AGENT_TITLE_PATTERN.match(text)
+    marked = bool(AGENT_MARK_PATTERN.search(text))
+    if match:
+        return Attribution(match.group(1).lower(), match.group(2).lower(), True)
+    return Attribution(None, None, marked)
+
+
+def attribution_findings(body: str | None, account: str, location: str) -> list[Finding]:
+    """Law 4: agent-written text carries a title naming the agent and its prompter."""
+    attribution = agent_attribution(body)
+    if attribution.agent:
+        if attribution.prompted_by != account.lower():
+            return [Finding(4, VIOLATION,
+                            f"Posted from @{account} but titled as acting for @{attribution.prompted_by}.",
+                            location, "An agent posts only from the account of the user who prompted it.")]
+        return [Finding(4, PASS, f"Agent-written ({attribution.agent} for @{attribution.prompted_by}).", location)]
+    if attribution.marked:
+        return [Finding(4, VIOLATION, "Agent-written text has no title line.", location,
+                        f"Start it with `**<Agent> for @{account}**`.")]
+    return []
+
+
+def trusted_author(account: str, body: str | None, trusted: frozenset[str]) -> bool:
+    """An agent post is trusted only if the agent and its prompting user both are."""
+    attribution = agent_attribution(body)
+    if attribution.agent:
+        return (attribution.agent in trusted and attribution.prompted_by == account.lower()
+                and account.lower() in trusted)
+    return account.lower() in trusted
+
+
 def owner_approved(
     comments: list[dict[str, Any]], owner: str, marker: str, after: str | None
 ) -> bool:
@@ -279,6 +332,9 @@ def owner_approved(
             continue
         if marker.lower() not in (comment.get("body") or "").lower():
             continue
+        attribution = agent_attribution(comment.get("body"))
+        if attribution.agent or attribution.marked:
+            continue  # Law 4: an agent cannot give the owner's approval
         if after and (comment.get("created_at") or "") < after:
             continue
         return True
@@ -399,6 +455,8 @@ def check_pull_request(facts: PullRequestFacts) -> list[Finding]:
     else:
         f.append(Finding(4, PASS, "No unapproved governance change." if not governance
                          else "The owner approved the governance change after the latest push."))
+
+    f.extend(attribution_findings(facts.body, facts.author, "pull request body"))
 
     # Law 5: no secrets in the body or added lines.
     secrets = scan_secrets(facts.body, "pull request body")
@@ -930,8 +988,8 @@ class Sweep:
 
     # -- helpers ---------------------------------------------------------
 
-    def is_trusted(self, login: str) -> bool:
-        return login.lower() in self.trusted
+    def is_trusted(self, login: str, body: str | None = None) -> bool:
+        return trusted_author(login, body, self.trusted)
 
     def since(self, repository: str) -> str:
         last = self.state["last_sweep"].get(repository)
@@ -1035,7 +1093,8 @@ class Sweep:
             "number": number,
             "head_sha": head,
             "author": facts.author,
-            "author_trust": "trusted" if self.is_trusted(facts.author) else "untrusted",
+            "author_trust": "trusted" if self.is_trusted(facts.author, facts.body) else "untrusted",
+            "agent_attribution": dataclasses.asdict(agent_attribution(facts.body)),
             "title": pr.get("title") or "",
             "body": facts.body,
             "commits": [{"sha": c.get("sha"), "message": (c.get("commit") or {}).get("message", ""),
@@ -1057,7 +1116,7 @@ class Sweep:
                          check_run_body(CHECK_CONDUCT, head, conduct_outcome, conduct, summary, self.code_version))
         outcome = combine([det_outcome, conduct_outcome])
         self.record(repository=repository, kind="pull_request", ref=f"#{number}@{head[:12]}",
-                    url=pr.get("html_url", ""), author=facts.author, trusted=self.is_trusted(facts.author),
+                    url=pr.get("html_url", ""), author=facts.author, trusted=self.is_trusted(facts.author, facts.body),
                     body=facts.body, outcome=outcome, findings=deterministic + conduct, action="check-runs")
         self.remember(key, digest, outcome)
 
@@ -1135,11 +1194,13 @@ class Sweep:
             # judging them again would report the reports.
             return
         author = item["author"]
-        trusted = self.is_trusted(author)
+        trusted = self.is_trusted(author, item["body"])
         findings = scan_secrets(item["body"], item["kind"])
+        findings += attribution_findings(item["body"], author, item["kind"])
         conduct, _ = ai_findings(self.enforcer, {
             "kind": item["kind"], "repository": repository, "author": author,
             "author_trust": "trusted" if trusted else "untrusted", "url": item["url"],
+            "agent_attribution": dataclasses.asdict(agent_attribution(item["body"])),
             "body": item["body"], "deterministic_results": [x.as_dict() for x in findings],
             "code_version": self.code_version,
         })

@@ -2,8 +2,9 @@
 
 Status: Active
 Owner: AEMS
-Authority: Catylist ADR-0000 (the Code is ring 0) and ADR-0010 (every input is
-checked; untrusted until verified), Catylist Code of Conduct 1.1.0
+Authority: Catylist ADR-0000 (the Code is ring 0), ADR-0010 (every input is
+checked; untrusted until verified) and ADR-0011 (agent attribution), Catylist
+Code of Conduct 1.1.0
 
 AEMS enforces the Catylist Code of Conduct on every input to every covered
 repository. The Code is ring 0, so AEMS cites its laws directly. Conformance is
@@ -43,17 +44,38 @@ Contents read. AEMS's own workflow token writes only the ledger branch in AEMS.
 | 1 | The body has an `ADR:` line naming an ADR, or `ADR: n/a` with a reason; bots pass only with a standing ADR in `config/ring0.json` |
 | 2 | Any waiver ADR added or changed has an unexpired `Expires:` date |
 | 3 | Every commit is signed and verified |
-| 4 | Governance files (the Code, ADRs, `.github/workflows/`, `.github/rulesets/`, agent instruction files) change only with the owner's comment `ring-0: owner approves governance change`, posted after the latest push |
+| 4 | Governance files (the Code, ADRs, `.github/workflows/`, `.github/rulesets/`, agent instruction files) change only with the owner's comment `ring-0: owner approves governance change`, posted after the latest push and not written by an agent; an agent-written body starts with its title line (below) |
 | 5 | No secret pattern in the body or added lines (the value is never repeated) |
 | 6 | No skipped or deleted test unless the `ADR:` line names an ADR and the owner comments `ring-0: owner approves test change` after the latest push |
 | 7 | No `CODE_OF_CONDUCT.md` outside Catylist restates the laws |
+
+## Agent attribution
+
+AI agents act under a person's prompt and post from that person's account
+(Catylist ADR-0011). Every post, pull request body and comment an agent
+writes starts with a title line naming the agent and the prompting user:
+
+```text
+**Claude for @dlworrell**
+```
+
+The sweep checks it on every input (Law 4):
+
+- a title naming a different user than the posting account is a violation;
+- agent-written text without a title (recognised by markers such as the
+  Claude Code footer or a `Co-Authored-By: Claude` line) is a violation;
+- an agent-written comment never counts as the owner's approval.
 
 ## Trust
 
 Every contributor is untrusted until listed in the trusted-contributor list
 (ADR-0010 section 3). The sweep reads it from the AEMS secret `RING0_TRUSTED`
-(logins separated by commas or newlines) until Catylist decides where it lives.
-An empty or missing list means everyone is untrusted.
+(entries separated by commas or newlines) until Catylist decides where it
+lives. An empty or missing list means everyone is untrusted.
+
+Entries are GitHub logins (for example `dlworrell`) and agent names (`claude`,
+`chatgpt`, `notion`). An agent-titled post is trusted only when both the agent
+and the prompting user are listed and the post comes from that user's account.
 
 | Outcome | Untrusted | Trusted |
 |---|---|---|
