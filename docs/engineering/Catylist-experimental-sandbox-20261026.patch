@@ -1,0 +1,222 @@
+diff --git a/CODE_OF_CONDUCT.md b/CODE_OF_CONDUCT.md
+index c6fa62d..8bc556b 100644
+--- a/CODE_OF_CONDUCT.md
++++ b/CODE_OF_CONDUCT.md
+@@ -1,8 +1,8 @@
+ # Catylist Code of Conduct
+ 
+-Version: 1.1.0
++Version: 1.2.0
+ Status: Accepted
+-Adopted by: [ADR-0000](docs/adr/ADR-0000-catylist-code-of-conduct.md); amended by [ADR-0010](docs/adr/ADR-0010-ring-0-input-gate-and-trust.md)
++Adopted by: [ADR-0000](docs/adr/ADR-0000-catylist-code-of-conduct.md); amended by [ADR-0010](docs/adr/ADR-0010-ring-0-input-gate-and-trust.md) and [ADR-0014](docs/adr/ADR-0014-experimental-sandbox-and-validation.md)
+ Decision authority: Donovan Worrell
+ Date: 2026-10-26
+ 
+@@ -130,12 +130,17 @@ failure.
+ ### Law 7: Amendment
+ 
+ This Code changes only through a Catylist ADR accepted by the decision
+-authority. Each change gets a new version number, is trialled on
+-`ruleset-sandbox` first, and reaches each repository as a reviewable pull
++authority. Each change gets a new version number, is validated with recorded
++positive and refusal cases using controlled fixtures or appropriate
++owning-repository evidence, and reaches each repository as a reviewable pull
+ request that updates its ADR-0000. It never changes silently. A repository
+ may propose a change by opening an issue in Catylist; it may not amend the
+ Code locally.
+ 
++No named experimental repository is a required testbed or adoption gate.
++`ruleset-sandbox` is optional experimental work under ADR-0014; its availability
++or results cannot substitute for the evidence required of another repository.
++
+ ### Law 8: Wheaton's Law
+ 
+ > Don't be a dick.
+diff --git a/docs/adr/ADR-0000-catylist-code-of-conduct.md b/docs/adr/ADR-0000-catylist-code-of-conduct.md
+index 4aa7e61..05a990a 100644
+--- a/docs/adr/ADR-0000-catylist-code-of-conduct.md
++++ b/docs/adr/ADR-0000-catylist-code-of-conduct.md
+@@ -5,7 +5,7 @@ Owner: Catylist
+ Date: 2026-10-26
+ Decision authority: Donovan Worrell
+ Ring: 0
+-Code version: 1.0.0 (amended to 1.1.0 by [ADR-0010](ADR-0010-ring-0-input-gate-and-trust.md))
++Code version: 1.2.0 (amended by [ADR-0010](ADR-0010-ring-0-input-gate-and-trust.md) and [ADR-0014](ADR-0014-experimental-sandbox-and-validation.md); ADR-0014 supersedes the historical named-sandbox rollout requirements below)
+ Applies to: every repository whose ownership is `project-owned` or
+ `organizational` in the [repository inventory](../../inventory/repositories.json),
+ and every contributor to them, human or automated
+diff --git a/docs/adr/ADR-0006-default-branch-protection-and-signed-commits.md b/docs/adr/ADR-0006-default-branch-protection-and-signed-commits.md
+index d318e14..e505049 100644
+--- a/docs/adr/ADR-0006-default-branch-protection-and-signed-commits.md
++++ b/docs/adr/ADR-0006-default-branch-protection-and-signed-commits.md
+@@ -223,10 +223,12 @@ Rollout follows the [standards lifecycle](../architecture/standards-lifecycle.md
+ ratchet:
+ 
+ 1. Report current settings and drift without changing anything.
+-2. Validate each ruleset version in the `ruleset-sandbox` repository first. A
+-   2026-10-15 test there confirmed that the baseline blocks an unsigned commit,
+-   squash and rebase merges, direct pushes, and force pushes, while a fully
+-   signed agent pull request merges with a GitHub-signed merge commit.
++2. Validate each ruleset version with recorded positive and refusal cases using
++   controlled fixtures or appropriate owning-repository evidence. Under
++   [ADR-0014](ADR-0014-experimental-sandbox-and-validation.md), `ruleset-sandbox`
++   is an optional experiment, never a required testbed. The 2026-10-15 sandbox
++   test remains historical evidence about that tested baseline; it is not a
++   recurring prerequisite or proof for another revision.
+ 3. Apply the rules to one repository (`code-noodling`) once P0 remediation for
+    it is complete, and confirm that an agent-authored pull request still merges
+    with a merge commit.
+diff --git a/docs/adr/ADR-0010-ring-0-input-gate-and-trust.md b/docs/adr/ADR-0010-ring-0-input-gate-and-trust.md
+index c7091a0..4775fa2 100644
+--- a/docs/adr/ADR-0010-ring-0-input-gate-and-trust.md
++++ b/docs/adr/ADR-0010-ring-0-input-gate-and-trust.md
+@@ -101,7 +101,9 @@ AEMS secret and a maintainer-only file. Until the list exists, it is empty and
+ 
+ The sweep acts as the GitHub App **`catylist-ring-0`** (App ID `5474337`),
+ owned by the maintainer and installed only on the governed repositories and
+-`ruleset-sandbox`. It requests no webhooks.
++any explicitly selected optional experiments. `ruleset-sandbox` is experimental
++under [ADR-0014](ADR-0014-experimental-sandbox-and-validation.md), not mandatory
++testbed coverage. It requests no webhooks.
+ 
+ | Permission | Level |
+ |---|---|
+@@ -133,8 +135,10 @@ Both are inputs under section 1.
+ 
+ ### 6. Rollout
+ 
+-The sweep runs on `ruleset-sandbox` first (Code, Law 7), with conforming and
+-failing examples of each input type. It then covers each governed repository
++The sweep is validated with conforming and failing examples of each input
++type, using controlled fixtures or appropriate owning-repository evidence
++(Code, Law 7; ADR-0014). No named experimental repository is a prerequisite.
++It covers each governed repository
+ as that repository adopts ADR-0000, and `ring-0` and `ring-0/conduct` become
+ required in its ruleset.
+ 
+@@ -167,7 +171,7 @@ required in its ruleset.
+ ## Follow-up work
+ 
+ 1. **AEMS:** the `ring-0` reusable workflow, the 30-minute sweep acting as
+-   `catylist-ring-0`, the ledger, and tests; then the `ruleset-sandbox` trial.
++   `catylist-ring-0`, the ledger, and recorded positive/refusal validation.
+ 2. **AEMS:** add `ring-0` and `ring-0/conduct`, pinned to App ID `5474337`, to
+    each governed repository's ruleset as it adopts ADR-0000.
+ 3. **Maintainer:** decide where the trusted-contributor list lives; add the
+diff --git a/docs/adr/ADR-0014-experimental-sandbox-and-validation.md b/docs/adr/ADR-0014-experimental-sandbox-and-validation.md
+new file mode 100644
+index 0000000..0bb4f41
+--- /dev/null
++++ b/docs/adr/ADR-0014-experimental-sandbox-and-validation.md
+@@ -0,0 +1,72 @@
++# ADR-0014: Experimental Sandbox and Evidence-Based Validation
++
++Status: Accepted — effective on owner-approved merge of this decision
++Owner: Catylist
++Date: 2026-10-26
++Decision authority: Donovan Worrell
++Amends: [Code of Conduct](../../CODE_OF_CONDUCT.md) 1.1.0 → 1.2.0, Law 7;
++[ADR-0000](ADR-0000-catylist-code-of-conduct.md), sections 4–5 and its sandbox-related rollout references;
++[ADR-0006](ADR-0006-default-branch-protection-and-signed-commits.md), rollout;
++[ADR-0010](ADR-0010-ring-0-input-gate-and-trust.md), rollout
++
++## Context and decision authority
++
++The decision authority directed: “Remove sandbox from the testbed requirements
++and mark experimental.” The named repository is `dlworrell/ruleset-sandbox`.
++This decision removes a mandatory repository dependency; it does not waive
++validation or change the requirement for owner approval and verified history.
++The change is prepared in a signed review PR and takes effect on its
++owner-approved merge. No machine or AI approval substitutes for that action.
++
++## Decision
++
++1. Classify `dlworrell/ruleset-sandbox` as **experimental** in the repository
++   inventory. It is optional exploratory work, not a required testbed, pilot,
++   release gate, qualification authority or prerequisite for other repos.
++2. Replace mandatory named-sandbox trials with recorded positive and refusal
++   cases using controlled fixtures or appropriate owning-repository evidence.
++   Record the exact source revision, expected behavior, observed result and
++   limits. A simulated result must not be presented as a live platform test.
++3. Preserve dry-run drift review, owner-approved application, verified commits,
++   merge-only history and exact-head checks. Experiments do not authorize a
++   new required check or a blanket rollout; applicable existing rollout and
++   acceptance evidence remains necessary.
++4. Experimental classification does not relax the repository's own baseline
++   protections. Ownership is project-owned and default-branch policy remains
++   `protected`. Historical sandbox evidence remains evidence about its original
++   subject; new sandbox success or availability is never an acceptance gate.
++5. AEMS may retain explicit optional experimental coverage. That is not
++   mandatory testbed enrollment and must not block other repository adoption.
++   This change does not silently enroll additional repositories or expand App
++   permissions. Normal per-repository ADR-0000 adoption remains required.
++
++## Implementation and migration
++
++The Code advances to 1.2.0 through this amendment. Catylist's ADR-0000 Code
++version pointer is updated; its historical body is preserved and the named
++sandbox requirements in its sections 4–5, implementation table, alternatives
++and follow-up are superseded by this decision. Downstream ADR-0000 version
++pointers change only through their ordinary reviewable adoption PRs; no
++downstream file is rewritten by this PR. Version-pointer rollout is distinct
++from accepting an experimental repo as production evidence.
++
++AEMS's operating procedure and coverage description identify the sandbox as
++an optional experiment. Existing in-memory unit fixtures whose sample repo
++name happens to contain `sandbox` remain offline fixtures; running them does
++not require that GitHub repository or access to it. No experiment is deleted.
++
++## Acceptance and recovery
++
++- Repository inventory, required-file and Markdown-link validation passes.
++- The sandbox inventory entry is experimental and retains protected policy.
++- The Code's Law 7 and active rollout procedures no longer require a named
++  sandbox. Historical evidence and superseded text remain distinguishable.
++- Owner governance approval and merge are recorded in the PR.
++- Downstream Code-version adoption remains an explicit follow-up, with
++  incomplete coverage reported as such.
++
++Rollback is another reviewed Catylist ADR and Code version change, not a
++history rewrite. Removing the sandbox dependency does not mark a failed test
++passing or establish product qualification.
++
++AI-assisted preparation by ChatGPT for @dlworrell.
+diff --git a/docs/adr/README.md b/docs/adr/README.md
+index 84de336..ec35ea6 100644
+--- a/docs/adr/README.md
++++ b/docs/adr/README.md
+@@ -107,3 +107,7 @@ New ADRs use the four-digit format and take the next number that collides with
+ neither naming form. The first such number is `ADR-0004`. Always cite ADRs by
+ their full file name or link, because a bare number such as "ADR-001" is
+ ambiguous between `ADR-001` and `ADR-0001`.
++
++## Experimental validation
++
++[ADR-0014: Experimental Sandbox and Evidence-Based Validation](ADR-0014-experimental-sandbox-and-validation.md) removes the named sandbox as a required testbed while retaining recorded validation and owner approval.
+diff --git a/inventory/repositories.json b/inventory/repositories.json
+index 6238fbc..2e73af7 100644
+--- a/inventory/repositories.json
++++ b/inventory/repositories.json
+@@ -1,6 +1,6 @@
+ {
+   "schema": "catylist.repository-inventory.v1",
+-  "updated": "2026-10-16",
++  "updated": "2026-10-26",
+   "authority": "docs/adr/ADR-0006-default-branch-protection-and-signed-commits.md",
+   "description": "Machine-readable Catalyst repository inventory. Records each repository's ownership and Catylist class with the evidence for it. default_branch_policy is derived from ownership by ADR-0006 and checked by scripts/validate_repository.py.",
+   "repositories": [
+@@ -178,6 +178,13 @@
+       "class": "external-reference",
+       "classification_source": "docs/reviews/CAT-DISP-002-unclassified-repository-classification.md",
+       "default_branch_policy": "excluded"
++    },
++    {
++      "full_name": "dlworrell/ruleset-sandbox",
++      "ownership": "project-owned",
++      "class": "experimental",
++      "classification_source": "docs/adr/ADR-0014-experimental-sandbox-and-validation.md",
++      "default_branch_policy": "protected"
+     }
+   ]
+ }
