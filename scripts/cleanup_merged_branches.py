@@ -10,7 +10,8 @@ A branch is deleted only if ALL of the following hold:
 
 1. It is not the repository's default branch and is not a protected branch.
 2. It is not the head or the base of any open pull request in the repository.
-3. Its name does not match a keep pattern (``backup/*`` always, plus any
+3. Its name does not match a keep pattern (``backup/*``, ``dev-daily`` and
+   ``fitment`` always, plus any
    patterns passed with ``--keep``).
 4. EITHER (a) a merged pull request has the branch as its head and the
    branch's current tip SHA equals that pull request's ``head.sha``, OR
@@ -54,7 +55,8 @@ INVENTORY_PATH = "inventory/repositories.json"
 SANDBOX_REPOSITORY = "dlworrell/ruleset-sandbox"
 
 # Branches matching these patterns are never deleted.
-DEFAULT_KEEP_PATTERNS = ("backup/*",)
+# dev-daily and fitment are long-lived Catylist ADR-0013 branches.
+DEFAULT_KEEP_PATTERNS = ("backup/*", "dev-daily", "fitment")
 
 CLEANUP_TOKEN_ENV = "BRANCH_CLEANUP_TOKEN"
 SOURCE_TOKEN_ENV = "SOURCE_TOKEN"
@@ -830,7 +832,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         help="optional comma-separated full_name filter")
     parser.add_argument("--keep", default="",
                         help="optional comma-separated fnmatch patterns of "
-                        "branches to keep, in addition to backup/*")
+                        "branches to keep, in addition to backup/*, dev-daily and fitment")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", dest="apply", action="store_false",
                       help="report without deleting anything (default)")

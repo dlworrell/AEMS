@@ -36,7 +36,7 @@ rejected.
 | Input | Repository | Path |
 |---|---|---|
 | `catylist_ref` | `dlworrell/Catylist` | `inventory/repositories.json` (`catylist.repository-inventory.v1`) |
-| `templates_ref` | `dlworrell/repo_templates` | `rulesets/protect-default-branch.json`, `rulesets/protect-release-tags.json` |
+| `templates_ref` | `dlworrell/repo_templates` | `rulesets/protect-default-branch.json`, `rulesets/protect-release-tags.json`, and `rulesets/protect-integration-branches.json` for adopted repositories |
 
 The run fails before contacting any target repository if a baseline ruleset
 does not meet ADR-0006: an unexpected name or target, enforcement other than
@@ -46,6 +46,15 @@ does not meet ADR-0006: an unexpected name or target, enforcement other than
 The desired merge settings are fixed by ADR-0006 section 2:
 `allow_merge_commit: true`, `allow_squash_merge: false`,
 `allow_rebase_merge: false`, `delete_branch_on_merge: true`.
+
+## Daily and fitment branches (Catylist ADR-0013)
+
+A repository listed in AEMS `config/fitment.json` also gets
+`protect-integration-branches`, which gives `dev-daily` and `fitment` the
+default-branch rules. Create both branches from the default branch first; the
+plan refuses the repository until they exist. Other repositories are not
+offered the ruleset, and a `templates_ref` older than the ruleset file still
+works for them.
 
 ## Workflow inputs
 
