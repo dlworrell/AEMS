@@ -2,6 +2,7 @@
   "posted": {
     "dlworrell/AEMS:fitment/source:87bcc1ec861c4151bdad15d9a1427405e090660f": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:7998fd7cea82",
     "dlworrell/AEMS:fitment:031e1ee09c603ace8f9d442b3aabba74916af87c": "success:Ready for release:0ddbf78a8e98",
+    "dlworrell/AEMS:fitment:0f9263380dd004f0a0c9b24f2690d8c7a39939a9": "success:Ready for release:6759697a5409",
     "dlworrell/AEMS:fitment:268089d78e4c58f16fbcc2edfdcdcd2914543c81": "failure:Not ready for release:3ac74736bd47",
     "dlworrell/AEMS:fitment:ecad36ecca1ac98628fa3ea9e4422e6b6bca73b7": "failure:Not ready for release:e77e252a8413",
     "dlworrell/atarix:fitment/source:cc1f3519b4bc0a6849705335be70e579644025ef": "failure:Pull requests into fitment come from dev-daily, not automation/project-zero-inventory:946740c28533",
@@ -13,7 +14,7 @@
   },
   "repos": {
     "dlworrell/AEMS": {
-      "reviewed": "031e1ee09c603ace8f9d442b3aabba74916af87c"
+      "reviewed": "0f9263380dd004f0a0c9b24f2690d8c7a39939a9"
     },
     "dlworrell/atarix": {
       "reviewed": "756eea9fa28733be55ab2e01c515f8105be0bcfb"
