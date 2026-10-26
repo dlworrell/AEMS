@@ -1,0 +1,48 @@
+name: Fitment regression tests
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/check_integration_branches.py'
+      - 'scripts/fitment_cycle.py'
+      - 'scripts/ring0_sweep.py'
+      - 'scripts/catylist_rulesets.py'
+      - 'scripts/cleanup_merged_branches.py'
+      - 'tests/test_check_integration_branches.py'
+      - 'tests/test_fitment_cycle.py'
+      - 'tests/test_catylist_rulesets.py'
+      - 'tests/test_cleanup_merged_branches.py'
+      - '.github/actions/integration-branches/**'
+      - '.github/workflows/fitment*.yml'
+  push:
+    branches: [main, dev-daily, fitment]
+    paths:
+      - 'scripts/check_integration_branches.py'
+      - 'scripts/fitment_cycle.py'
+      - 'scripts/ring0_sweep.py'
+      - 'scripts/catylist_rulesets.py'
+      - 'scripts/cleanup_merged_branches.py'
+      - 'tests/test_check_integration_branches.py'
+      - 'tests/test_fitment_cycle.py'
+      - 'tests/test_catylist_rulesets.py'
+      - 'tests/test_cleanup_merged_branches.py'
+      - '.github/actions/integration-branches/**'
+      - '.github/workflows/fitment*.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.x'
+      - name: Test retention, promotion, ruleset planning and cleanup
+        run: python3 -m unittest tests.test_check_integration_branches tests.test_fitment_cycle tests.test_catylist_rulesets tests.test_cleanup_merged_branches -v
