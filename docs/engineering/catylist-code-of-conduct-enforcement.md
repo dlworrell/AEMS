@@ -113,7 +113,9 @@ It opens one only when all of these hold:
 - no pull request for the branch is already open.
 
 Anything else is recorded as a violation and reported in Catylist; the pull
-request is not opened. ring-0 never approves or merges these pull requests:
+request is not opened. A target may set `base` (for example `dev-daily` once a repository
+adopts Catylist ADR-0013); the branch is then compared with, and the pull
+request opened into, that branch instead of the default branch. ring-0 never approves or merges these pull requests:
 the owner does. A repository needs only the App installed; it does not have
 to be in sweep coverage.
 
