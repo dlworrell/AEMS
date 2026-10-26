@@ -1,0 +1,138 @@
+{
+  "schema": "aems.signing-bootstrap-incident.v1",
+  "incident_date_pacific": "2026-10-25",
+  "original_run": 40242417804,
+  "original_attempt": 3,
+  "original_job": 121329918937,
+  "first_attempt_job": 121316857751,
+  "original_workflow_commit": "b53d797b9a7c4decf1ec48e6dc5776cd3acb1e67",
+  "original_payload_sha256": "1264e9997ecec9ef1e7de3a4aa4ca8b7fb299c5ebdad9007c0120ec9ebb365b8",
+  "original_base": "2901c715651a10c700d0c7c3cbd683c86c748170",
+  "original_tree": "03a9015a7cc0fd08a2a2e792e87bb99caae34af1",
+  "inspected_default": "9fe3e55a2823c10086f7dc0eabc9cee175f15aba",
+  "inspected_default_tree": "d032d909f8898e650afb72bf9b032010fe1e8e76",
+  "original_payload_file_reconciliation": [
+    {
+      "path": ".github/actions/pr-signatures/action.yml",
+      "original_blob": "8564cf1bdb30062c8fc932730183a38bcabc39e1",
+      "inspected_default_blob": "8564cf1bdb30062c8fc932730183a38bcabc39e1",
+      "identical": true
+    },
+    {
+      "path": ".github/workflows/pr-signatures.yml",
+      "original_blob": "87c75e821c1a84be279bfa06eaf9872d2c38b46c",
+      "inspected_default_blob": null,
+      "identical": false
+    },
+    {
+      "path": "docs/engineering/SIGNED-PR-PUBLISHING.md",
+      "original_blob": "806d880c83f9892f873dd45aecbd77b31dbafebf",
+      "inspected_default_blob": "806d880c83f9892f873dd45aecbd77b31dbafebf",
+      "identical": true
+    },
+    {
+      "path": "scripts/pr_signatures.py",
+      "original_blob": "6d56e5c2a8b9eefb743d8317d2833d09fc1376be",
+      "inspected_default_blob": "6d56e5c2a8b9eefb743d8317d2833d09fc1376be",
+      "identical": true
+    },
+    {
+      "path": "tests/test_pr_signatures.py",
+      "original_blob": "a5fac83a96d7e0a17a154c389ba07e743d0192f6",
+      "inspected_default_blob": "a5fac83a96d7e0a17a154c389ba07e743d0192f6",
+      "identical": true
+    }
+  ],
+  "superseding_pr": 36,
+  "superseding_head": "bd440a238d16de98475a50ffc1c4ea1aebc33785",
+  "superseding_tree": "16a53d0e51e9f54182423b77f5c2ca1858f94f79",
+  "superseding_parent": [
+    "7eb3292dac8cecdd3d665bbdfbad54385cb204a3"
+  ],
+  "superseding_verification": {
+    "verified": true,
+    "reason": "valid"
+  },
+  "superseding_merge": "4873b770f8499ed4233261e56f5496b3522ecb77",
+  "superseding_merged_at": "2026-10-25T22:58:05Z",
+  "first_graphql_cause": "NOT_ESTABLISHED: original logger suppressed response",
+  "controlled_replay": {
+    "experiment": "Stateful controlled API replay; synthetic object IDs; not a live publication",
+    "original_workflow_commit": "b53d797b9a7c4decf1ec48e6dc5776cd3acb1e67",
+    "results": [
+      {
+        "scenario": "fresh_missing_branch",
+        "expected_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "observed_default": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "before": {
+          "outcome": "published",
+          "mutating_requests": 2
+        },
+        "after": {
+          "outcome": "published",
+          "verified": true,
+          "mutating_requests": 2
+        }
+      },
+      {
+        "scenario": "stale_empty_branch",
+        "expected_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "observed_default": "dddddddddddddddddddddddddddddddddddddddd",
+        "before": {
+          "outcome": "refused",
+          "exception": "RuntimeError",
+          "diagnostic": "Default branch moved; reprepare without overwriting it",
+          "mutating_requests": 0
+        },
+        "after": {
+          "outcome": "refused",
+          "exception": "RepairError",
+          "diagnostic": "STALE_BASE: expected aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa; observed dddddddddddddddddddddddddddddddddddddddd. Reprepare paths, tree and payload SHA-256 from the current base; do not rerun this payload.",
+          "mutating_requests": 0
+        }
+      },
+      {
+        "scenario": "fresh_empty_branch",
+        "expected_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "observed_default": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "before": {
+          "outcome": "refused",
+          "exception": "HTTPError",
+          "diagnostic": "HTTP Error 422: controlled fixture",
+          "mutating_requests": 1
+        },
+        "after": {
+          "outcome": "published",
+          "verified": true,
+          "mutating_requests": 1
+        }
+      },
+      {
+        "scenario": "complete_verified_branch_after_main_advance",
+        "expected_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "observed_default": "dddddddddddddddddddddddddddddddddddddddd",
+        "before": {
+          "outcome": "refused",
+          "exception": "RuntimeError",
+          "diagnostic": "Default branch moved; reprepare without overwriting it",
+          "mutating_requests": 0
+        },
+        "after": {
+          "outcome": "already_published",
+          "verified": true,
+          "mutating_requests": 0
+        }
+      }
+    ]
+  },
+  "focused_tests": {
+    "new_publisher": 22,
+    "existing_pr_signatures": 13,
+    "total_passed": 35,
+    "full_aems_suite": "NOT_RUN"
+  },
+  "hosted_acceptance_contract": {
+    "focused_tests": 35,
+    "publish_then_repeat": "same verified commit; second call already_published; no write on repeat"
+  }
+}
