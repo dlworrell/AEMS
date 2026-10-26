@@ -56,7 +56,7 @@ jobs:
           python-version: '3.x'
 
       - name: Test the cycle
-        run: python3 -m unittest tests.test_fitment_cycle -v
+        run: python3 -m unittest tests.test_check_integration_branches tests.test_fitment_cycle -v
 
       - name: Install the Anthropic SDK
         run: python3 -m pip install --disable-pip-version-check --no-input -r requirements/ring0.txt

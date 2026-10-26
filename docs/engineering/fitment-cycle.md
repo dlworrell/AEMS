@@ -37,7 +37,10 @@ repository in `config/fitment.json` it:
 | Gate | `fitment` on the `fitment` head fails while another check on it fails, a `blocker` or `major` fitment issue is open, or the review could not run |
 | Promotion | Opens `dev-daily` → `fitment` when `dev-daily` is ahead and its CI is green, and `fitment` → `main` when the gate passes |
 
-It never approves, merges or pushes. The owner merges every promotion.
+It never approves, merges or pushes. The owner merges every promotion. It opens a promotion
+only from a branch a ruleset protects from deletion (`protect-integration-branches`);
+otherwise merging it would let "delete branch on merge" remove `dev-daily` or
+`fitment`, as happened once in the atarix trial.
 
 ## For contributors
 
@@ -57,13 +60,55 @@ reviewed with everything else.
 - **Adopt a repository:** create `dev-daily` and `fitment` from its default
   branch, add the CI and release workflows from repo_templates, add the
   repository to `config/fitment.json`, then run the ruleset workflow so
-  `protect-integration-branches` applies. After its first clean cycle, require
+  `protect-integration-branches` applies. Verify that both branches exist and
+  each has an active deletion rule **before the first promotion**. After its first clean cycle, require
   `fitment` and `fitment/source` on `main`.
 - **Dry run:** dispatch the workflow with `dry_run` left on.
 - **Pause:** disable the workflow in the Actions tab.
 - **State:** `fitment/state.json` on AEMS's `ring0/ledger` branch records the
   last reviewed `fitment` head per repository and the checks already posted.
   Deleting a repository's entry makes the next cycle review from `main` again.
+
+## Branch retention and recovery
+
+Before reviewing or writing checks, issues or promotion PRs for a repository,
+the cycle reads both branch heads and their effective active rules. A missing
+branch, missing deletion rule or unreadable evidence blocks that repository.
+This preflight is read-only and needs contents/metadata read access; it does
+not grant the ring-0 App administration or branch-write permissions. A
+`protected: true` flag alone does not establish deletion protection.
+
+Run the same preflight locally or in a hosted workflow:
+
+```sh
+python3 scripts/check_integration_branches.py --repository dlworrell/AEMS
+```
+
+The composite action `.github/actions/integration-branches` exposes the check
+to other repositories; pin it to the reviewed full commit SHA and grant only
+`contents: read`. No target-repository checkout or model key is required.
+It checks branch existence and active deletion rules, not complete ruleset
+compliance, bypass actors, CI correctness or human approval.
+
+For an existing repository, recover a deleted branch from its last verified
+head in promotion history; inspect later PRs for any newer lost work. Creating
+it from `main` can abandon unreleased daily work. If the branch already exists,
+inspect it and never reset it automatically. Then run **Apply Catylist Rulesets**
+with pinned Catylist and repo_templates commits, the affected repository filter
+and `dry_run: true`. Inspect the plan, rerun with `dry_run: false`, and approve
+the existing `ruleset-admin` environment gate. Verify effective deletion rules
+on both branches before merging another promotion. Keep automatic deletion
+enabled for ordinary topic branches as ADR-0006 requires.
+
+Merging this code does not change repository settings. The ruleset rollout is
+a separate required operation; an unsafe or unavailable live preflight must
+remain red until that operation succeeds. Existing protection and promotion
+history are never rewritten to make the check pass. The preflight observes
+current state, not an atomic guarantee against a later settings change.
+
+See the [2026-10-26 incident record](reports/fitment-branch-retention-20261026.md).
+GitHub documents the [effective branch-rules endpoint](https://docs.github.com/en/rest/repos/rules#get-rules-for-a-branch),
+which excludes disabled and evaluate-mode rulesets.
 
 ## Known limits
 

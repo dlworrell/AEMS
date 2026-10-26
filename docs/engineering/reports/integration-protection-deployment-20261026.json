@@ -1,0 +1,287 @@
+{
+  "record": "integration-protection-deployment-20261026",
+  "status": "AWAITING_OWNER_APPROVAL_AND_DEPLOYMENT",
+  "purpose": "Install the missing active integration-branch rulesets that caused recurring branch deletion after promotion. This deployment record does not itself change GitHub settings.",
+  "authority": [
+    "Catylist ADR-0006",
+    "Catylist ADR-0007",
+    "Catylist ADR-0013",
+    "AES-DEV-001"
+  ],
+  "observed_at": "2026-10-26T19:48:14.353Z",
+  "scope": [
+    "dlworrell/AEMS",
+    "dlworrell/atarix"
+  ],
+  "required_branch_refs": [
+    "refs/heads/dev-daily",
+    "refs/heads/fitment"
+  ],
+  "sources": {
+    "aems_engine": "268089d78e4c58f16fbcc2edfdcdcd2914543c81",
+    "catylist_inventory": "863a50e8f85d462d3e9e064688a09a85fd2fcce2",
+    "repo_templates": "097338e20457b500fa66771091bbf6428457d10b",
+    "template_path": "rulesets/protect-integration-branches.json"
+  },
+  "desired_ruleset": {
+    "name": "protect-integration-branches",
+    "target": "branch",
+    "enforcement": "active",
+    "conditions": {
+      "ref_name": {
+        "include": [
+          "refs/heads/dev-daily",
+          "refs/heads/fitment"
+        ],
+        "exclude": []
+      }
+    },
+    "bypass_actors": [],
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "required_signatures"
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": false,
+          "require_code_owner_review": false,
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": false,
+          "allowed_merge_methods": [
+            "merge"
+          ]
+        }
+      }
+    ]
+  },
+  "desired_normalized_json_sha256": "bb3e355cd6d130cdfb09e1c9282acdc2a6d782d5d727dfc4bbe788c14c08ce75",
+  "before": [
+    {
+      "repository": "dlworrell/AEMS",
+      "heads": {
+        "dev-daily": {
+          "sha": "6613c7dce5ab17e2ffaf0e0c4c840c831e16476d",
+          "protected": false
+        },
+        "fitment": {
+          "sha": "ecad36ecca1ac98628fa3ea9e4422e6b6bca73b7",
+          "protected": false
+        }
+      },
+      "active_rulesets": [
+        {
+          "id": 25249700,
+          "name": "protect-default-branch"
+        },
+        {
+          "id": 25249701,
+          "name": "protect-release-tags"
+        }
+      ],
+      "integration_ruleset": "MISSING"
+    },
+    {
+      "repository": "dlworrell/atarix",
+      "heads": {
+        "dev-daily": {
+          "sha": "55b0aa1127a1ff5529b208960fd1488ba2ff1b7d",
+          "protected": false
+        },
+        "fitment": {
+          "sha": "eaa04cd9a586bb21106042320f279f372ac79c2f",
+          "protected": false
+        }
+      },
+      "active_rulesets": [
+        {
+          "id": 25762332,
+          "name": "protect-default-branch"
+        },
+        {
+          "id": 25762333,
+          "name": "protect-release-tags"
+        }
+      ],
+      "integration_ruleset": "MISSING"
+    }
+  ],
+  "dry_run": {
+    "method": "Read-only GitHub connector snapshots evaluated by the existing main-branch ruleset engine with process_repository(apply=False). No simulated apply or hosted apply success is claimed.",
+    "mutating_requests": 0,
+    "report": {
+      "schema": "aems.catylist-rulesets-report.v1",
+      "mode": "dry-run",
+      "sources": {
+        "inventory": {
+          "repository": "dlworrell/Catylist",
+          "path": "inventory/repositories.json",
+          "ref": "863a50e8f85d462d3e9e064688a09a85fd2fcce2"
+        },
+        "rulesets": {
+          "repository": "dlworrell/repo_templates",
+          "paths": [
+            "rulesets/protect-default-branch.json",
+            "rulesets/protect-release-tags.json",
+            "rulesets/protect-integration-branches.json"
+          ],
+          "ref": "097338e20457b500fa66771091bbf6428457d10b"
+        }
+      },
+      "desired_merge_settings": {
+        "allow_merge_commit": true,
+        "allow_squash_merge": false,
+        "allow_rebase_merge": false,
+        "delete_branch_on_merge": true
+      },
+      "repos_filter": [
+        "dlworrell/AEMS",
+        "dlworrell/atarix"
+      ],
+      "skipped": [],
+      "summary": {
+        "drift": 2
+      },
+      "repositories": [
+        {
+          "repository": "dlworrell/AEMS",
+          "status": "drift",
+          "error": null,
+          "unmanaged_rulesets": [],
+          "before": {
+            "repository": "dlworrell/AEMS",
+            "rulesets": [
+              {
+                "name": "protect-default-branch",
+                "ruleset_id": 25249700,
+                "action": "none",
+                "drift": []
+              },
+              {
+                "name": "protect-release-tags",
+                "ruleset_id": 25249701,
+                "action": "none",
+                "drift": []
+              },
+              {
+                "name": "protect-integration-branches",
+                "ruleset_id": null,
+                "action": "create",
+                "drift": [
+                  {
+                    "field": "ruleset",
+                    "desired": "present",
+                    "current": "missing"
+                  }
+                ]
+              }
+            ],
+            "merge_settings": {
+              "action": "none",
+              "drift": []
+            }
+          },
+          "after": null
+        },
+        {
+          "repository": "dlworrell/atarix",
+          "status": "drift",
+          "error": null,
+          "unmanaged_rulesets": [],
+          "before": {
+            "repository": "dlworrell/atarix",
+            "rulesets": [
+              {
+                "name": "protect-default-branch",
+                "ruleset_id": 25762332,
+                "action": "none",
+                "drift": []
+              },
+              {
+                "name": "protect-release-tags",
+                "ruleset_id": 25762333,
+                "action": "none",
+                "drift": []
+              },
+              {
+                "name": "protect-integration-branches",
+                "ruleset_id": null,
+                "action": "create",
+                "drift": [
+                  {
+                    "field": "ruleset",
+                    "desired": "present",
+                    "current": "missing"
+                  }
+                ]
+              }
+            ],
+            "merge_settings": {
+              "action": "none",
+              "drift": []
+            }
+          },
+          "after": null
+        }
+      ]
+    }
+  },
+  "execution": {
+    "repository": "dlworrell/AEMS",
+    "workflow": ".github/workflows/apply-catylist-rulesets.yml",
+    "ref": "main",
+    "environment": "ruleset-admin",
+    "required_reviewer": "dlworrell",
+    "inputs": {
+      "dry_run": false,
+      "repos": "dlworrell/AEMS,dlworrell/atarix",
+      "catylist_ref": "863a50e8f85d462d3e9e064688a09a85fd2fcce2",
+      "templates_ref": "097338e20457b500fa66771091bbf6428457d10b"
+    },
+    "approval_order": [
+      "Review and sign the deployment PR.",
+      "Review the linked apply run and approve its existing ruleset-admin environment gate.",
+      "The existing applier rereads actual state, applies the pinned baseline, then rereads state and requires no remaining drift."
+    ],
+    "expected_mutations": [
+      {
+        "method": "POST",
+        "path": "/repos/dlworrell/AEMS/rulesets",
+        "name": "protect-integration-branches"
+      },
+      {
+        "method": "POST",
+        "path": "/repos/dlworrell/atarix/rulesets",
+        "name": "protect-integration-branches"
+      }
+    ],
+    "scope_note": "The approved baseline applier also checks default/tag rules and merge settings. Their observed plans are no-op. Stop and re-review if source pins or scope differ."
+  },
+  "acceptance": [
+    "Both dev-daily and fitment still exist in each repository; never reset existing branch heads.",
+    "Each repository has an active protect-integration-branches ruleset matching desired_ruleset with no bypass actors.",
+    "GET /repos/OWNER/REPO/rules/branches/dev-daily and /fitment returns an active deletion rule in each repository.",
+    "The pinned shared integration-branches action succeeds for AEMS and atarix.",
+    "Rerunning the ruleset planner reports compliant, with no writes needed.",
+    "After owner-approved promotion, both long-lived branches remain present."
+  ],
+  "rollout_limits": [
+    "PR merge alone is not deployment; GitHub stores rulesets outside Git.",
+    "No sandbox testbed is a dependency of this existing-baseline repair.",
+    "The admin gate and secrets are unchanged. No new token, signing key or required status check is introduced.",
+    "Before acceptance, pause promotion merges; do not weaken the diagnostic to make it green."
+  ],
+  "after": {
+    "deployment": "NOT_RUN",
+    "effective_rule_verification": "NOT_RUN",
+    "promotion_survival": "NOT_RUN"
+  },
+  "provenance": "AI-assisted preparation by ChatGPT for @dlworrell; this is not owner approval."
+}

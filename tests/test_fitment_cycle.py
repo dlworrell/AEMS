@@ -112,6 +112,8 @@ def routes(**extra) -> dict:
         f"/repos/{REPO}": {"default_branch": "main"},
         f"/repos/{REPO}/branches/dev-daily": {"commit": {"sha": DAILY}},
         f"/repos/{REPO}/branches/fitment": {"commit": {"sha": FIT}},
+        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}],
+        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}],
         f"/repos/{REPO}/pulls?state=open&base=fitment&per_page=100": [],
         f"/repos/{REPO}/pulls?state=open&base=main&per_page=100": [],
         f"/repos/{REPO}/issues?state=open&labels=fitment&per_page=100": [],
@@ -123,6 +125,8 @@ def routes(**extra) -> dict:
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:dev-daily&base=fitment&per_page=10": [],
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:fitment&base=main&per_page=10": [],
         f"/repos/{REPO}/commits": [{"author": {"login": "contributor"}}],
+        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}, {"type": "pull_request"}],
+        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}, {"type": "pull_request"}],
     }
     base.update(extra)
     return base
@@ -223,7 +227,32 @@ class CycleTests(unittest.TestCase):
         gh = FakeGitHub(routes(**{f"/repos/{REPO}/branches/fitment": fc.GitHubError(404, "missing")}))
         cycle = self.make(gh)
         self.assertEqual(cycle.run(), 1)
-        self.assertIn("fitment branch does not exist", cycle.errors[0])
+        self.assertIn("fitment: branch is missing", cycle.errors[0])
+        self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
+
+    def test_unprotected_integration_branch_stops_before_any_cycle_write(self):
+        for branch in (fc.DAILY, fc.FITMENT):
+            with self.subTest(branch=branch):
+                gh = FakeGitHub(routes(**{
+                    f"/repos/{REPO}/rules/branches/{branch}": [],
+                    f"/repos/{REPO}/compare/fitment...dev-daily": {"ahead_by": 1},
+                    f"/repos/{REPO}/compare/main...{FIT}": promoted(),
+                }))
+                review, model = reviewer([finding()])
+                cycle = self.make(gh, review)
+                self.assertEqual(cycle.run(), 1)
+                self.assertIn(f"{branch}: no active deletion rule", cycle.errors[0])
+                self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
+                self.assertEqual(model.requests, [])
+
+    def test_unavailable_retention_evidence_stops_even_a_dry_run(self):
+        gh = FakeGitHub(routes(**{
+            f"/repos/{REPO}/rules/branches/dev-daily": fc.GitHubError(403, "forbidden"),
+        }))
+        cycle = self.make(gh, dry_run=True)
+        self.assertEqual(cycle.run(), 1)
+        self.assertIn("retention is unverified", cycle.errors[0])
+        self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
 
     def test_finding_is_filed_to_the_author_and_holds_the_gate(self):
         open_issues = []
@@ -332,6 +361,23 @@ class CycleTests(unittest.TestCase):
         self.make(gh, state={"repos": {REPO: {"reviewed": FIT}}, "posted": {}}).run()
         self.assertFalse([b for p, b in gh.posts if p == f"/repos/{REPO}/pulls"])
 
+    def test_unprotected_head_branch_is_never_promoted(self):
+        # Regression: atarix #86 merged dev-daily into fitment before
+        # protect-integration-branches applied; delete-on-merge removed
+        # dev-daily and GitHub retargeted atarix #83 to fitment.
+        for branch, extra in (("dev-daily", {f"/repos/{REPO}/compare/fitment...dev-daily": {"ahead_by": 2}}),
+                              ("fitment", {f"/repos/{REPO}/compare/main...fitment": promoted()})):
+            with self.subTest(branch=branch):
+                gh = FakeGitHub(routes(**extra, **{f"/repos/{REPO}/rules/branches/{branch}": []}))
+                cycle = self.make(gh, state={"repos": {REPO: {"reviewed": FIT}}, "posted": {}})
+                self.assertEqual(cycle.run(), 1)
+                self.assertFalse([b for p, b in gh.posts if p == f"/repos/{REPO}/pulls"])
+                # The shared preflight now refuses this state before the
+                # promotion-specific guard can run. Bind the diagnostic to
+                # the affected branch and retain the no-side-effects check.
+                self.assertIn(f"{branch}: no active deletion rule", cycle.errors[0])
+                self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
+
     def test_red_dev_daily_is_not_promoted(self):
         gh = FakeGitHub(routes(**{
             f"/repos/{REPO}/compare/fitment...dev-daily": {"ahead_by": 3},
@@ -387,6 +433,30 @@ class CycleTests(unittest.TestCase):
         self.make(gh, state={"repos": {REPO: {"reviewed": FIT}}, "posted": {}}).run()
         for path, _ in gh.posts + gh.puts + gh.patches:
             self.assertNotRegex(path, r"/reviews|/merge|/git/refs|/contents/")
+
+
+class StateStoreTests(unittest.TestCase):
+    def test_save_creates_the_ledger_branch_when_missing(self):
+        # Regression: the first scheduled cycle ran before any ring-0 sweep had
+        # created ring0/ledger, and the state write failed with 404.
+        gh = FakeGitHub({
+            "/repos/dlworrell/AEMS/git/ref/heads/ring0/ledger": fc.GitHubError(404, "Not Found"),
+            "/repos/dlworrell/AEMS": {"default_branch": "main"},
+            "/repos/dlworrell/AEMS/git/ref/heads/main": {"object": {"sha": MAIN}},
+        })
+        with tempfile.TemporaryDirectory() as tmp:
+            store = fc.StateStore(gh, "dlworrell/AEMS", False, Path(tmp))
+            store.save({"schema": fc.STATE_SCHEMA, "repos": {}, "posted": {}}, NOW)
+        self.assertEqual(gh.posts, [("/repos/dlworrell/AEMS/git/refs",
+                                     {"ref": "refs/heads/ring0/ledger", "sha": MAIN})])
+        self.assertEqual(gh.puts[0][1]["branch"], "ring0/ledger")
+
+    def test_save_leaves_an_existing_ledger_branch_alone(self):
+        gh = FakeGitHub({"/repos/dlworrell/AEMS/git/ref/heads/ring0/ledger": {"object": {"sha": MAIN}}})
+        with tempfile.TemporaryDirectory() as tmp:
+            fc.StateStore(gh, "dlworrell/AEMS", False, Path(tmp)).save({"repos": {}, "posted": {}}, NOW)
+        self.assertEqual(gh.posts, [])
+        self.assertEqual(len(gh.puts), 1)
 
 
 if __name__ == "__main__":

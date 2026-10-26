@@ -46,8 +46,10 @@ from ring0_sweep import (  # noqa: E402  (shared GitHub I/O and limits)
     Client,
     GitHubClient,
     GitHubError,
+    LedgerStore,
     decode_content,
 )
+from check_integration_branches import RetentionError, inspect_branches  # noqa: E402
 
 CONFIG_SCHEMA = "aems.fitment-config.v1"
 STATE_SCHEMA = "aems.fitment-state.v1"
@@ -398,6 +400,10 @@ class StateStore:
             return
         import base64
 
+        # The fitment cycle can run before the first ring-0 sweep has created
+        # the ledger branch, so create it here too if it is missing.
+        LedgerStore(self._client, self._repository, False, self._output_dir).ensure_branch()
+
         body: dict[str, Any] = {"message": f"fitment state ({now.strftime('%Y-%m-%dT%H:%MZ')})",
                                 "branch": LEDGER_BRANCH,
                                 "content": base64.b64encode(text.encode("utf-8")).decode("ascii")}
@@ -441,21 +447,17 @@ class Cycle:
                 continue
             try:
                 self.cycle_repository(repository)
-            except (GitHubError, FitmentError) as exc:
+            except (GitHubError, FitmentError, RetentionError) as exc:
                 self.errors.append(f"{repository}: {exc}")
         self.store.save(self.state, self.now)
         return 1 if self.errors else 0
 
     def cycle_repository(self, repository: str) -> None:
         default = (self.gh.get(f"/repos/{repository}") or {}).get("default_branch") or "main"
-        heads = {}
-        for branch in (DAILY, FITMENT):
-            try:
-                heads[branch] = self.gh.get(f"/repos/{repository}/branches/{branch}")["commit"]["sha"]
-            except GitHubError as exc:
-                if exc.status == 404:
-                    raise FitmentError(f"the {branch} branch does not exist; create it from {default}") from None
-                raise
+        # Retention must be established before any review, check, issue or PR
+        # write for this repository. Never recreate a deleted branch from main:
+        # it may contain unreleased work recoverable from promotion history.
+        heads = inspect_branches(self.gh, repository)
         self.check_sources(repository, default)
         self.close_fixed(repository, default)
         review = self.review(repository, default, heads[FITMENT])
@@ -618,7 +620,23 @@ class Cycle:
                                    f"`{FITMENT}` passed the fitment check. After merging, dispatch the release "
                                    "workflow with a version; it parks for the owner's approval before tagging.")
 
+    def deletion_protected(self, repository: str, branch: str) -> bool:
+        """Whether a ruleset forbids deleting ``branch``.
+
+        A promotion pull request's head is a long-lived branch. Without the
+        deletion rule (protect-integration-branches), merging the promotion
+        lets "delete branch on merge" remove it, and GitHub retargets every
+        pull request into it.
+        """
+        rules = self.gh.get(f"/repos/{repository}/rules/branches/{branch}") or []
+        return any(isinstance(r, dict) and r.get("type") == "deletion" for r in rules)
+
     def open_pull_request(self, repository: str, head: str, base: str, title: str, text: str) -> None:
+        if not self.deletion_protected(repository, head):
+            self.note(repository, "promotion", f"{head} → {base} not opened: {head} is not protected from "
+                      "deletion; apply protect-integration-branches first")
+            self.errors.append(f"{repository}: {head} is not protected from deletion; promotion pull request held")
+            return
         self.note(repository, "pull request", f"{head} → {base}: {title}")
         if self.dry_run:
             return
