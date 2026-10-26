@@ -112,6 +112,8 @@ def routes(**extra) -> dict:
         f"/repos/{REPO}": {"default_branch": "main"},
         f"/repos/{REPO}/branches/dev-daily": {"commit": {"sha": DAILY}},
         f"/repos/{REPO}/branches/fitment": {"commit": {"sha": FIT}},
+        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}],
+        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}],
         f"/repos/{REPO}/pulls?state=open&base=fitment&per_page=100": [],
         f"/repos/{REPO}/pulls?state=open&base=main&per_page=100": [],
         f"/repos/{REPO}/issues?state=open&labels=fitment&per_page=100": [],
@@ -223,7 +225,32 @@ class CycleTests(unittest.TestCase):
         gh = FakeGitHub(routes(**{f"/repos/{REPO}/branches/fitment": fc.GitHubError(404, "missing")}))
         cycle = self.make(gh)
         self.assertEqual(cycle.run(), 1)
-        self.assertIn("fitment branch does not exist", cycle.errors[0])
+        self.assertIn("fitment: branch is missing", cycle.errors[0])
+        self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
+
+    def test_unprotected_integration_branch_stops_before_any_cycle_write(self):
+        for branch in (fc.DAILY, fc.FITMENT):
+            with self.subTest(branch=branch):
+                gh = FakeGitHub(routes(**{
+                    f"/repos/{REPO}/rules/branches/{branch}": [],
+                    f"/repos/{REPO}/compare/fitment...dev-daily": {"ahead_by": 1},
+                    f"/repos/{REPO}/compare/main...{FIT}": promoted(),
+                }))
+                review, model = reviewer([finding()])
+                cycle = self.make(gh, review)
+                self.assertEqual(cycle.run(), 1)
+                self.assertIn(f"{branch}: no active deletion rule", cycle.errors[0])
+                self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
+                self.assertEqual(model.requests, [])
+
+    def test_unavailable_retention_evidence_stops_even_a_dry_run(self):
+        gh = FakeGitHub(routes(**{
+            f"/repos/{REPO}/rules/branches/dev-daily": fc.GitHubError(403, "forbidden"),
+        }))
+        cycle = self.make(gh, dry_run=True)
+        self.assertEqual(cycle.run(), 1)
+        self.assertIn("retention is unverified", cycle.errors[0])
+        self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
 
     def test_finding_is_filed_to_the_author_and_holds_the_gate(self):
         open_issues = []
