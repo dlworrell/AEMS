@@ -372,7 +372,11 @@ class CycleTests(unittest.TestCase):
                 cycle = self.make(gh, state={"repos": {REPO: {"reviewed": FIT}}, "posted": {}})
                 self.assertEqual(cycle.run(), 1)
                 self.assertFalse([b for p, b in gh.posts if p == f"/repos/{REPO}/pulls"])
-                self.assertIn("not protected from deletion", cycle.errors[0])
+                # The shared preflight now refuses this state before the
+                # promotion-specific guard can run. Bind the diagnostic to
+                # the affected branch and retain the no-side-effects check.
+                self.assertIn(f"{branch}: no active deletion rule", cycle.errors[0])
+                self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
 
     def test_red_dev_daily_is_not_promoted(self):
         gh = FakeGitHub(routes(**{
