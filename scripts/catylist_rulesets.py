@@ -51,9 +51,9 @@ INTEGRATION_BRANCHES = ("dev-daily", "fitment")
 FITMENT_CONFIG_SCHEMA = "aems.fitment-config.v1"
 DEFAULT_FITMENT_CONFIG = Path(__file__).resolve().parents[1] / "config" / "fitment.json"
 
-# The ruleset sandbox is not a Catalyst repository and is therefore not in the
-# inventory. It is the only name the repository filter may select outside the
-# inventory, so that a rollout can start there (ADR-0006 rollout order).
+# Legacy explicit opt-in for the optional experimental ruleset sandbox. It is
+# never a required testbed or adoption gate (Catylist ADR-0014). Once its
+# experimental inventory entry lands, normal inventory selection applies.
 SANDBOX_REPOSITORY = "dlworrell/ruleset-sandbox"
 
 # ADR-0006 section 2, rule 4 and the paragraph on head-branch deletion.

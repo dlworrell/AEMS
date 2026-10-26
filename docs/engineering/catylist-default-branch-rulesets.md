@@ -68,8 +68,10 @@ works for them.
 Only entries with `default_branch_policy: protected` are processed. A filter
 name whose policy is `excluded` or `pending-classification` is skipped and
 listed in the report. A filter name that is not in the inventory fails the
-run. The one exception is `dlworrell/ruleset-sandbox`, which is not a Catalyst
-repository but can be named explicitly for rollout testing.
+run. `dlworrell/ruleset-sandbox` is an optional experimental repository under
+Catylist ADR-0014, not a required testbed or acceptance gate. The legacy
+explicit-selection exception remains available for controlled experiments;
+once its experimental inventory entry lands, normal inventory selection applies.
 
 ## Drift model
 
@@ -150,14 +152,22 @@ re-run with the same inputs and `dry_run: false`.
 
 Rollout order:
 
-1. `dlworrell/ruleset-sandbox`: `repos: dlworrell/ruleset-sandbox`. Confirm
-   that a signed pull request merges, and that unsigned commits, force pushes,
-   branch deletion, squash merges, rebase merges, and `v*` tag moves are
-   rejected.
+1. Record positive and refusal validation for the exact ruleset version using
+   controlled fixtures or appropriate owning-repository evidence. Include
+   signed PR publication and the applicable history, deletion and tag rules;
+   distinguish simulated evidence from live GitHub evidence. No named
+   experimental repository is a prerequisite.
 2. `dlworrell/code-noodling`, only after its P0 remediation is complete.
    Direct unsigned pushes to its `main` stop working at this point.
 3. The remaining protected repositories, filtered in small groups or
    unfiltered.
+
+`ruleset-sandbox` is experimental and optional. Its availability or results do
+not gate signing, adoption, the fitment cycle or release of another repository.
+Historical sandbox observations remain evidence about their original subjects.
+The existing dry-run-first process and owner approval are unchanged; no test,
+signature requirement or protection is waived. See
+[Catylist ADR-0014](https://github.com/dlworrell/Catylist/blob/main/docs/adr/ADR-0014-experimental-sandbox-and-validation.md).
 
 ## Traceability
 
