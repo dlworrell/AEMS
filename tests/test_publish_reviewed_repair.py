@@ -6,6 +6,7 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+import urllib.parse
 
 spec = importlib.util.spec_from_file_location("repair", Path(__file__).resolve().parents[1] / "scripts/publish_reviewed_repair.py")
 repair = importlib.util.module_from_spec(spec)
@@ -39,6 +40,7 @@ class GitHub:
         self.advance_on_create = False
         self.move_on_verify = False
         self.unverified_reads = 0
+        self.merged_prs = []
 
     @property
     def writes(self):
@@ -48,6 +50,12 @@ class GitHub:
         self.calls.append((method, path, copy.deepcopy(body)))
         if method == "GET" and path == f"/repos/{REPO}":
             return {"default_branch": "main"}
+        if method == "GET" and "/pulls?" in path:
+            page = int(urllib.parse.parse_qs(path.split("?", 1)[1])["page"][0])
+            return copy.deepcopy(self.merged_prs[(page - 1) * 100:page * 100])
+        if method == "GET" and "/pulls/" in path:
+            number = int(path.rsplit("/", 1)[1])
+            return copy.deepcopy(next(pr for pr in self.merged_prs if pr["number"] == number))
         if method == "GET" and "/git/ref/heads/" in path:
             name = path.split("/git/ref/heads/", 1)[1]
             if name not in self.refs:
@@ -83,6 +91,11 @@ class GitHub:
 
 
 class ReviewedRepair(unittest.TestCase):
+    def merged_pr(self):
+        return {"number": 42, "merged": True, "merged_at": "2026-10-26T04:59:20Z",
+                "head": {"ref": BRANCH, "sha": SIGNED, "repo": {"full_name": REPO}},
+                "base": {"ref": "main", "repo": {"full_name": REPO}}}
+
     def run_repair(self, api, value=None, env=None, digest=None):
         raw = json.dumps(value if value is not None else payload()).encode()
         return repair.publish(raw, digest or hashlib.sha256(raw).hexdigest(), env or ENV,
@@ -120,6 +133,65 @@ class ReviewedRepair(unittest.TestCase):
                 with self.assertRaisesRegex(repair.RepairError, f"STALE_BASE: expected {BASE}; observed {OTHER}"):
                     self.run_repair(api)
                 self.assertEqual(api.writes, [])
+
+    def test_deleted_merged_branch_is_recovered_from_exact_signed_pr(self):
+        api = GitHub(current=OTHER)
+        api.merged_prs = [self.merged_pr()]
+        result = self.run_repair(api)
+        self.assertEqual(result["status"], "already_published")
+        self.assertEqual(result["completion_source"], "merged_pull_request")
+        self.assertEqual(result["pull_request"], 42)
+        self.assertFalse(result["branch_present"])
+        self.assertEqual(api.writes, [])
+
+    def test_closed_unmerged_wrong_branch_base_or_repository_is_not_completion(self):
+        for change in (lambda p: p.update(merged=False), lambda p: p.update(merged_at=None),
+                       lambda p: p["head"].update(ref="signing/unrelated"),
+                       lambda p: p["base"].update(ref="other"),
+                       lambda p: p["head"]["repo"].update(full_name="other/AEMS")):
+            api = GitHub(current=OTHER)
+            pr = self.merged_pr()
+            change(pr)
+            api.merged_prs = [pr]
+            with self.assertRaisesRegex(repair.RepairError, "STALE_BASE"):
+                self.run_repair(api)
+            self.assertEqual(api.writes, [])
+
+    def test_merged_pr_does_not_hide_unsigned_or_altered_artifact(self):
+        for change in (lambda c: c["commit"].update(verification={"verified": False, "reason": "unsigned"}),
+                       lambda c: c["commit"].update(tree={"sha": OTHER}),
+                       lambda c: c.update(parents=[{"sha": OTHER}])):
+            api = GitHub(current=OTHER)
+            api.merged_prs = [self.merged_pr()]
+            change(api.record)
+            with self.assertRaisesRegex(repair.RepairError, "STALE_BASE"):
+                self.run_repair(api)
+            self.assertEqual(api.writes, [])
+
+    def test_branch_recreated_during_merged_pr_verification_is_refused(self):
+        api = GitHub(current=OTHER)
+        api.merged_prs = [self.merged_pr()]
+        api.move_on_verify = True
+        with self.assertRaisesRegex(repair.RepairError, "moved during verification"):
+            self.run_repair(api)
+        self.assertEqual(api.writes, [])
+
+    def test_unavailable_merged_pr_evidence_never_becomes_success(self):
+        api = GitHub(current=OTHER)
+        def endpoint(method, path, body=None):
+            if "/pulls?" in path:
+                raise repair.APIError(403, method, path)
+            return api(method, path, body)
+        with self.assertRaises(repair.APIError):
+            self.run_repair(endpoint)
+        self.assertEqual(api.writes, [])
+
+    def test_deleted_branch_lookup_follows_closed_pr_pagination(self):
+        api = GitHub(current=OTHER)
+        api.merged_prs = [{"number": 1000 + i, "merged_at": None} for i in range(100)] + [self.merged_pr()]
+        self.assertEqual(self.run_repair(api)["status"], "already_published")
+        self.assertEqual(sum("/pulls?" in call[1] for call in api.calls), 2)
+        self.assertEqual(api.writes, [])
 
     def test_unsigned_or_inconsistent_completed_branch_never_passes(self):
         for evidence in ({"verified": False, "reason": "unsigned"},

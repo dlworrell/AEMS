@@ -122,17 +122,62 @@
           "verified": true,
           "mutating_requests": 0
         }
+      },
+      {
+        "scenario": "deleted_complete_branch_after_merge",
+        "expected_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "observed_default": "dddddddddddddddddddddddddddddddddddddddd",
+        "before": {
+          "outcome": "refused",
+          "exception": "RuntimeError",
+          "diagnostic": "Default branch moved; reprepare without overwriting it",
+          "mutating_requests": 0
+        },
+        "after": {
+          "outcome": "already_published",
+          "verified": true,
+          "mutating_requests": 0
+        }
       }
     ]
   },
   "focused_tests": {
-    "new_publisher": 22,
+    "new_publisher": 28,
     "existing_pr_signatures": 13,
-    "total_passed": 35,
+    "total_passed": 41,
+    "initial_iteration_total_passed": 35,
     "full_aems_suite": "NOT_RUN"
   },
   "hosted_acceptance_contract": {
-    "focused_tests": 35,
+    "focused_tests": 41,
     "publish_then_repeat": "same verified commit; second call already_published; no write on repeat"
+  },
+  "iteration_1": {
+    "pr": 42,
+    "head": "fbc4837f9c885b612d149cc5d31b0936b102e7ee",
+    "merge": "85b5e1d26d6dfc9a9bb06015234d1110be138d58",
+    "tree": "332d5f4fe5b0231ff24f56582977047fc4cdb2ff",
+    "workflow_commit": "ff173d87db4d1fbec2ecdfa7d7a770692dcfd66b",
+    "payload_sha256": "1e24647244ac9fbff4fd9ce7417e617a25cf231e4b6adce125048b30940a98ac",
+    "run": 40271707114,
+    "attempt_1": {
+      "outcome": "success",
+      "tests_passed": 35,
+      "publish": "published",
+      "immediate_repeat": "already_published"
+    },
+    "attempt_2": {
+      "outcome": "failure",
+      "job": 121406277225,
+      "time_utc": "2026-10-26T05:00:05Z",
+      "observed_default": "85b5e1d26d6dfc9a9bb06015234d1110be138d58",
+      "signing_ref": "deleted_after_merge",
+      "diagnosis": "Missing branch was mistaken for incomplete publication; merged PR proof is needed"
+    }
+  },
+  "iteration_2": {
+    "change": "Read-only merged-PR lookup with independent exact signed head/tree/parent checks and final ref absence recheck",
+    "new_test_count": 6,
+    "post_merge_acceptance": "Rerun after merge and signing branch deletion; require already_published through merged_pull_request evidence"
   }
 }

@@ -143,6 +143,41 @@ def verify(api, repo: str, sha: str, payload: dict, sleep=time.sleep) -> dict:
     raise RepairError("GitHub did not verify replacement commit: " + str(verification.get("reason")))
 
 
+def merged_publication(api, repo: str, branch: str, default: str, payload: dict, sleep):
+    """Recover an exact completed artifact after GitHub deletes its merged ref."""
+    for page in range(1, 21):
+        query = urllib.parse.urlencode({"state": "closed", "head": repo.split("/")[0] + ":" + branch,
+                                        "base": default, "per_page": 100, "page": page})
+        candidates = api("GET", f"/repos/{repo}/pulls?{query}")
+        if not isinstance(candidates, list):
+            raise RepairError("Merged-PR lookup returned malformed evidence")
+        for candidate in candidates:
+            if not candidate.get("merged_at"):
+                continue
+            number = candidate.get("number")
+            if type(number) is not int or number < 1:
+                raise RepairError("Merged-PR lookup returned an invalid PR identity")
+            pr = api("GET", f"/repos/{repo}/pulls/{number}")
+            head, base = pr.get("head") or {}, pr.get("base") or {}
+            sha = head.get("sha")
+            if (pr.get("number") != number or pr.get("merged") is not True or not pr.get("merged_at")
+                    or head.get("ref") != branch or base.get("ref") != default
+                    or (head.get("repo") or {}).get("full_name") != repo
+                    or (base.get("repo") or {}).get("full_name") != repo
+                    or not isinstance(sha, str) or not SHA.fullmatch(sha)):
+                continue
+            try:
+                commit = verify(api, repo, sha, payload, sleep)
+            except APIError:
+                raise
+            except RepairError:
+                continue
+            return sha, commit, number
+        if len(candidates) < 100:
+            return None
+    raise RepairError("Merged-PR lookup exceeded its bounded pagination; inspect evidence")
+
+
 def publish(raw: bytes, digest: str, env: dict, api=request, sleep=time.sleep) -> dict:
     payload, seen = validate(raw, digest, env)
     repo, branch, base = payload["repository"], payload["branch"], payload["base_sha"]
@@ -153,6 +188,14 @@ def publish(raw: bytes, digest: str, env: dict, api=request, sleep=time.sleep) -
     if current is None:
         raise RepairError("Default branch identity unavailable")
     head = ref(api, repo, branch)
+    expected_ref = head
+    completed = None
+    if head is None and current != base:
+        # A merged branch can disappear automatically. Prove completion from
+        # GitHub's merged PR record and the exact immutable signed head.
+        completed = merged_publication(api, repo, branch, default, payload, sleep)
+        if completed:
+            head = completed[0]
     status = "already_published"
     if head is None or head == base:
         # A retry is allowed to resume an empty branch, never to rebase a payload.
@@ -187,14 +230,18 @@ def publish(raw: bytes, digest: str, env: dict, api=request, sleep=time.sleep) -
             if not isinstance(head, str) or not SHA.fullmatch(head):
                 raise RepairError("Malformed replacement commit identity")
             status = "published"
-    verified = verify(api, repo, head, payload, sleep)
-    if ref(api, repo, branch) != head:
+        expected_ref = head
+    verified = completed[1] if completed else verify(api, repo, head, payload, sleep)
+    if ref(api, repo, branch) != (expected_ref if completed else head):
         raise RepairError("Repair branch moved during verification; inspect its current head")
-    return {"schema": "aems.reviewed-repair.v1", "status": status, "repository": repo,
+    result = {"schema": "aems.reviewed-repair.v1", "status": status, "repository": repo,
             "branch": branch, "base": base, "tree": payload["tree_sha"], "commit": head,
             "verified": True, "reason": "valid", "observed_default": current,
             "url": f"https://github.com/{repo}/commit/{head}", "payload_sha256": digest,
             "files": len(seen), "signer": (verified.get("committer") or {}).get("login")}
+    if completed:
+        result.update(completion_source="merged_pull_request", pull_request=completed[2], branch_present=False)
+    return result
 
 
 def main(argv=None) -> int:
