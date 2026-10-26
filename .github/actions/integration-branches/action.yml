@@ -1,0 +1,19 @@
+name: Integration branch retention
+description: Read-only check that dev-daily and fitment exist and have active deletion rules
+inputs:
+  repository:
+    description: Repository in owner/name form
+    required: true
+  token:
+    description: Token with repository contents and metadata read access
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Check integration branch retention
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        TARGET_REPOSITORY: ${{ inputs.repository }}
+        ACTION_DIRECTORY: ${{ github.action_path }}
+      run: python3 "$ACTION_DIRECTORY/../../../scripts/check_integration_branches.py" --repository "$TARGET_REPOSITORY"

@@ -1,0 +1,88 @@
+{
+  "schema": "aems.fitment-retention-experiment.v1",
+  "reference": "https://github.com/dlworrell/AEMS/actions/runs/40382778583/job/121783849779",
+  "baseline": "89b443eabc325cac9d9fc54809ec8a1ef9b359ec",
+  "method": "Run original and repaired cycle with the same in-memory GitHub fixture; no live mutations.",
+  "cases": {
+    "missing": {
+      "before": {
+        "exit_code": 1,
+        "errors": [
+          "dlworrell/ruleset-sandbox: the dev-daily branch does not exist; create it from main"
+        ],
+        "promotion_prs": [],
+        "repository_write_count": 0
+      },
+      "after": {
+        "exit_code": 1,
+        "errors": [
+          "dlworrell/ruleset-sandbox: integration-branch preflight failed: dev-daily: branch is missing; restore its last verified head from promotion history (use the default branch only for first adoption); dev-daily: no active deletion rule; apply protect-integration-branches with the AEMS Apply Catylist Rulesets workflow before promotion; fitment: no active deletion rule; apply protect-integration-branches with the AEMS Apply Catylist Rulesets workflow before promotion"
+        ],
+        "promotion_prs": [],
+        "repository_write_count": 0
+      }
+    },
+    "unprotected": {
+      "before": {
+        "exit_code": 0,
+        "errors": [],
+        "promotion_prs": [
+          {
+            "title": "Promote dev-daily to fitment (2026-10-26)",
+            "head": "dev-daily",
+            "base": "fitment",
+            "maintainer_can_modify": false,
+            "body": "Promotes 1 commits from `dev-daily` for the fitment cycle.\n\nOpened by the AEMS fitment cycle. It never approves or merges; @dlworrell reviews and merges.\n\nADR: Catylist ADR-0013 (daily, fitment and release branches)"
+          }
+        ],
+        "repository_write_count": 2
+      },
+      "after": {
+        "exit_code": 1,
+        "errors": [
+          "dlworrell/ruleset-sandbox: integration-branch preflight failed: dev-daily: no active deletion rule; apply protect-integration-branches with the AEMS Apply Catylist Rulesets workflow before promotion; fitment: no active deletion rule; apply protect-integration-branches with the AEMS Apply Catylist Rulesets workflow before promotion"
+        ],
+        "promotion_prs": [],
+        "repository_write_count": 0
+      }
+    },
+    "protected": {
+      "before": {
+        "exit_code": 0,
+        "errors": [],
+        "promotion_prs": [
+          {
+            "title": "Promote dev-daily to fitment (2026-10-26)",
+            "head": "dev-daily",
+            "base": "fitment",
+            "maintainer_can_modify": false,
+            "body": "Promotes 1 commits from `dev-daily` for the fitment cycle.\n\nOpened by the AEMS fitment cycle. It never approves or merges; @dlworrell reviews and merges.\n\nADR: Catylist ADR-0013 (daily, fitment and release branches)"
+          }
+        ],
+        "repository_write_count": 2
+      },
+      "after": {
+        "exit_code": 0,
+        "errors": [],
+        "promotion_prs": [
+          {
+            "title": "Promote dev-daily to fitment (2026-10-26)",
+            "head": "dev-daily",
+            "base": "fitment",
+            "maintainer_can_modify": false,
+            "body": "Promotes 1 commits from `dev-daily` for the fitment cycle.\n\nOpened by the AEMS fitment cycle. It never approves or merges; @dlworrell reviews and merges.\n\nADR: Catylist ADR-0013 (daily, fitment and release branches)"
+          }
+        ],
+        "repository_write_count": 2
+      }
+    }
+  },
+  "focused_unit_tests": {
+    "command": "python3 -m unittest tests.test_check_integration_branches tests.test_fitment_cycle tests.test_catylist_rulesets tests.test_cleanup_merged_branches -q",
+    "passed": 92
+  },
+  "full_unit_tests": {
+    "command": "python3 -m unittest discover -s tests -q",
+    "passed": 304
+  }
+}

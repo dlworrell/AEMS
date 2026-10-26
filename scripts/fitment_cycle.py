@@ -49,6 +49,7 @@ from ring0_sweep import (  # noqa: E402  (shared GitHub I/O and limits)
     LedgerStore,
     decode_content,
 )
+from check_integration_branches import RetentionError, inspect_branches  # noqa: E402
 
 CONFIG_SCHEMA = "aems.fitment-config.v1"
 STATE_SCHEMA = "aems.fitment-state.v1"
@@ -446,21 +447,17 @@ class Cycle:
                 continue
             try:
                 self.cycle_repository(repository)
-            except (GitHubError, FitmentError) as exc:
+            except (GitHubError, FitmentError, RetentionError) as exc:
                 self.errors.append(f"{repository}: {exc}")
         self.store.save(self.state, self.now)
         return 1 if self.errors else 0
 
     def cycle_repository(self, repository: str) -> None:
         default = (self.gh.get(f"/repos/{repository}") or {}).get("default_branch") or "main"
-        heads = {}
-        for branch in (DAILY, FITMENT):
-            try:
-                heads[branch] = self.gh.get(f"/repos/{repository}/branches/{branch}")["commit"]["sha"]
-            except GitHubError as exc:
-                if exc.status == 404:
-                    raise FitmentError(f"the {branch} branch does not exist; create it from {default}") from None
-                raise
+        # Retention must be established before any review, check, issue or PR
+        # write for this repository. Never recreate a deleted branch from main:
+        # it may contain unreleased work recoverable from promotion history.
+        heads = inspect_branches(self.gh, repository)
         self.check_sources(repository, default)
         self.close_fixed(repository, default)
         review = self.review(repository, default, heads[FITMENT])
