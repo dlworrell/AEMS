@@ -112,8 +112,9 @@ def routes(**extra) -> dict:
         f"/repos/{REPO}": {"default_branch": "main"},
         f"/repos/{REPO}/branches/dev-daily": {"commit": {"sha": DAILY}},
         f"/repos/{REPO}/branches/fitment": {"commit": {"sha": FIT}},
-        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}],
-        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}],
+        # The shared fixture models branches with both deletion and PR rules.
+        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}, {"type": "pull_request"}],
+        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}, {"type": "pull_request"}],
         f"/repos/{REPO}/pulls?state=open&base=fitment&per_page=100": [],
         f"/repos/{REPO}/pulls?state=open&base=main&per_page=100": [],
         f"/repos/{REPO}/issues?state=open&labels=fitment&per_page=100": [],
@@ -125,8 +126,6 @@ def routes(**extra) -> dict:
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:dev-daily&base=fitment&per_page=10": [],
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:fitment&base=main&per_page=10": [],
         f"/repos/{REPO}/commits": [{"author": {"login": "contributor"}}],
-        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}, {"type": "pull_request"}],
-        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}, {"type": "pull_request"}],
     }
     base.update(extra)
     return base
