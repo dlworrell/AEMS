@@ -68,10 +68,12 @@ works for them.
 Only entries with `default_branch_policy: protected` are processed. A filter
 name whose policy is `excluded` or `pending-classification` is skipped and
 listed in the report. A filter name that is not in the inventory fails the
-run. `dlworrell/ruleset-sandbox` is an optional experimental repository under
-Catylist ADR-0014, not a required testbed or acceptance gate. The legacy
-explicit-selection exception remains available for controlled experiments;
-once its experimental inventory entry lands, normal inventory selection applies.
+run. The AEMS implementation retains a legacy explicit-selection exception for
+`dlworrell/ruleset-sandbox`. Making that repository optional experimental work,
+rather than a required testbed or acceptance gate, is proposed in **pending
+Catylist ADR-0014**; it is not yet accepted upstream. Normal inventory selection
+can use its proposed experimental entry after the governing Catylist change
+merges. See the retained proposal and its status below.
 
 ## Drift model
 
@@ -155,19 +157,35 @@ Rollout order:
 1. Record positive and refusal validation for the exact ruleset version using
    controlled fixtures or appropriate owning-repository evidence. Include
    signed PR publication and the applicable history, deletion and tag rules;
-   distinguish simulated evidence from live GitHub evidence. No named
-   experimental repository is a prerequisite.
+   distinguish simulated evidence from live GitHub evidence. The accepted
+   Catylist rollout obligations continue to apply while ADR-0014 is pending.
 2. `dlworrell/code-noodling`, only after its P0 remediation is complete.
    Direct unsigned pushes to its `main` stop working at this point.
 3. The remaining protected repositories, filtered in small groups or
    unfiltered.
 
-`ruleset-sandbox` is experimental and optional. Its availability or results do
-not gate signing, adoption, the fitment cycle or release of another repository.
-Historical sandbox observations remain evidence about their original subjects.
-The existing dry-run-first process and owner approval are unchanged; no test,
-signature requirement or protection is waived. See
-[Catylist ADR-0014](https://github.com/dlworrell/Catylist/blob/main/docs/adr/ADR-0014-experimental-sandbox-and-validation.md).
+## Pending experimental-sandbox proposal (Catylist ADR-0014)
+
+ADR-0014 has not merged into Catylist. The accepted Catylist Code of Conduct
+and ADR-0006 remain the governing authority; this implementation document does
+not accept or supersede them.
+
+The [retained Catylist proposal patch](Catylist-experimental-sandbox-20261026.patch)
+contains the proposed ADR-0014, Code version 1.2.0 amendment, experimental
+inventory entry and related ADR updates. It is kept in AEMS for upstream review
+and traceability. Its phrase "effective on owner-approved merge" describes the
+proposed future effect, not an approval already recorded in Catylist.
+
+The proposal would make `ruleset-sandbox` optional experimental work, with its
+availability and results no longer acting as a prerequisite for other
+repositories. It would retain recorded positive/refusal validation, historical
+evidence about its original subjects, dry-run review, owner approval and
+signature requirements. Until acceptance, these proposed changes must not be
+cited as current Catylist policy.
+
+After an owner-approved Catylist merge, replace this pending notice with the
+accepted ADR link and its merge evidence. Retaining the patch alone does not
+establish acceptance.
 
 ## Traceability
 
