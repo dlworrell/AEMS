@@ -54,8 +54,10 @@ DEFAULT_FITMENT_CONFIG = Path(__file__).resolve().parents[1] / "config" / "fitme
 # Legacy explicit opt-in for ruleset sandbox experiments. Pending Catylist
 # ADR-0014 proposes removing the named testbed/adoption prerequisite; it has
 # not been accepted upstream. See the retained proposal in
-# docs/engineering/Catylist-experimental-sandbox-20261026.patch. Once its
-# experimental inventory entry lands, normal inventory selection applies.
+# docs/engineering/Catylist-experimental-sandbox-20261026.patch. Once the
+# governing Catylist change is accepted and its experimental inventory entry
+# lands, normal inventory selection applies; landing the entry alone is not
+# enough.
 SANDBOX_REPOSITORY = "dlworrell/ruleset-sandbox"
 
 # ADR-0006 section 2, rule 4 and the paragraph on head-branch deletion.
