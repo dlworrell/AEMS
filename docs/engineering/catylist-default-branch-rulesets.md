@@ -157,8 +157,14 @@ Rollout order:
 1. Record positive and refusal validation for the exact ruleset version using
    controlled fixtures or appropriate owning-repository evidence. Include
    signed PR publication and the applicable history, deletion and tag rules;
-   distinguish simulated evidence from live GitHub evidence. The accepted
-   Catylist rollout obligations continue to apply while ADR-0014 is pending.
+   distinguish simulated evidence from live GitHub evidence. While ADR-0014
+   is pending, the accepted obligations still name `ruleset-sandbox`:
+   [ADR-0006](https://github.com/dlworrell/Catylist/blob/ae617db4074b676795ea5a8f9e1a4d50ab047930/docs/adr/ADR-0006-default-branch-protection-and-signed-commits.md)
+   (*Recovery and migration impact*, step 2) requires each ruleset version to
+   be validated in `ruleset-sandbox` before any other repository, and
+   [Code Law 7](https://github.com/dlworrell/Catylist/blob/ae617db4074b676795ea5a8f9e1a4d50ab047930/CODE_OF_CONDUCT.md)
+   requires each Code version to be trialled there first. Sandbox validation is
+   therefore a prerequisite for step 2 today.
 2. `dlworrell/code-noodling`, only after its P0 remediation is complete.
    Direct unsigned pushes to its `main` stop working at this point.
 3. The remaining protected repositories, filtered in small groups or
