@@ -81,7 +81,9 @@ missing, changed, duplicate or ambiguous matches fail. Resolved history with
 no current source match must remain unresolved for manual treatment rather
 than gaining a guessed identity. It never writes the input ledger and refuses
 existing output files. It emits a scope ledger, a root remainder ledger and
-an identity/count conservation report. Review classification, rationale,
+an identity/count conservation report, including disposition counts per
+classification before, moved and remaining, which must balance. Review
+classification, rationale,
 invariant, evidence, owner, reviewer and dates are copied unchanged; no new
 approval is generated. Inspect the report, install both ledgers in one PR,
 then run all scope and remainder ratchets.
