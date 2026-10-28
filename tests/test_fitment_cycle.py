@@ -371,9 +371,10 @@ class CycleTests(unittest.TestCase):
                 cycle = self.make(gh, state={"repos": {REPO: {"reviewed": FIT}}, "posted": {}})
                 self.assertEqual(cycle.run(), 1)
                 self.assertFalse([b for p, b in gh.posts if p == f"/repos/{REPO}/pulls"])
-                # The shared preflight now refuses this state before the
-                # promotion-specific guard can run. Bind the diagnostic to
-                # the affected branch and retain the no-side-effects check.
+                # inspect_branches (the shared preflight in cycle_repository)
+                # is the single retention check: it reads every page of
+                # effective rules before any write. Bind the diagnostic to the
+                # affected branch and retain the no-side-effects check.
                 self.assertIn(f"{branch}: no active deletion rule", cycle.errors[0])
                 self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
 
