@@ -46,3 +46,11 @@ jobs:
           python-version: '3.x'
       - name: Test retention, promotion, ruleset planning and cleanup
         run: python3 -m unittest tests.test_check_integration_branches tests.test_fitment_cycle tests.test_catylist_rulesets tests.test_cleanup_merged_branches -v
+      # Exercise the composite action as consuming repositories run it, so a
+      # wrong relative script path or a broken import fails here, not there.
+      # AEMS itself has dev-daily and fitment under protect-integration-branches.
+      - name: Run the integration-branches action against this repository
+        uses: ./.github/actions/integration-branches
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ github.token }}
