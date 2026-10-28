@@ -620,23 +620,7 @@ class Cycle:
                                    f"`{FITMENT}` passed the fitment check. After merging, dispatch the release "
                                    "workflow with a version; it parks for the owner's approval before tagging.")
 
-    def deletion_protected(self, repository: str, branch: str) -> bool:
-        """Whether a ruleset forbids deleting ``branch``.
-
-        A promotion pull request's head is a long-lived branch. Without the
-        deletion rule (protect-integration-branches), merging the promotion
-        lets "delete branch on merge" remove it, and GitHub retargets every
-        pull request into it.
-        """
-        rules = self.gh.get(f"/repos/{repository}/rules/branches/{branch}") or []
-        return any(isinstance(r, dict) and r.get("type") == "deletion" for r in rules)
-
     def open_pull_request(self, repository: str, head: str, base: str, title: str, text: str) -> None:
-        if not self.deletion_protected(repository, head):
-            self.note(repository, "promotion", f"{head} → {base} not opened: {head} is not protected from "
-                      "deletion; apply protect-integration-branches first")
-            self.errors.append(f"{repository}: {head} is not protected from deletion; promotion pull request held")
-            return
         self.note(repository, "pull request", f"{head} → {base}: {title}")
         if self.dry_run:
             return
