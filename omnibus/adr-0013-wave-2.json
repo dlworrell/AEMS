@@ -1,0 +1,98 @@
+{
+  "schema": "aems.omnibus-manifest.v1",
+  "id": "adr-0013-wave-2",
+  "summary": "Adopt the ADR-0013 daily, fitment and release branch model in 13 public governed repositories: CI on dev-daily and fitment, and the owner-gated release workflow (Catylist ADR-0013, section 8)",
+  "entries": [
+    {
+      "repository": "dlworrell/Catylist",
+      "pull_request": 49,
+      "base": "dev-daily",
+      "head_sha": "5ae6f8650491244ae8790136b9a6cb5aa8610b14",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/AES",
+      "pull_request": 16,
+      "base": "dev-daily",
+      "head_sha": "01aef2f9e294f8add34dd1209dfcfc7f1388e7d0",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/P0",
+      "pull_request": 18,
+      "base": "dev-daily",
+      "head_sha": "f1a1a70a8ced8836fa57df9ff429082c8fd3058b",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/repo_templates",
+      "pull_request": 18,
+      "base": "dev-daily",
+      "head_sha": "24e0e1026741efdb019fcc5bab4a88a1dcc24c0e",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/engineering-docs-toolkit",
+      "pull_request": 8,
+      "base": "dev-daily",
+      "head_sha": "110b5ec7984b3fd78fbe132a2d1853f6da1fc49d",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/EWT",
+      "pull_request": 7,
+      "base": "dev-daily",
+      "head_sha": "4cc26d609c6164f60e7f04f7e1b3839e738cfea5",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/evo",
+      "pull_request": 141,
+      "base": "dev-daily",
+      "head_sha": "6d59d5402ed67f434ce7f40a85a4f744787d450c",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/herkules-1934-english",
+      "pull_request": 11,
+      "base": "dev-daily",
+      "head_sha": "624e14aec8ba584e63801752038a368cd18aaf1d",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/JAG",
+      "pull_request": 5,
+      "base": "dev-daily",
+      "head_sha": "407e9afb7edb100007f71f83f06fe7bb13f7fc5a",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/code-noodling",
+      "pull_request": 80,
+      "base": "dev-daily",
+      "head_sha": "2daf235edb8f385e56794d0a5116514dd37be445",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/openCUDA",
+      "pull_request": 47,
+      "base": "dev-daily",
+      "head_sha": "294632d53fa48d0408b5fdf86b121f3cf62b558d",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/Rocket_demo",
+      "pull_request": 5,
+      "base": "dev-daily",
+      "head_sha": "2e43e8b81b7e2a5593cc9eb8352b2f136e17bcb2",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    },
+    {
+      "repository": "dlworrell/Just-a-Geek-LLC",
+      "pull_request": 5,
+      "base": "dev-daily",
+      "head_sha": "c32f98a483fb022ab1634438b1e883221dc1e1ea",
+      "title": "ci: adopt the ADR-0013 daily, fitment and release branch model"
+    }
+  ]
+}
