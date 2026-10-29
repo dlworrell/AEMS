@@ -383,6 +383,26 @@ class CycleTests(unittest.TestCase):
         self.assertEqual(len([p for p, _ in gh2.posts if p == f"/repos/{REPO}/issues"]), 1)
         self.assertNotIn("pending_findings", state["repos"][REPO])
 
+    def test_stored_findings_are_filed_after_fitment_moves(self):
+        old = "1" * 40
+        stored = finding(title="Stored finding from the old head")
+        state = {"repos": {REPO: {"reviewed": old, "pending_findings": [stored],
+                                  "pending_compare": f"https://github.com/{REPO}/compare/main...{old}"}},
+                 "posted": {}}
+        gh = FakeGitHub(routes(**{f"/repos/{REPO}/compare/{old}...{FIT}": promoted()}))
+        review, model = reviewer([finding(severity="minor", title="New finding on the new head")])
+        cycle = self.make(gh, review, state=state)
+        cycle.run()
+        filed = [b for p, b in gh.posts if p == f"/repos/{REPO}/issues"]
+        self.assertEqual(sorted(b["title"] for b in filed),
+                         sorted([fc.issue_title(fc.ReviewFinding(**stored)),
+                                 fc.issue_title(fc.ReviewFinding(**finding(severity="minor",
+                                                                           title="New finding on the new head")))]))
+        self.assertIn(old[:12], next(b["body"] for b in filed if "Stored finding" in b["title"]))
+        self.assertEqual(len(model.requests), 1)  # only the new range is reviewed
+        self.assertEqual(state["repos"][REPO]["reviewed"], FIT)
+        self.assertNotIn("pending_findings", state["repos"][REPO])
+
     def test_refusal_and_malformed_reviews_hold_the_gate(self):
         for responder in (lambda _r: FakeResponse("{}", stop_reason="refusal"),
                           lambda _r: FakeResponse("not json")):
