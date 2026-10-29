@@ -231,7 +231,7 @@ def read_file(client: Client, repository: str, path: str, ref: str) -> str:
 
 
 def merged_pulls(client: Client, config: Config, branch: str) -> list[dict[str, Any]]:
-    """Recently merged pull requests into ``branch``, newest first.
+    """Merged pull requests among the ``MERGED_PULL_SCAN`` most recently updated into ``branch``.
 
     ``/commits/{sha}/pulls`` is not used: GitHub returns only open pull
     requests there for commits that are not on the default branch, and
@@ -243,7 +243,12 @@ def merged_pulls(client: Client, config: Config, branch: str) -> list[dict[str, 
 
 
 def locate_approval(client: Client, config: Config, path: str, push_commit: str | None) -> dict[str, Any]:
-    """The merged pull request whose merge commit is ``push_commit``, or that added ``path``."""
+    """The merged pull request whose merge commit is ``push_commit``, or that added ``path``.
+
+    Only the ``MERGED_PULL_SCAN`` most recently updated closed pull requests
+    into each approval branch are searched. A push runs within seconds of
+    its merge, so this matters only for a late dispatch of an old manifest.
+    """
     for branch in config.approval_branches:
         for pull in merged_pulls(client, config, branch):
             if push_commit:
@@ -253,7 +258,9 @@ def locate_approval(client: Client, config: Config, path: str, push_commit: str 
             files = client.get_all(f"/repos/{config.ledger_repository}/pulls/{pull['number']}/files?per_page=100")
             if any(f.get("filename") == path and f.get("status") == "added" for f in files):
                 return pull
-    raise OmnibusError(f"{path} did not reach {' or '.join(config.approval_branches)} through a merged pull request")
+    raise OmnibusError(f"{path} did not reach {' or '.join(config.approval_branches)} through a merged pull request "
+                       f"among the {MERGED_PULL_SCAN} most recently updated closed pull requests into each; "
+                       "an older approval cannot be found, so approve the manifest again in a new omnibus")
 
 
 def verify_approval(client: Client, config: Config, number: int) -> Approval:
