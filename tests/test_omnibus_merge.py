@@ -3,10 +3,12 @@ from __future__ import annotations
 import base64
 import datetime as dt
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
@@ -187,6 +189,15 @@ class ApprovalTests(unittest.TestCase):
         with self.assertRaisesRegex(om.OmnibusError, "may only add manifests"):
             om.find_approval(FakeGitHub(routes), CONFIG, PATH, MERGE)
 
+    def test_manifest_not_reached_through_a_merged_pull_request_is_refused(self):
+        for pulls in ([],  # pushed straight to dev-daily
+                      [{"number": 90, "merged_at": None, "base": {"ref": "dev-daily"}}],
+                      [{"number": 90, "merged_at": "2026-10-29T11:00:00Z", "base": {"ref": "main"}}]):
+            routes = approval_routes()
+            routes[f"/repos/{LEDGER}/commits/{MERGE}/pulls"] = pulls
+            with self.assertRaisesRegex(om.OmnibusError, "did not reach dev-daily"):
+                om.find_approval(FakeGitHub(routes), CONFIG, PATH, MERGE)
+
     def test_unverified_merge_commit_is_refused(self):
         with self.assertRaisesRegex(om.OmnibusError, "not verified"):
             om.find_approval(FakeGitHub(approval_routes(verified=False)), CONFIG, PATH, MERGE)
@@ -285,6 +296,14 @@ class ExecutorTests(unittest.TestCase):
         self.assertEqual([o.status for o in run.outcomes], ["already-merged", "merged"])
         self.assertEqual([p for p, _ in gh.puts], [f"/repos/{OTHER}/pulls/3/merge"])
 
+    def test_merged_at_another_commit_is_refused_and_stops_the_run(self):
+        gh = FakeGitHub(target_routes(first=pull(state="closed", merged=True, head="f" * 40)))
+        run = executor(gh)
+        self.assertEqual(run.run(), 1)
+        self.assertEqual(gh.puts, [])
+        self.assertEqual([o.status for o in run.outcomes], ["refused", "not-attempted"])
+        self.assertIn("not the approved commit", run.outcomes[0].detail)
+
     def test_waits_for_github_to_compute_mergeability(self):
         routes = target_routes()
         routes[f"/repos/{TARGET}/pulls/7"] = [("first", pull(mergeable=None)), ("then", pull())]
@@ -348,6 +367,55 @@ class CliTests(unittest.TestCase):
             bad.write_text(manifest_text())
             with self.assertRaisesRegex(om.OmnibusError, "must match the file name"):
                 om.main(["--config", str(config), "validate", str(bad)])
+
+    def run_main(self, routes, argv, tmp):
+        config = Path(__file__).resolve().parents[1] / "config" / "omnibus.json"
+        gh = FakeGitHub(routes)
+        with mock.patch.dict(os.environ, {"RING0_APP_TOKEN": "app-token", "LEDGER_TOKEN": ""}), \
+                mock.patch.object(om, "GitHubClient", lambda *_a, **_k: gh), \
+                mock.patch("builtins.print"):
+            status = om.main(["--config", str(config), "run", *argv, "--output-dir", tmp])
+        return status, gh, (Path(tmp) / "summary.md").read_text() if (Path(tmp) / "summary.md").exists() else ""
+
+    def test_main_runs_an_approved_manifest_and_writes_the_summary(self):
+        routes = {**approval_routes(), **target_routes()}
+        with tempfile.TemporaryDirectory() as tmp:
+            status, gh, summary = self.run_main(routes, ["--id", "wave-1", "--dry-run"], tmp)
+            self.assertTrue((Path(tmp) / "wave-1" / "omnibus-result.json").exists())
+        self.assertEqual(status, 0)
+        self.assertIn("# Omnibus `wave-1`", summary)
+        self.assertIn("dry-run", summary)
+        self.assertEqual(gh.puts, [])
+
+    def test_main_reports_a_refused_approval_as_not_run(self):
+        routes = {**approval_routes(merged_by="mallory"), **target_routes()}
+        with tempfile.TemporaryDirectory() as tmp:
+            status, gh, summary = self.run_main(routes, ["--id", "wave-1", "--enforce"], tmp)
+        self.assertEqual(status, 1)
+        self.assertIn("Not run:", summary)
+        self.assertIn("not an approver", summary)
+        self.assertEqual((gh.puts, gh.posts), ([], []))
+
+    def test_main_does_nothing_for_a_push_without_a_manifest(self):
+        routes = {f"/repos/{LEDGER}/commits/{MERGE}": {"files": [{"filename": "docs/x.md", "status": "added"}]}}
+        with tempfile.TemporaryDirectory() as tmp:
+            status, gh, summary = self.run_main(routes, ["--push-commit", MERGE, "--enforce"], tmp)
+        self.assertEqual(status, 0)
+        self.assertEqual(summary, "")
+        self.assertEqual((gh.puts, gh.posts), ([], []))
+
+    def test_main_combines_statuses_across_manifests(self):
+        routes = {**approval_routes(), **target_routes()}
+        routes[f"/repos/{LEDGER}/commits/{MERGE}"] = {
+            "commit": {"verification": {"verified": True, "reason": "valid"}},
+            "files": [{"filename": "omnibus/wave-1.json", "status": "added"},
+                      {"filename": "omnibus/wave-2.json", "status": "added"}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            status, _gh, summary = self.run_main(routes, ["--push-commit", MERGE, "--dry-run"], tmp)
+        self.assertEqual(status, 1)  # wave-2 is not on dev-daily, so the run as a whole fails
+        self.assertIn("# Omnibus `wave-1`", summary)
+        self.assertIn("# Omnibus `wave-2`", summary)
+        self.assertIn("Not run:", summary)
 
     def test_plan_records_current_heads(self):
         gh = FakeGitHub({f"/repos/{TARGET}/pulls/7": pull(), f"/repos/{OTHER}/pulls/3": pull(3, HEAD_B, "main")})

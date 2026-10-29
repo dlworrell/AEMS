@@ -589,7 +589,7 @@ def run_manifest(github: Client, ledger: Client | None, config: Config, manifest
         approval, text = find_approval(github, config, path, push_commit)
         manifest = parse_manifest(text, expected_id=manifest_id, config=config)
         check_not_reused(load_result(ledger, config, manifest_id)[0], approval, manifest_id)
-    except OmnibusError as exc:
+    except (OmnibusError, GitHubError) as exc:  # report it and carry on with the other manifests
         summaries.append(f"# Omnibus `{manifest_id}`\n\nNot run: {exc}\n")
         return 1
     executor = Executor(github=github, config=config, approval=approval, manifest=manifest, dry_run=dry_run)
