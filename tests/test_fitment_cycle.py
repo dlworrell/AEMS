@@ -126,6 +126,7 @@ def routes(**extra) -> dict:
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:dev-daily&base=fitment&per_page=10": [],
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:fitment&base=main&per_page=10": [],
         f"/repos/{REPO}/commits": [{"author": {"login": "contributor"}}],
+        f"/repos/{REPO}/assignees/contributor": {},
     }
     base.update(extra)
     return base
@@ -307,6 +308,18 @@ class CycleTests(unittest.TestCase):
         issue = next(b for p, b in gh.posts if p == f"/repos/{REPO}/issues")
         self.assertNotIn("assignees", issue)
         self.assertIn("the owner", issue["body"])
+
+    def test_unassignable_author_falls_back_to_the_owner_without_a_mention(self):
+        gh = FakeGitHub(routes(**{
+            f"/repos/{REPO}/compare/main...{FIT}": promoted(),
+            f"/repos/{REPO}/commits": [{"author": {"login": "claude"}}],
+        }))
+        cycle = self.make(gh, reviewer([finding(severity="minor")])[0])
+        self.assertEqual(cycle.run(), 0, cycle.errors)
+        issue = next(b for p, b in gh.posts if p == f"/repos/{REPO}/issues")
+        self.assertEqual(issue["assignees"], ["dlworrell"])
+        self.assertNotIn("@claude", issue["body"])
+        self.assertIn("`claude` last changed this file but cannot be assigned", issue["body"])
 
     def test_review_that_cannot_run_holds_the_gate_and_is_retried(self):
         gh = FakeGitHub(routes(**{f"/repos/{REPO}/compare/main...{FIT}": promoted()}))
