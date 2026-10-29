@@ -27,6 +27,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import adr0013_setup  # noqa: E402  (Catylist ADR-0013 branches and release gate)
+
 
 REPORT_SCHEMA = "aems.catylist-rulesets-report.v1"
 INVENTORY_SCHEMA = "catylist.repository-inventory.v1"
@@ -465,6 +468,7 @@ def build_report(
                 "unmanaged_rulesets": result.get("unmanaged_rulesets", []),
                 "before": _strip_payloads(result.get("before")),
                 "after": _strip_payloads(result.get("after")),
+                "adr0013": _strip_setup(result.get("adr0013")),
             }
         )
     statuses = [entry["status"] for entry in entries]
@@ -492,6 +496,34 @@ def build_report(
         },
         "repositories": entries,
     }
+
+
+def _strip_setup(setup: dict[str, Any] | None) -> dict[str, Any] | None:
+    if setup is None:
+        return None
+    stripped = json.loads(json.dumps(setup))
+    for key in ("before", "after"):
+        if stripped.get(key):
+            stripped[key]["environment"].pop("payload", None)
+    return stripped
+
+
+def _setup_rows(repo: str, setup: dict[str, Any] | None, dry_run: bool) -> list[str]:
+    """Report rows for the ADR-0013 branches and release environment."""
+    if setup is None:
+        return []
+    before = setup["before"]
+    rows = []
+    for item, state, detail in (
+        ("dev-daily + fitment", before["branches"], before["branches"]["detail"]),
+        (f"environment {adr0013_setup.RELEASE_ENVIRONMENT}", before["environment"],
+         "; ".join(before["environment"]["drift"]) or "compliant"),
+    ):
+        action = state["action"]
+        action_text = "none" if action == "none" else (f"would {action}" if dry_run else action)
+        after_text = ("unchanged (dry run)" if action != "none" else "compliant") if dry_run else "compliant"
+        rows.append(f"| `{repo}` | {item} | {_cell(detail)} | {action_text} | {after_text} |")
+    return rows
 
 
 def _describe(drift: list[dict[str, Any]]) -> str:
@@ -542,6 +574,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         repo = entry["repository"]
         before = entry["before"]
         after = entry["after"]
+        lines += _setup_rows(repo, entry.get("adr0013"), dry_run)
         if before is None:
             lines.append(
                 f"| `{repo}` | all | error | none | "
@@ -589,6 +622,8 @@ def render_markdown(report: dict[str, Any]) -> str:
     details: list[str] = []
     for entry in report["repositories"]:
         before = entry["before"]
+        for warning in ((entry.get("adr0013") or {}).get("before") or {}).get("environment", {}).get("warnings", []):
+            details.append(f"- `{entry['repository']}` release environment: {warning}")
         if entry["unmanaged_rulesets"]:
             details.append(
                 f"- `{entry['repository']}` also has unmanaged rulesets: "
@@ -782,24 +817,18 @@ def process_repository(
         "after": None,
     }
     try:
+        setup = None
         if INTEGRATION_RULESET_NAME in names:
-            for branch in INTEGRATION_BRANCHES:
-                try:
-                    client.request("GET", f"/repos/{repository}/branches/{branch}")
-                except GitHubError as exc:
-                    if exc.status == 404:
-                        raise PlanError(
-                            f"{repository}: create the {branch} branch from the "
-                            "default branch before applying "
-                            f"{INTEGRATION_RULESET_NAME}"
-                        ) from None
-                    raise
+            # Branches and the release gate come first, so the integration
+            # ruleset never lands on a repository without its branches.
+            setup = adr0013_setup.process(client, repository, apply_changes=apply)
+            result["adr0013"] = setup
         managed, settings, unmanaged = collect_state(client, repository, names)
         result["unmanaged_rulesets"] = unmanaged
         before = plan_repository(repository, desired_rulesets, managed, settings)
         result["before"] = before
         if not plan_has_changes(before):
-            result["status"] = "compliant"
+            result["status"] = setup["status"] if setup is not None else "compliant"
             return result
         if not apply:
             result["status"] = "drift"
@@ -813,7 +842,7 @@ def process_repository(
             result["error"] = "drift remains after apply"
         else:
             result["status"] = "applied"
-    except (GitHubError, PlanError) as exc:
+    except (GitHubError, PlanError, adr0013_setup.SetupError) as exc:
         result["status"] = "error"
         result["error"] = str(exc)
     return result

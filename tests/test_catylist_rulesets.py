@@ -107,12 +107,26 @@ def inventory() -> dict:
     }
 
 
+OWNER_ID = 1865560
+COMPLIANT_ENVIRONMENT = {
+    "name": "release", "can_admins_bypass": False,
+    "deployment_branch_policy": {"protected_branches": False, "custom_branch_policies": True},
+    "protection_rules": [{"type": "required_reviewers", "prevent_self_review": False,
+                          "reviewers": [{"type": "User", "reviewer": {"id": OWNER_ID, "login": "example"}}]}],
+}
+
+
 class FakeClient:
-    def __init__(self, rulesets: list[dict], settings: dict) -> None:
+    def __init__(self, rulesets: list[dict], settings: dict, *, branches=("dev-daily", "fitment"),
+                 environment=COMPLIANT_ENVIRONMENT, policies=(("main", "branch"),)) -> None:
         self.rulesets = {item["id"]: copy.deepcopy(item) for item in rulesets}
         self.settings = dict(settings)
         self.writes: list[tuple[str, str]] = []
+        self.bodies: list[tuple[str, str, object]] = []
         self.next_id = 100
+        self.branches = {name: "b" * 40 for name in branches}
+        self.environment = copy.deepcopy(environment)
+        self.policies = [{"name": n, "type": k} for n, k in policies]
 
     def list_rulesets(self, repository: str) -> list[dict]:
         return [
@@ -121,12 +135,39 @@ class FakeClient:
         ]
 
     def request(self, method: str, path: str, body=None):
-        if method == "GET" and "/rulesets/" in path:
-            return copy.deepcopy(self.rulesets[int(path.rsplit("/", 1)[1])])
         if method == "GET":
-            return dict(self.settings, archived=False)
+            if "/rulesets/" in path:
+                return copy.deepcopy(self.rulesets[int(path.rsplit("/", 1)[1])])
+            if path.startswith("/users/"):
+                return {"id": OWNER_ID}
+            if "/branches/" in path:
+                name = path.rsplit("/", 1)[1]
+                if name not in self.branches:
+                    raise cr.GitHubError(404, "Branch not found")
+                return {"commit": {"sha": self.branches[name]}}
+            if path.endswith("/environments/release"):
+                if self.environment is None:
+                    raise cr.GitHubError(404, "Not Found")
+                return copy.deepcopy(self.environment)
+            if "/deployment-branch-policies" in path:
+                return {"branch_policies": copy.deepcopy(self.policies)}
+            if "/git/ref/heads/" in path:
+                return {"object": {"sha": "a" * 40}}
+            return dict(self.settings, archived=False, default_branch="main")
         self.writes.append((method, path))
-        if method == "POST":
+        self.bodies.append((method, path, copy.deepcopy(body)))
+        if path.endswith("/git/refs"):
+            self.branches[body["ref"].removeprefix("refs/heads/")] = body["sha"]
+        elif path.endswith("/environments/release"):
+            self.environment = {
+                "name": "release", "can_admins_bypass": True,
+                "deployment_branch_policy": body["deployment_branch_policy"],
+                "protection_rules": [{"type": "required_reviewers", "prevent_self_review": body["prevent_self_review"],
+                                      "reviewers": [{"type": r["type"], "reviewer": {"id": r["id"]}}
+                                                    for r in body["reviewers"]]}]}
+        elif path.endswith("/deployment-branch-policies"):
+            self.policies.append(dict(body))
+        elif method == "POST":
             self.next_id += 1
             self.rulesets[self.next_id] = dict(copy.deepcopy(body), id=self.next_id)
         elif method == "PUT":
@@ -374,17 +415,6 @@ def desired_with_integration() -> list[dict]:
         INTEGRATION_RULESET, expected_name="protect-integration-branches", expected_target="branch")]
 
 
-class MissingBranchClient(FakeClient):
-    def __init__(self, missing: str, *args) -> None:
-        super().__init__(*args)
-        self.missing = missing
-
-    def request(self, method: str, path: str, body=None):
-        if method == "GET" and path.endswith(f"/branches/{self.missing}"):
-            raise cr.GitHubError(404, "Branch not found")
-        return super().request(method, path, body)
-
-
 class IntegrationBranchTests(unittest.TestCase):
     """Catylist ADR-0013: dev-daily and fitment only where adopted."""
 
@@ -407,13 +437,14 @@ class IntegrationBranchTests(unittest.TestCase):
         with self.assertRaises(cr.PlanError):
             cr.load_adopted(self.write_config(["not a repo"]))
 
-    def test_branches_must_exist_before_the_ruleset_is_applied(self) -> None:
-        for branch in ("dev-daily", "fitment"):
-            with self.subTest(branch=branch):
-                client = MissingBranchClient(branch, [], COMPLIANT_SETTINGS)
+    def test_one_missing_branch_is_never_recreated_from_the_default_branch(self) -> None:
+        for present in ("dev-daily", "fitment"):
+            with self.subTest(present=present):
+                client = FakeClient([], COMPLIANT_SETTINGS, branches=(present,))
                 result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
                 self.assertEqual(result["status"], "error")
-                self.assertIn(f"create the {branch} branch", result["error"])
+                self.assertIn("is missing but", result["error"])
+                self.assertIn("promotion history", result["error"])
                 self.assertEqual(client.writes, [])
 
     def test_existing_branches_get_the_ruleset_created(self) -> None:
@@ -422,7 +453,65 @@ class IntegrationBranchTests(unittest.TestCase):
         self.assertEqual(result["status"], "applied", result.get("error"))
         created = {r["name"] for r in client.rulesets.values()}
         self.assertIn("protect-integration-branches", created)
+        self.assertFalse([p for _, p in client.writes if "/git/refs" in p or "/environments/" in p])
 
+    def test_first_adoption_creates_branches_environment_and_rulesets_in_order(self) -> None:
+        client = FakeClient([], COMPLIANT_SETTINGS, branches=(), environment=None, policies=())
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+        self.assertEqual(result["status"], "applied", result.get("error"))
+        paths = [p for _, p in client.writes]
+        self.assertEqual(paths[:4], ["/repos/example/repo/git/refs", "/repos/example/repo/git/refs",
+                                     "/repos/example/repo/environments/release",
+                                     "/repos/example/repo/environments/release/deployment-branch-policies"])
+        self.assertTrue(all(p.endswith("/rulesets") for p in paths[4:]))
+        self.assertEqual(sorted(client.branches), ["dev-daily", "fitment"])
+        env_body = next(b for m, p, b in client.bodies if p.endswith("/environments/release"))
+        self.assertEqual(env_body["reviewers"], [{"type": "User", "id": OWNER_ID}])
+        self.assertFalse(env_body["prevent_self_review"])
+        self.assertEqual(env_body["deployment_branch_policy"],
+                         {"protected_branches": False, "custom_branch_policies": True})
+        self.assertIn({"name": "main", "type": "branch"}, client.policies)
+        self.assertEqual(result["adr0013"]["status"], "applied")
+
+    def test_dry_run_reports_the_setup_without_writing(self) -> None:
+        client = FakeClient([], COMPLIANT_SETTINGS, branches=(), environment=None, policies=())
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=False)
+        self.assertEqual(result["status"], "drift")
+        self.assertEqual(client.writes, [])
+        setup = result["adr0013"]["before"]
+        self.assertEqual(setup["branches"]["action"], "create")
+        self.assertIn("environment missing", setup["environment"]["drift"])
+
+    def test_environment_without_owner_or_with_self_review_blocked_is_repaired_keeping_reviewers(self) -> None:
+        env = copy.deepcopy(COMPLIANT_ENVIRONMENT)
+        env["protection_rules"][0]["reviewers"] = [{"type": "Team", "reviewer": {"id": 42}}]
+        env["protection_rules"][0]["prevent_self_review"] = True
+        env["deployment_branch_policy"] = None
+        client = FakeClient([], COMPLIANT_SETTINGS, environment=env, policies=())
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+        self.assertEqual(result["status"], "applied", result.get("error"))
+        drift = result["adr0013"]["before"]["environment"]["drift"]
+        self.assertEqual(len(drift), 4, drift)
+        env_body = next(b for m, p, b in client.bodies if p.endswith("/environments/release"))
+        self.assertEqual(env_body["reviewers"], [{"type": "Team", "id": 42}, {"type": "User", "id": OWNER_ID}])
+
+    def test_extra_branch_policies_are_kept_and_reported(self) -> None:
+        client = FakeClient([], COMPLIANT_SETTINGS, policies=(("main", "branch"), ("v*", "tag")))
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+        self.assertEqual(result["status"], "applied", result.get("error"))
+        self.assertFalse([p for _, p in client.writes if "/environments/" in p])
+        report = cr.build_report(mode="apply", catylist_ref="c" * 40, templates_ref="t" * 40,
+                                 repos_filter=[], skipped=[], results=[result])
+        markdown = cr.render_markdown(report)
+        self.assertIn("other deployment branch policies kept: tag:v*", markdown)
+        self.assertIn("environment release", markdown)
+
+    def test_compliant_setup_alone_reports_compliant(self) -> None:
+        client = FakeClient([as_current(BRANCH_RULESET, 1), as_current(TAG_RULESET, 2),
+                             as_current(INTEGRATION_RULESET, 3)], COMPLIANT_SETTINGS)
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+        self.assertEqual(result["status"], "compliant", result.get("error"))
+        self.assertEqual(client.writes, [])
 
 if __name__ == "__main__":
     unittest.main()
