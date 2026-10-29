@@ -286,6 +286,65 @@ class ExecutorTests(unittest.TestCase):
         self.assertEqual(gh.puts, [])
         self.assertIn("Code Law 4", run.outcomes[0].detail)
 
+    def own_run(self, head_ref, base, runs, *, fork=False, default_branch="main"):
+        repo = {"full_name": "someone/fork" if fork else TARGET}
+        own = pull(base=base, user={"login": "catylist-ring-0[bot]"})
+        own["head"].update({"ref": head_ref, "label": f"dlworrell:{head_ref}", "repo": repo})
+        own["base"]["repo"] = {"default_branch": default_branch}
+        routes = target_routes(first=own)
+        routes[f"/repos/{TARGET}/commits/{HEAD_A}/check-runs?per_page=100"] = {"check_runs": runs}
+        gh = FakeGitHub(routes)
+        text = manifest_text([{"repository": TARGET, "pull_request": 7, "base": base, "head_sha": HEAD_A}])
+        run = executor(gh, text=text)
+        run.run()
+        return gh, run
+
+    @staticmethod
+    def ring0_check(name, conclusion="success"):
+        return {"name": name, "status": "completed", "conclusion": conclusion, "app": {"slug": "catylist-ring-0"}}
+
+    def test_ring0_merges_its_own_promotion_once_approved(self):
+        gh, run = self.own_run("dev-daily", "fitment", [GREEN["check_runs"][0], self.ring0_check("fitment/source")])
+        self.assertEqual(run.outcomes[0].status, "merged")
+        self.assertIn("promotion opened by catylist-ring-0", run.outcomes[0].detail)
+        self.assertEqual(gh.puts[0][1]["sha"], HEAD_A)
+        self.assertIn("ADR-0017", gh.puts[0][1]["commit_message"])
+        self.assertIn("ADR-0017", gh.posts[0][1]["body"])
+
+    def test_release_candidate_needs_the_fitment_check(self):
+        source = self.ring0_check("fitment/source")
+        gh, run = self.own_run("fitment", "main", [source])
+        self.assertEqual(gh.puts, [])
+        self.assertIn("lacks catylist-ring-0's fitment check", run.outcomes[0].detail)
+        gh, run = self.own_run("fitment", "main", [source, self.ring0_check("fitment", "failure")])
+        self.assertEqual(gh.puts, [])
+        self.assertIn("checks failing: fitment", run.outcomes[0].detail)
+        gh, run = self.own_run("fitment", "main", [source, self.ring0_check("fitment")])
+        self.assertEqual(run.outcomes[0].status, "merged")
+        self.assertIn("release candidate", run.outcomes[0].detail)
+
+    def test_fitment_checks_must_come_from_ring0(self):
+        spoofed = {"name": "fitment/source", "status": "completed", "conclusion": "success",
+                   "app": {"slug": "someone-else"}}
+        gh, run = self.own_run("dev-daily", "fitment", [spoofed])
+        self.assertEqual(gh.puts, [])
+        self.assertIn("lacks catylist-ring-0's fitment/source check", run.outcomes[0].detail)
+
+    def test_ring0_merges_its_own_automation_pull_request(self):
+        gh, run = self.own_run("automation/census", "dev-daily", [GREEN["check_runs"][0]])
+        self.assertEqual(run.outcomes[0].status, "merged")
+        self.assertIn("automation opened by catylist-ring-0", run.outcomes[0].detail)
+
+    def test_ring0_refuses_its_own_pull_request_outside_the_classes(self):
+        for head_ref, base, fork, default in (("feat/x", "dev-daily", False, "main"),  # not a class
+                                              ("main", "fitment", False, "main"),       # promotion not from dev-daily
+                                              ("fitment", "main", False, "trunk"),      # main is not the default
+                                              ("dev-daily", "fitment", True, "main")):  # same names from a fork
+            gh, run = self.own_run(head_ref, base, [GREEN["check_runs"][0], self.ring0_check("fitment/source"),
+                                                    self.ring0_check("fitment")], fork=fork, default_branch=default)
+            self.assertEqual(gh.puts, [], head_ref)
+            self.assertIn("Code Law 4", run.outcomes[0].detail)
+
     def test_failing_or_pending_checks_are_refused(self):
         for runs, fragment in (({"check_runs": []}, "no check"),
                                ({"check_runs": [{"name": "ci", "status": "in_progress"}]}, "still running"),

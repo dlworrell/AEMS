@@ -11,7 +11,9 @@ listed pull request at its listed head commit. This script then:
 2. merges each listed pull request in order, by merge commit, with the approved
    head as the expected head, after checking it is open, not a draft, on the
    listed base, mergeable with every check passed, and not authored by
-   ring-0 itself; and
+   ring-0 itself unless it is a promotion, release candidate or automation
+   pull request (Catylist ADR-0017), which also need ring-0's own fitment
+   checks; and
 3. stops at the first entry that fails, comments on every merged pull request
    and on the omnibus pull request, and records results in
    ``omnibus/<id>.json`` on AEMS's ``ring0/ledger`` branch.
@@ -52,6 +54,9 @@ CONFIG_SCHEMA = "aems.omnibus-config.v1"
 MANIFEST_SCHEMA = "aems.omnibus-manifest.v1"
 RESULT_SCHEMA = "aems.omnibus-result.v1"
 ADR = "Catylist ADR-0016"
+SELF_ADR = "Catylist ADR-0017"
+DAILY, FITMENT, AUTOMATION_PREFIX = "dev-daily", "fitment", "automation/"
+CHECK_FITMENT, CHECK_SOURCE = "fitment", "fitment/source"
 BOT_LOGIN = f"{APP_SLUG}[bot]"
 
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{2,63}$")
@@ -341,6 +346,28 @@ class Outcome:
     merge_commit: str = ""
 
 
+def own_pull_class(pull: dict[str, Any], repository: str) -> str | None:
+    """The ADR-0017 class of a pull request ring-0 opened, or None if it has none."""
+    head, base = pull.get("head") or {}, pull.get("base") or {}
+    if ((head.get("repo") or {}).get("full_name") or "").lower() != repository.lower():
+        return None  # a fork can name its branch anything
+    ref, target = head.get("ref") or "", base.get("ref")
+    if ref == DAILY and target == FITMENT:
+        return "promotion"
+    if ref == FITMENT and target == (base.get("repo") or {}).get("default_branch"):
+        return "release candidate"
+    if ref.startswith(AUTOMATION_PREFIX):
+        return "automation"
+    return None
+
+
+def own_checks_missing(pull_class: str, runs: list[dict[str, Any]]) -> list[str]:
+    """ring-0 checks a self-opened pull request must carry, by name, from ring-0 itself."""
+    required = {"promotion": [CHECK_SOURCE], "release candidate": [CHECK_SOURCE, CHECK_FITMENT]}.get(pull_class, [])
+    posted = {r.get("name") for r in runs if ((r.get("app") or {}).get("slug")) == APP_SLUG}
+    return [name for name in required if name not in posted]
+
+
 def checks_outcome(runs: list[dict[str, Any]]) -> tuple[bool, str]:
     if not runs:
         return False, "no check has run on the approved commit"
@@ -406,9 +433,13 @@ class Executor:
             return Outcome(entry, "refused", f"already merged, but at {head[:12]}, not the approved commit")
         if pull.get("state") != "open":
             return Outcome(entry, "refused", "closed without merging")
+        own_class = None
         if (pull.get("user") or {}).get("login") == BOT_LOGIN:
-            return Outcome(entry, "refused", f"authored by {BOT_LOGIN}; ring-0 never merges its own work "
-                                             "(Code Law 4), so the owner merges it directly")
+            own_class = own_pull_class(pull, entry.repository)
+            if own_class is None:
+                return Outcome(entry, "refused", f"authored by {BOT_LOGIN} and not a promotion, release candidate "
+                                                 f"or automation pull request; ring-0 merges no other work of its "
+                                                 f"own (Code Law 4, {SELF_ADR})")
         if pull.get("draft"):
             return Outcome(entry, "refused", "is a draft")
         if pull.get("base", {}).get("ref") != entry.base:
@@ -426,6 +457,12 @@ class Executor:
         passed, detail = checks_outcome(runs)
         if not passed:
             return Outcome(entry, "refused", detail)
+        if own_class:
+            missing = own_checks_missing(own_class, runs)
+            if missing:
+                return Outcome(entry, "refused", f"{own_class} lacks {APP_SLUG}'s {', '.join(missing)} check on the "
+                                                 "approved commit")
+            detail = f"{own_class} opened by {APP_SLUG} ({SELF_ADR}); {detail}"
         if self.dry_run:
             return Outcome(entry, "dry-run", f"would merge; {detail}")
         title = pull.get("title") or entry.title
@@ -435,13 +472,17 @@ class Executor:
             "commit_title": f"Merge pull request #{entry.pull_request} from {pull.get('head', {}).get('label', '')}",
             "commit_message": f"{title}\n\nApproved by @{self.approval.merged_by} in "
                               f"{self.config.ledger_repository}#{self.approval.pull_request} "
-                              f"(omnibus {self.manifest.id}, {ADR})."})
+                              f"(omnibus {self.manifest.id}, {ADR}"
+                              f"{f'; {own_class} opened by {APP_SLUG}, {SELF_ADR}' if own_class else ''})."})
         merge_commit = (result or {}).get("sha", "")
         try:
             self.gh.post(f"/repos/{entry.repository}/issues/{entry.pull_request}/comments", {"body": (
                 f"Merged at the approved commit `{entry.head_sha[:12]}` by `{APP_SLUG}` under omnibus "
                 f"`{self.manifest.id}`, approved by @{self.approval.merged_by} in "
-                f"{self.config.ledger_repository}#{self.approval.pull_request}.\n\nADR: {ADR}")})
+                f"{self.config.ledger_repository}#{self.approval.pull_request}."
+                + (f" ring-0 opened this {own_class}; it merges it only on that approval ({SELF_ADR})."
+                   if own_class else "")
+                + f"\n\nADR: {ADR}" + (f", {SELF_ADR}" if own_class else ""))})
         except GitHubError as exc:  # the merge stands; only the note failed
             detail += f"; approval comment not posted ({exc})"
         return Outcome(entry, "merged", detail, merge_commit)
