@@ -112,8 +112,9 @@ def routes(**extra) -> dict:
         f"/repos/{REPO}": {"default_branch": "main"},
         f"/repos/{REPO}/branches/dev-daily": {"commit": {"sha": DAILY}},
         f"/repos/{REPO}/branches/fitment": {"commit": {"sha": FIT}},
-        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}],
-        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}],
+        # The shared fixture models branches with both deletion and PR rules.
+        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}, {"type": "pull_request"}],
+        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}, {"type": "pull_request"}],
         f"/repos/{REPO}/pulls?state=open&base=fitment&per_page=100": [],
         f"/repos/{REPO}/pulls?state=open&base=main&per_page=100": [],
         f"/repos/{REPO}/issues?state=open&labels=fitment&per_page=100": [],
@@ -125,8 +126,7 @@ def routes(**extra) -> dict:
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:dev-daily&base=fitment&per_page=10": [],
         f"/repos/{REPO}/pulls?state=open&head=dlworrell:fitment&base=main&per_page=10": [],
         f"/repos/{REPO}/commits": [{"author": {"login": "contributor"}}],
-        f"/repos/{REPO}/rules/branches/dev-daily": [{"type": "deletion"}, {"type": "pull_request"}],
-        f"/repos/{REPO}/rules/branches/fitment": [{"type": "deletion"}, {"type": "pull_request"}],
+        f"/repos/{REPO}/assignees/contributor": {},
     }
     base.update(extra)
     return base
@@ -309,6 +309,18 @@ class CycleTests(unittest.TestCase):
         self.assertNotIn("assignees", issue)
         self.assertIn("the owner", issue["body"])
 
+    def test_unassignable_author_falls_back_to_the_owner_without_a_mention(self):
+        gh = FakeGitHub(routes(**{
+            f"/repos/{REPO}/compare/main...{FIT}": promoted(),
+            f"/repos/{REPO}/commits": [{"author": {"login": "claude"}}],
+        }))
+        cycle = self.make(gh, reviewer([finding(severity="minor")])[0])
+        self.assertEqual(cycle.run(), 0, cycle.errors)
+        issue = next(b for p, b in gh.posts if p == f"/repos/{REPO}/issues")
+        self.assertEqual(issue["assignees"], ["dlworrell"])
+        self.assertNotIn("@claude", issue["body"])
+        self.assertIn("`claude` last changed this file but cannot be assigned", issue["body"])
+
     def test_review_that_cannot_run_holds_the_gate_and_is_retried(self):
         gh = FakeGitHub(routes(**{f"/repos/{REPO}/compare/main...{FIT}": promoted()}))
         review, model = reviewer(key=None)
@@ -372,9 +384,10 @@ class CycleTests(unittest.TestCase):
                 cycle = self.make(gh, state={"repos": {REPO: {"reviewed": FIT}}, "posted": {}})
                 self.assertEqual(cycle.run(), 1)
                 self.assertFalse([b for p, b in gh.posts if p == f"/repos/{REPO}/pulls"])
-                # The shared preflight now refuses this state before the
-                # promotion-specific guard can run. Bind the diagnostic to
-                # the affected branch and retain the no-side-effects check.
+                # inspect_branches (the shared preflight in cycle_repository)
+                # is the single retention check: it reads every page of
+                # effective rules before any write. Bind the diagnostic to the
+                # affected branch and retain the no-side-effects check.
                 self.assertIn(f"{branch}: no active deletion rule", cycle.errors[0])
                 self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
 

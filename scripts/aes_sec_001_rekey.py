@@ -83,6 +83,18 @@ def rekey(ledger: dict, repository_root: Path, new_scope: str, path_map: dict) -
         ids = [entry["finding_id"] for entry in after]
         if len(ids) != len(set(ids)):
             raise ValueError("ambiguous rekey: duplicate destination finding IDs")
+    # PRM-0005 step 5: counts per classification before and after, which
+    # must match. Additive report field; the ledgers themselves are unchanged.
+    by_classification: dict[str, dict[str, int]] = {}
+    for column, entries in (("before", ledger["dispositions"]), ("moved", moved["dispositions"]),
+                            ("remaining", remainder["dispositions"])):
+        for entry in entries:
+            counts = by_classification.setdefault(entry["classification"],
+                                                  {"before": 0, "moved": 0, "remaining": 0})
+            counts[column] += 1
+    for name, counts in by_classification.items():
+        if counts["before"] != counts["moved"] + counts["remaining"]:
+            raise ValueError(f"history conservation failed for classification {name}")
     report = {"schema_version": "1.0.0", "scope": scope, "approvals_created": 0,
               "baseline_before": len(ledger["baseline"]["findings"]),
               "baseline_moved": len(moved["baseline"]["findings"]),
@@ -90,6 +102,7 @@ def rekey(ledger: dict, repository_root: Path, new_scope: str, path_map: dict) -
               "dispositions_before": len(ledger["dispositions"]),
               "dispositions_moved": len(moved["dispositions"]),
               "dispositions_remaining": len(remainder["dispositions"]),
+              "dispositions_by_classification": dict(sorted(by_classification.items())),
               "identities": sorted(changes.values(), key=lambda item: item["old_finding_id"])}
     return moved, remainder, report
 

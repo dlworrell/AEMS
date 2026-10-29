@@ -1,0 +1,8 @@
+{
+  "schema": "aems.omnibus-config.v1",
+  "ledger_repository": "dlworrell/AEMS",
+  "approvers": ["dlworrell"],
+  "approval_branches": ["dev-daily"],
+  "manifest_dir": "omnibus",
+  "max_entries": 100
+}

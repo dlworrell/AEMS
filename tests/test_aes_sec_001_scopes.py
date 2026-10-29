@@ -152,6 +152,14 @@ class ScopeTests(unittest.TestCase):
         self.assertEqual(report['baseline_before'],report['baseline_moved']+report['baseline_remaining'])
         self.assertEqual(report['dispositions_before'],report['dispositions_moved']+report['dispositions_remaining'])
         self.assertEqual(report['approvals_created'],0)
+        moved_class=before['dispositions'][0]['classification']
+        kept_class=other['dispositions'][0]['classification']
+        by_class=report['dispositions_by_classification']
+        for name,counts in by_class.items():
+            self.assertEqual(counts['before'],counts['moved']+counts['remaining'],name)
+        self.assertEqual(sum(c['moved'] for c in by_class.values()),1)
+        self.assertEqual(by_class[moved_class]['moved'],1)
+        self.assertGreaterEqual(by_class[kept_class]['remaining'],1)
         self.assertEqual(remainder['dispositions'],other['dispositions'])
         old=before['dispositions'][0]
         current=moved['dispositions'][0]
