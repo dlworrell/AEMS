@@ -51,10 +51,28 @@ The desired merge settings are fixed by ADR-0006 section 2:
 
 A repository listed in AEMS `config/fitment.json` also gets
 `protect-integration-branches`, which gives `dev-daily` and `fitment` the
-default-branch rules. Create both branches from the default branch first; the
-plan refuses the repository until they exist. Other repositories are not
-offered the ruleset, and a `templates_ref` older than the ruleset file still
-works for them.
+default-branch rules. Other repositories are not offered the ruleset, and a
+`templates_ref` older than the ruleset file still works for them.
+
+Before that ruleset, `scripts/adr0013_setup.py` sets up the rest of the
+repository's ADR-0013 model, so adoption needs no manual settings:
+
+- **Branches.** When both `dev-daily` and `fitment` are missing (a first
+  adoption), both are created from the default branch head. When only one is
+  missing, the run stops for that repository: the missing branch is never
+  recreated from the default branch, because the other may hold unreleased
+  work. Restore it from the head of its last promotion pull request.
+- **`release` environment.** The repository owner becomes a required
+  reviewer; other reviewers already configured are kept. "Prevent
+  self-review" is turned off, because a single-owner repository has nobody
+  else to approve. Deployments are limited to `main` through a deployment
+  branch policy. Other branch policies are reported, never removed. If
+  administrators may bypass the gate, the report says so; the REST API cannot
+  change that setting, so change it in the environment's settings.
+
+A dry run reports both as `would create` or `would update` and writes
+nothing. An apply re-reads them and fails the repository if anything still
+differs.
 
 ## Workflow inputs
 
@@ -126,7 +144,10 @@ token until the maintainer approves that run.
 2. Under repository access, choose **Only select repositories**. Select
    only the in-scope repositories for the current rollout stage.
 3. Grant exactly these repository permissions:
-   - **Administration: Read and write** (rulesets and merge settings);
+   - **Administration: Read and write** (rulesets, merge settings, and the
+     `release` environment with its deployment branch policy);
+   - **Contents: Read and write** (creating `dev-daily` and `fitment` in
+     repositories that adopt ADR-0013; not needed otherwise);
    - **Metadata: Read-only** (granted automatically).
 
    Grant no other permissions.
