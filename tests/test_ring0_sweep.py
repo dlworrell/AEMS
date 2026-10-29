@@ -525,6 +525,35 @@ class SweepTests(unittest.TestCase):
         sweep2.run()
         self.assertEqual((len(model.requests), len(model2.requests)), (1, 0))
 
+    def test_indeterminate_content_stops_paying_after_the_attempt_limit(self):
+        state = {"last_sweep": {}, "checked": {}, "issues": {}, "hidden": {}}
+        requests = 0
+        for _ in range(r0.MAX_INDETERMINATE_ATTEMPTS + 2):
+            gh = FakeGitHub(routes(**{f"/repos/{REPO}/issues/comments": [comment("hello")]}))
+            sweep, model = make_sweep(gh, lambda _r: FakeResponse("not json"), state=state, tmp=self.tmp.name)
+            sweep.run()
+            requests += len(model.requests)
+        self.assertEqual(requests, r0.MAX_INDETERMINATE_ATTEMPTS)
+        entry = next(iter(state["checked"].values()))
+        self.assertEqual((entry["outcome"], entry["attempts"]), ("indeterminate", r0.MAX_INDETERMINATE_ATTEMPTS))
+
+    def test_changed_content_is_evaluated_again_after_the_limit(self):
+        state = {"last_sweep": {}, "checked": {}, "issues": {}, "hidden": {}}
+        for _ in range(r0.MAX_INDETERMINATE_ATTEMPTS):
+            gh = FakeGitHub(routes(**{f"/repos/{REPO}/issues/comments": [comment("hello")]}))
+            make_sweep(gh, lambda _r: FakeResponse("not json"), state=state, tmp=self.tmp.name)[0].run()
+        gh = FakeGitHub(routes(**{f"/repos/{REPO}/issues/comments": [comment("hello, edited")]}))
+        sweep, model = make_sweep(gh, state=state, tmp=self.tmp.name)
+        sweep.run()
+        self.assertEqual(len(model.requests), 1)
+
+    def test_without_a_key_indeterminate_results_do_not_use_up_attempts(self):
+        state = {"last_sweep": {}, "checked": {}, "issues": {}, "hidden": {}}
+        for _ in range(r0.MAX_INDETERMINATE_ATTEMPTS + 1):
+            gh = FakeGitHub(routes(**{f"/repos/{REPO}/issues/comments": [comment("hello")]}))
+            make_sweep(gh, key=None, state=state, tmp=self.tmp.name)[0].run()
+        self.assertEqual(state["checked"], {})
+
     def test_discussions_and_wiki_edits_are_checked(self):
         disc = {"id": "D_1", "number": 1, "title": "Plan", "body": "Let's plan.", "url": "u",
                 "updatedAt": "2026-10-26T11:50:00Z", "author": {"login": "visitor"},
