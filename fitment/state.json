@@ -51,6 +51,7 @@
     "dlworrell/atarix:fitment/source:cc1f3519b4bc0a6849705335be70e579644025ef": "failure:Pull requests into fitment come from dev-daily, not automation/project-zero-inventory:946740c28533",
     "dlworrell/atarix:fitment/source:ea5e0508f24a098886cd434f0161249ab0801b3c": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:044ea6c344e5",
     "dlworrell/atarix:fitment:1b6c52c2861b7cc85073069dac34376d64cd3e16": "failure:Not ready for release:e77e252a8413",
+    "dlworrell/atarix:fitment:3258af9971bb5bbf07c81a1fcd1c254042f23bbc": "success:Ready for release:8d8ef939190d",
     "dlworrell/atarix:fitment:4207fabb658a638dea3f32e2c9d9dd0676886e41": "success:Ready for release:a03c9623e9a7",
     "dlworrell/atarix:fitment:43ee45d5af3486d24852201f39d6efad3bf23825": "success:Ready for release:991487332e4d",
     "dlworrell/atarix:fitment:756eea9fa28733be55ab2e01c515f8105be0bcfb": "success:Ready for release:67755224c23e",
@@ -105,7 +106,7 @@
       "reviewed": "3f7e5489e01a06342c50595d57c82b5e364040cc"
     },
     "dlworrell/atarix": {
-      "reviewed": "4207fabb658a638dea3f32e2c9d9dd0676886e41"
+      "reviewed": "3258af9971bb5bbf07c81a1fcd1c254042f23bbc"
     },
     "dlworrell/code-noodling": {
       "reviewed": "5bb66065ed85d9372e422cec8e3aa85467ce26ae"
