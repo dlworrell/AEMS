@@ -549,15 +549,16 @@ class Cycle:
 
     def review(self, repository: str, default: str, head: str) -> tuple[bool, str]:
         repo_state = self.state["repos"].setdefault(repository, {})
-        if repo_state.get("reviewed") == head:
+        pending = repo_state.get("pending_findings")
+        if pending:
             # Findings from a paid review whose filing failed are filed now,
-            # without asking the model again.
-            pending = repo_state.get("pending_findings")
-            if pending:
-                self.file_findings(repository, head, repo_state.get("pending_compare", ""),
-                                   [ReviewFinding(**item) for item in pending])
-                repo_state.pop("pending_findings", None)
-                repo_state.pop("pending_compare", None)
+            # without asking the model again, even if fitment has moved since:
+            # the next review starts after that commit and would not find them.
+            self.file_findings(repository, repo_state.get("reviewed") or head, repo_state.get("pending_compare", ""),
+                               [ReviewFinding(**item) for item in pending])
+            repo_state.pop("pending_findings", None)
+            repo_state.pop("pending_compare", None)
+        if repo_state.get("reviewed") == head:
             return True, f"{head[:12]} reviewed."
         if repo_state.get("review_error_head") == head and repo_state.get("review_attempts", 0) >= MAX_REVIEW_ATTEMPTS:
             # Every failed attempt is a paid model call; stop until fitment moves.

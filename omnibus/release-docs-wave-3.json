@@ -1,0 +1,105 @@
+{
+  "schema": "aems.omnibus-manifest.v1",
+  "id": "release-docs-wave-3",
+  "summary": "Fix the release-gate blockers: AEMS #102, the missing release documentation in 12 repositories, and the atarix automation loop",
+  "entries": [
+    {
+      "repository": "dlworrell/AEMS",
+      "pull_request": 109,
+      "base": "dev-daily",
+      "head_sha": "511e6ab5d6efff66682206f9886da1dca3e134a6",
+      "title": "fix(fitment): file stored findings even after fitment moves (#102)"
+    },
+    {
+      "repository": "dlworrell/AES",
+      "pull_request": 21,
+      "base": "dev-daily",
+      "head_sha": "31f9920e5fe5f592369d2c7303e1f529d072706f",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/P0",
+      "pull_request": 23,
+      "base": "dev-daily",
+      "head_sha": "d3d8061a73bd27cd1cfe375927d1ae4394ae8add",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/repo_templates",
+      "pull_request": 24,
+      "base": "dev-daily",
+      "head_sha": "d99a508a9921a88430ea8d800101a90112c24b65",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/engineering-docs-toolkit",
+      "pull_request": 13,
+      "base": "dev-daily",
+      "head_sha": "b17a8d82891404d0db6c1b92adeb4c70312d3049",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/EWT",
+      "pull_request": 12,
+      "base": "dev-daily",
+      "head_sha": "9d3e5ef490d5c2d56bc6ba53266090ad0c2b579f",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/evo",
+      "pull_request": 146,
+      "base": "dev-daily",
+      "head_sha": "bdde180d139b9ba4efb1602c6b3c271068f01bf1",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/herkules-1934-english",
+      "pull_request": 16,
+      "base": "dev-daily",
+      "head_sha": "8ab4d18886a509bf715f9c1b144525b142346aa4",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/JAG",
+      "pull_request": 10,
+      "base": "dev-daily",
+      "head_sha": "d24413f414c7c45e5b52dcf49d0fc810c2cb0780",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/code-noodling",
+      "pull_request": 85,
+      "base": "dev-daily",
+      "head_sha": "451e5f54bb077e2d111077c6a0c7ca94e41c1571",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/openCUDA",
+      "pull_request": 53,
+      "base": "dev-daily",
+      "head_sha": "a244bbc635dcd899c87f56d759db2fb9c1a0c18f",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/Rocket_demo",
+      "pull_request": 10,
+      "base": "dev-daily",
+      "head_sha": "f9597d94900ce00eddf36ba1583e1d6e81b44db1",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/Just-a-Geek-LLC",
+      "pull_request": 10,
+      "base": "dev-daily",
+      "head_sha": "293832a54cd338bf9856fa60cdbd3c387081eae2",
+      "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/atarix",
+      "pull_request": 104,
+      "base": "dev-daily",
+      "head_sha": "af1f2c33d4a4d8a9fed0236ff36fb4c5c51fb0c5",
+      "title": "ci(project-zero): stop proposing an inventory update on every push"
+    }
+  ]
+}
