@@ -6,6 +6,21 @@
   "effort": "medium",
   "repositories": [
     "dlworrell/AEMS",
-    "dlworrell/atarix"
+    "dlworrell/atarix",
+    "dlworrell/Catylist",
+    "dlworrell/AES",
+    "dlworrell/P0",
+    "dlworrell/repo_templates",
+    "dlworrell/engineering-docs-toolkit",
+    "dlworrell/EWT",
+    "dlworrell/evo",
+    "dlworrell/herkules-1934-english",
+    "dlworrell/JAG",
+    "dlworrell/MayaUSD2017Bridge",
+    "dlworrell/code-noodling",
+    "dlworrell/openCUDA",
+    "dlworrell/Rocket_demo",
+    "dlworrell/audiblebooks",
+    "dlworrell/Just-a-Geek-LLC"
   ]
 }
