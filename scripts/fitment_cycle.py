@@ -265,11 +265,18 @@ def issue_title(finding: ReviewFinding) -> str:
     return f"fitment: {finding.title} ({finding.file})"
 
 
-def issue_body(finding: ReviewFinding, *, author: str, head: str, compare_url: str) -> str:
-    who = f"@{author}" if not is_bot(author) else "the owner (the last change to this file was automated)"
+def issue_body(finding: ReviewFinding, *, author: str, head: str, compare_url: str, assignee: str | None = None) -> str:
+    if is_bot(author):
+        who = "the owner (the last change to this file was automated)"
+    elif assignee is not None and assignee != author:
+        # Never @-mention an account that cannot be assigned here: it may be
+        # an unrelated GitHub user that only shares a commit author identity.
+        who = f"@{assignee}, the owner (`{author}` last changed this file but cannot be assigned in this repository)"
+    else:
+        who = f"@{author}, who last changed this file on `fitment`"
     return "\n".join([
         f"The fitment review of `{head[:12]}` found a **{finding.severity}** {finding.kind} problem in "
-        f"`{finding.file}`. It is assigned to {who}, who last changed this file on `fitment`.",
+        f"`{finding.file}`. It is assigned to {who}.",
         "",
         f"**What is missing:** {finding.detail}",
         "",
@@ -494,6 +501,15 @@ class Cycle:
                     self.gh.post(f"/repos/{repository}/labels",
                                  {"name": name, "color": LABEL_COLORS.get(name, "ededed")})
 
+    def assignable(self, repository: str, login: str) -> bool:
+        try:
+            self.gh.get(f"/repos/{repository}/assignees/{urllib.parse.quote(login)}")
+        except GitHubError as exc:
+            if exc.status == 404:
+                return False
+            raise
+        return True
+
     def last_author(self, repository: str, path: str, head: str) -> str:
         commits = self.gh.get(f"/repos/{repository}/commits?sha={head}&path={urllib.parse.quote(path)}&per_page=1") or []
         if not commits:
@@ -578,17 +594,22 @@ class Cycle:
                 continue
             known.add(finding.fingerprint)
             author = self.last_author(repository, finding.file, head)
+            assignee = None
+            if not is_bot(author):
+                # GitHub refuses the whole issue if an assignee cannot be
+                # assigned here, so fall back to the owner.
+                assignee = author if self.assignable(repository, author) else repository.split("/")[0]
             self.note(repository, "issue", f"{finding.severity} {finding.kind} in {finding.file} → "
-                      f"{author or 'owner'}")
+                      f"{assignee or 'owner'}")
             if self.dry_run:
                 continue
             body: dict[str, Any] = {
                 "title": issue_title(finding),
-                "body": issue_body(finding, author=author, head=head, compare_url=compare_url),
+                "body": issue_body(finding, author=author, head=head, compare_url=compare_url, assignee=assignee),
                 "labels": [LABEL, finding.severity, finding.kind],
             }
-            if not is_bot(author):
-                body["assignees"] = [author]
+            if assignee:
+                body["assignees"] = [assignee]
             self.gh.post(f"/repos/{repository}/issues", body)
 
     def post_gate(self, repository: str, head: str, review: tuple[bool, str]) -> str:
