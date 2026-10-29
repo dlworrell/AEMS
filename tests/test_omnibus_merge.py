@@ -5,6 +5,7 @@ import datetime as dt
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import tempfile
 import unittest
@@ -149,19 +150,25 @@ class ManifestTests(unittest.TestCase):
         self.assertIn("ADR-0016", body)
 
 
-def approval_routes(merged_by="dlworrell", verified=True, current=None, history_pulls=None, files=None) -> dict:
+MERGED_LIST = f"/repos/{LEDGER}/pulls?state=closed&base=dev-daily&sort=updated&direction=desc&per_page=100"
+
+
+def approval_routes(merged_by="dlworrell", verified=True, current=None, history=None, files=None, merged=None) -> dict:
     text = manifest_text()
     return {
-        f"/repos/{LEDGER}/commits/{MERGE}/pulls": [{"number": 90, "merged_at": "2026-10-29T11:00:00Z",
-                                                  "base": {"ref": "dev-daily"}}],
+        MERGED_LIST: merged if merged is not None else [
+            {"number": 88, "merged_at": "2026-10-29T10:00:00Z", "merge_commit_sha": "8" * 40},
+            {"number": 90, "merged_at": "2026-10-29T11:00:00Z", "merge_commit_sha": MERGE}],
+        f"/repos/{LEDGER}/pulls/88/files?per_page=100": [{"filename": "docs/other.md", "status": "added"}],
         f"/repos/{LEDGER}/pulls/90": {"number": 90, "merged_by": {"login": merged_by}, "merge_commit_sha": MERGE,
-                                      "base": {"ref": "dev-daily"}, "html_url": "u"},
+                                      "merged_at": "2026-10-29T11:00:00Z", "base": {"ref": "dev-daily"},
+                                      "html_url": "u"},
         f"/repos/{LEDGER}/commits/{MERGE}": {"commit": {"verification": {"verified": verified, "reason": "valid"}}},
-        f"/repos/{LEDGER}/pulls/90/files?per_page=100": files or [{"filename": "omnibus/wave-1.json"}],
-        f"/repos/{LEDGER}/commits?path=omnibus/wave-1.json&sha=dev-daily&per_page=100": [{"sha": BRANCH_COMMIT}],
-        f"/repos/{LEDGER}/commits?path=omnibus/wave-1.json&sha=dev-daily&per_page=1": [{"sha": BRANCH_COMMIT}],
-        f"/repos/{LEDGER}/commits/{BRANCH_COMMIT}/pulls": history_pulls or [
-            {"number": 90, "merged_at": "2026-10-29T11:00:00Z", "base": {"ref": "dev-daily"}}],
+        f"/repos/{LEDGER}/pulls/90/files?per_page=100": files or [{"filename": "omnibus/wave-1.json",
+                                                                   "status": "added"}],
+        f"/repos/{LEDGER}/pulls/90/commits?per_page=100": [{"sha": BRANCH_COMMIT}],
+        f"/repos/{LEDGER}/commits?path=omnibus/wave-1.json&sha=dev-daily&per_page=100":
+            [{"sha": s} for s in (history or [BRANCH_COMMIT])],
         f"/repos/{LEDGER}/contents/omnibus/wave-1.json?ref={MERGE}": content(text),
         f"/repos/{LEDGER}/contents/omnibus/wave-1.json?ref=dev-daily": content(current or text),
     }
@@ -173,12 +180,17 @@ class ApprovalTests(unittest.TestCase):
         self.assertEqual((approval.pull_request, approval.merged_by), (90, "dlworrell"))
         self.assertEqual(text, manifest_text())
 
-    def test_dispatch_finds_the_approving_pull_request(self):
-        gh = FakeGitHub(approval_routes())
-        gh.routes[f"/repos/{LEDGER}/commits/{BRANCH_COMMIT}/pulls"] = [
-            {"number": 90, "merged_at": "2026-10-29T11:00:00Z", "base": {"ref": "dev-daily"}}]
-        approval, _ = om.find_approval(gh, CONFIG, PATH, None)
+    def test_dispatch_finds_the_pull_request_that_added_the_manifest(self):
+        approval, _ = om.find_approval(FakeGitHub(approval_routes()), CONFIG, PATH, None)
         self.assertEqual(approval.pull_request, 90)
+
+    def test_lookup_never_uses_the_pulls_for_commit_endpoint(self):
+        # GitHub returns only open pull requests there for commits off the
+        # default branch, which made the first real run refuse its approval.
+        gh = FakeGitHub(approval_routes())
+        om.find_approval(gh, CONFIG, PATH, MERGE)
+        om.find_approval(gh, CONFIG, PATH, None)
+        self.assertFalse([p for p in gh.gets if re.search(r"/commits/[0-9a-f]{40}/pulls", p)])
 
     def test_merge_by_someone_else_is_refused(self):
         with self.assertRaisesRegex(om.OmnibusError, "not an approver"):
@@ -190,20 +202,22 @@ class ApprovalTests(unittest.TestCase):
             om.find_approval(FakeGitHub(routes), CONFIG, PATH, MERGE)
 
     def test_manifest_not_reached_through_a_merged_pull_request_is_refused(self):
-        for pulls in ([],  # pushed straight to dev-daily
-                      [{"number": 90, "merged_at": None, "base": {"ref": "dev-daily"}}],
-                      [{"number": 90, "merged_at": "2026-10-29T11:00:00Z", "base": {"ref": "main"}}]):
-            routes = approval_routes()
-            routes[f"/repos/{LEDGER}/commits/{MERGE}/pulls"] = pulls
+        for merged in ([],  # pushed straight to dev-daily
+                       [{"number": 90, "merged_at": None, "merge_commit_sha": MERGE}],  # closed unmerged
+                       [{"number": 88, "merged_at": "x", "merge_commit_sha": "8" * 40}]):  # another merge
             with self.assertRaisesRegex(om.OmnibusError, "did not reach dev-daily"):
-                om.find_approval(FakeGitHub(routes), CONFIG, PATH, MERGE)
+                om.find_approval(FakeGitHub(approval_routes(merged=merged)), CONFIG, PATH, MERGE)
+        routes = approval_routes()
+        routes[f"/repos/{LEDGER}/pulls/90"]["base"] = {"ref": "main"}  # merged elsewhere
+        with self.assertRaisesRegex(om.OmnibusError, "was not merged into dev-daily"):
+            om.find_approval(FakeGitHub(routes), CONFIG, PATH, MERGE)
 
     def test_unverified_merge_commit_is_refused(self):
         with self.assertRaisesRegex(om.OmnibusError, "not verified"):
             om.find_approval(FakeGitHub(approval_routes(verified=False)), CONFIG, PATH, MERGE)
 
     def test_manifest_edited_by_a_later_pull_request_is_refused(self):
-        routes = approval_routes(history_pulls=[{"number": 95, "merged_at": "x", "base": {"ref": "dev-daily"}}])
+        routes = approval_routes(history=["9" * 40, BRANCH_COMMIT])  # a later commit outside #90
         with self.assertRaisesRegex(om.OmnibusError, "immutable"):
             om.find_approval(FakeGitHub(routes), CONFIG, PATH, MERGE)
 
