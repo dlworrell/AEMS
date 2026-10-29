@@ -1,7 +1,7 @@
 {
   "schema": "aems.omnibus-manifest.v1",
   "id": "release-docs-wave-3",
-  "summary": "Fix the release-gate blockers: AEMS #102 and the missing release documentation in 12 repositories",
+  "summary": "Fix the release-gate blockers: AEMS #102, the missing release documentation in 12 repositories, and the atarix automation loop",
   "entries": [
     {
       "repository": "dlworrell/AEMS",
@@ -93,6 +93,13 @@
       "base": "dev-daily",
       "head_sha": "293832a54cd338bf9856fa60cdbd3c387081eae2",
       "title": "docs: document the release procedure and the release environment"
+    },
+    {
+      "repository": "dlworrell/atarix",
+      "pull_request": 104,
+      "base": "dev-daily",
+      "head_sha": "af1f2c33d4a4d8a9fed0236ff36fb4c5c51fb0c5",
+      "title": "ci(project-zero): stop proposing an inventory update on every push"
     }
   ]
 }
