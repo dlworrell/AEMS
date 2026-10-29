@@ -1,0 +1,130 @@
+name: Omnibus Merge
+
+# Catylist ADR-0016: when the owner merges a pull request that adds
+# omnibus/<id>.json to dev-daily, merge the listed pull requests in order, at
+# the listed commits, as the catylist-ring-0 App. Stops at the first entry that
+# fails. See docs/engineering/omnibus-merge.md.
+
+on:
+  push:
+    branches: [dev-daily]
+    paths: ['omnibus/*.json']
+  pull_request:
+    paths: ['omnibus/**', 'config/omnibus.json', 'scripts/omnibus_merge.py']
+  workflow_dispatch:
+    inputs:
+      id:
+        description: Manifest id (omnibus/<id>.json) to run again
+        required: true
+        type: string
+      dry_run:
+        description: Check every entry and merge nothing. Set to false to merge.
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: omnibus-merge
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate:
+    name: Validate manifests
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Test the executor
+        run: python3 -m unittest tests.test_omnibus_merge -v
+
+      - name: Validate every manifest and show what merging approves
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          manifests=(omnibus/*.json)
+          if [ ${#manifests[@]} -eq 0 ]; then
+            echo "No manifests." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python3 scripts/omnibus_merge.py validate --body "${manifests[@]}" | tee -a "$GITHUB_STEP_SUMMARY"
+
+  merge:
+    name: Merge approved pull requests
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: ring-0
+    # contents: write reaches only AEMS itself, for omnibus/<id>.json on the
+    # ring0/ledger branch. Merges in other repositories use the App token.
+    permissions:
+      contents: write
+
+    steps:
+      # The executor holds merge power, so it always runs from main, which
+      # has passed fitment, never from the dev-daily push that triggered it.
+      - name: Check out AEMS main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Test the executor
+        run: python3 -m unittest tests.test_omnibus_merge -v
+
+      - name: Create catylist-ring-0 installation token
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: '5474337'
+          private-key: ${{ secrets.RING0_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-checks: read
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+
+      - name: Merge
+        env:
+          RING0_APP_TOKEN: ${{ steps.app.outputs.token }}
+          LEDGER_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_COMMIT: ${{ github.sha }}
+          INPUT_ID: ${{ inputs.id }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "push" ]; then
+            python3 scripts/omnibus_merge.py run --push-commit "$PUSH_COMMIT" --enforce
+          else
+            mode=--dry-run
+            if [ "$INPUT_DRY_RUN" = "false" ]; then mode=--enforce; fi
+            python3 scripts/omnibus_merge.py run --id "$INPUT_ID" "$mode"
+          fi
+
+      - name: Add results to summary
+        if: ${{ always() }}
+        run: |
+          if [ -f build/aems/omnibus/summary.md ]; then
+            cat build/aems/omnibus/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No omnibus report was produced; see the job log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: omnibus-merge
+          path: build/aems/omnibus/
+          if-no-files-found: warn
