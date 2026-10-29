@@ -60,6 +60,7 @@ BRANCH_PATTERN = re.compile(r"^[A-Za-z0-9._/-]{1,100}$")
 REF_PATTERN = re.compile(r"^([A-Za-z0-9-]+/[A-Za-z0-9._-]+)#([1-9][0-9]*)$")
 PASSING_CONCLUSIONS = frozenset({"success", "neutral", "skipped"})
 MERGEABLE_RETRIES = 5
+MERGED_PULL_SCAN = 200
 
 
 class OmnibusError(RuntimeError):
@@ -229,13 +230,37 @@ def read_file(client: Client, repository: str, path: str, ref: str) -> str:
     return decode_content(payload)
 
 
-def resolve_approval(client: Client, config: Config, path: str, commit: str) -> Approval:
-    """The merged omnibus pull request that introduced ``commit``, if an approver merged it."""
-    pulls = client.get(f"/repos/{config.ledger_repository}/commits/{commit}/pulls") or []
-    merged = [p for p in pulls if p.get("merged_at") and p.get("base", {}).get("ref") in config.approval_branches]
-    if not merged:
-        raise OmnibusError(f"{path} did not reach {' or '.join(config.approval_branches)} through a merged pull request")
-    pull = client.get(f"/repos/{config.ledger_repository}/pulls/{merged[0]['number']}")
+def merged_pulls(client: Client, config: Config, branch: str) -> list[dict[str, Any]]:
+    """Recently merged pull requests into ``branch``, newest first.
+
+    ``/commits/{sha}/pulls`` is not used: GitHub returns only open pull
+    requests there for commits that are not on the default branch, and
+    omnibus pull requests merge into ``dev-daily``.
+    """
+    pulls = client.get_all(f"/repos/{config.ledger_repository}/pulls?state=closed&base={urllib.parse.quote(branch)}"
+                           f"&sort=updated&direction=desc&per_page=100", limit=MERGED_PULL_SCAN)
+    return [p for p in pulls if p.get("merged_at")]
+
+
+def locate_approval(client: Client, config: Config, path: str, push_commit: str | None) -> dict[str, Any]:
+    """The merged pull request whose merge commit is ``push_commit``, or that added ``path``."""
+    for branch in config.approval_branches:
+        for pull in merged_pulls(client, config, branch):
+            if push_commit:
+                if pull.get("merge_commit_sha") == push_commit:
+                    return pull
+                continue
+            files = client.get_all(f"/repos/{config.ledger_repository}/pulls/{pull['number']}/files?per_page=100")
+            if any(f.get("filename") == path and f.get("status") == "added" for f in files):
+                return pull
+    raise OmnibusError(f"{path} did not reach {' or '.join(config.approval_branches)} through a merged pull request")
+
+
+def verify_approval(client: Client, config: Config, number: int) -> Approval:
+    """Confirm that pull request ``number`` is an approval: right merger, only manifests, verified merge."""
+    pull = client.get(f"/repos/{config.ledger_repository}/pulls/{number}")
+    if not pull.get("merged_at") or pull.get("base", {}).get("ref") not in config.approval_branches:
+        raise OmnibusError(f"#{number} was not merged into {' or '.join(config.approval_branches)}")
     merged_by = (pull.get("merged_by") or {}).get("login", "")
     if merged_by not in config.approvers:
         raise OmnibusError(f"#{pull['number']} was merged by {merged_by or 'nobody'}, who is not an approver "
@@ -261,35 +286,19 @@ def resolve_approval(client: Client, config: Config, path: str, commit: str) -> 
 def find_approval(client: Client, config: Config, path: str, push_commit: str | None) -> tuple[Approval, str]:
     """Locate and confirm the approval and return it with the approved manifest text.
 
-    On a push the pushed commit is the omnibus merge. On a dispatch the latest
-    commit that touched the manifest on any approval branch leads to it.
+    On a push the pushed commit is the omnibus merge. On a dispatch the
+    merged pull request that added the manifest is the approval.
     """
-    if push_commit:
-        approval = resolve_approval(client, config, path, push_commit)
-    else:
-        latest = None
-        for branch in config.approval_branches:
-            try:
-                commits = client.get(f"/repos/{config.ledger_repository}/commits?path={urllib.parse.quote(path)}"
-                                     f"&sha={urllib.parse.quote(branch)}&per_page=1") or []
-            except GitHubError as exc:
-                if exc.status == 404:
-                    continue
-                raise
-            if commits:
-                latest = commits[0]["sha"]
-                break
-        if latest is None:
-            raise OmnibusError(f"{path} is not on {' or '.join(config.approval_branches)}")
-        approval = resolve_approval(client, config, path, latest)
+    approval = verify_approval(client, config, locate_approval(client, config, path, push_commit)["number"])
     # Every commit that ever touched the manifest must belong to the approving
     # pull request: a later pull request that edits it is not a new approval.
+    allowed = {c.get("sha") for c in client.get_all(
+        f"/repos/{config.ledger_repository}/pulls/{approval.pull_request}/commits?per_page=100")}
+    allowed.add(approval.merge_commit)
     history = client.get_all(f"/repos/{config.ledger_repository}/commits?path={urllib.parse.quote(path)}"
                              f"&sha={urllib.parse.quote(approval.base)}&per_page=100")
     for commit in history:
-        numbers = {p.get("number") for p in client.get(
-            f"/repos/{config.ledger_repository}/commits/{commit['sha']}/pulls") or []}
-        if approval.pull_request not in numbers:
+        if commit.get("sha") not in allowed:
             raise OmnibusError(f"{path} was changed outside #{approval.pull_request} (commit {commit['sha'][:12]}); "
                                "approved manifests are immutable, so open a new omnibus with a new id")
     approved = read_file(client, config.ledger_repository, path, approval.merge_commit)
@@ -589,7 +598,7 @@ def run_manifest(github: Client, ledger: Client | None, config: Config, manifest
         approval, text = find_approval(github, config, path, push_commit)
         manifest = parse_manifest(text, expected_id=manifest_id, config=config)
         check_not_reused(load_result(ledger, config, manifest_id)[0], approval, manifest_id)
-    except OmnibusError as exc:
+    except (OmnibusError, GitHubError) as exc:  # report it and carry on with the other manifests
         summaries.append(f"# Omnibus `{manifest_id}`\n\nNot run: {exc}\n")
         return 1
     executor = Executor(github=github, config=config, approval=approval, manifest=manifest, dry_run=dry_run)
