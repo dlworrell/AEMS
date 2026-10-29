@@ -2,7 +2,10 @@ name: Apply Catylist Rulesets
 
 # Applies the Catylist ADR-0006 default-branch and release-tag rulesets and
 # merge settings to every inventory entry with default_branch_policy:
-# protected. Manual dispatch only; dry run by default. See
+# protected. For repositories in config/fitment.json it also sets up
+# Catylist ADR-0013: creates dev-daily and fitment on first adoption,
+# configures the release environment (owner approval, main only) and applies
+# protect-integration-branches. Manual dispatch only; dry run by default. See
 # docs/engineering/catylist-default-branch-rulesets.md.
 
 on:
