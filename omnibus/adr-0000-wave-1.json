@@ -1,0 +1,112 @@
+{
+  "schema": "aems.omnibus-manifest.v1",
+  "id": "adr-0000-wave-1",
+  "summary": "Adopt the Catylist Code of Conduct as ADR-0000 in 15 governed repositories (Catylist ADR-0000, section 2)",
+  "entries": [
+    {
+      "repository": "dlworrell/AES",
+      "pull_request": 15,
+      "base": "main",
+      "head_sha": "d01b88f03cda9839440125315ebf5a5c0c451b64",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/P0",
+      "pull_request": 17,
+      "base": "main",
+      "head_sha": "4de96d6d62b66b9d4650f7baedf47049a8e1748f",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/repo_templates",
+      "pull_request": 17,
+      "base": "main",
+      "head_sha": "966a434cc06dd3d6cc6b716eff92f722100157dd",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/engineering-docs-toolkit",
+      "pull_request": 7,
+      "base": "main",
+      "head_sha": "6c023579c2fd0b43d5b082c87eca8dd15e176fc3",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/EWT",
+      "pull_request": 6,
+      "base": "main",
+      "head_sha": "e0d1f5dde10640f408f29ad0f39017680b9ff3aa",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/evo",
+      "pull_request": 140,
+      "base": "main",
+      "head_sha": "d1be1be648e4f5cef4f574a8267b9df1198d9b3b",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/atarix",
+      "pull_request": 94,
+      "base": "dev-daily",
+      "head_sha": "b26903b590187a8760124299e3c195b9528b8974",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/herkules-1934-english",
+      "pull_request": 10,
+      "base": "main",
+      "head_sha": "f42a11f71a31298135c3fe97bf94d06f208191c3",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/JAG",
+      "pull_request": 4,
+      "base": "main",
+      "head_sha": "01fca5cb839c0e8c7d7be1700d42af42e85b46b5",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/MayaUSD2017Bridge",
+      "pull_request": 10,
+      "base": "main",
+      "head_sha": "43ae8ac561e795086c38539c02cd31055cb16598",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/code-noodling",
+      "pull_request": 79,
+      "base": "main",
+      "head_sha": "e0e6126cc89323fa8c3fc43d1bb3ad58aa008e9a",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/openCUDA",
+      "pull_request": 46,
+      "base": "main",
+      "head_sha": "6801151c1a408362026cf190f5d0036b34419f95",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/Rocket_demo",
+      "pull_request": 4,
+      "base": "main",
+      "head_sha": "1cef16b40aff6705cf6e9ae9181437b884efaa70",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/audiblebooks",
+      "pull_request": 19,
+      "base": "main",
+      "head_sha": "894301f22b1864957d6baa169b0d0f7c453989de",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    },
+    {
+      "repository": "dlworrell/Just-a-Geek-LLC",
+      "pull_request": 4,
+      "base": "main",
+      "head_sha": "778cc96001f4bb56e95cb47abd76fdf636b467f8",
+      "title": "docs(adr): adopt the Catylist Code of Conduct as ADR-0000"
+    }
+  ]
+}
