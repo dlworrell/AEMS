@@ -56,4 +56,7 @@ are reported as `already-merged`.
   promotions and automation pull requests stay with the owner.
 - An omnibus never publishes a release (Law 5).
 - At most `max_entries` (100) pull requests per manifest.
+- The approval is found among the 200 most recently updated closed pull
+  requests into `dev-daily`. A push finds it at once; a dispatch of a manifest
+  approved longer ago than that is refused and needs a new omnibus.
 - The executor runs from `main`, so changes to it take effect after release.

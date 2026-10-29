@@ -212,6 +212,15 @@ class ApprovalTests(unittest.TestCase):
         with self.assertRaisesRegex(om.OmnibusError, "was not merged into dev-daily"):
             om.find_approval(FakeGitHub(routes), CONFIG, PATH, MERGE)
 
+    def test_approval_beyond_the_scan_window_is_refused_and_says_so(self):
+        older = [{"number": n, "merged_at": "x", "merge_commit_sha": f"{n:040x}"}
+                 for n in range(1000, 1000 + om.MERGED_PULL_SCAN)]
+        routes = approval_routes(merged=older + [{"number": 90, "merged_at": "x", "merge_commit_sha": MERGE}])
+        gh = FakeGitHub(routes)
+        gh.get_all = lambda path, limit=1000: list(gh.get(path))[:limit]  # the scan honours its limit
+        with self.assertRaisesRegex(om.OmnibusError, f"among the {om.MERGED_PULL_SCAN} most recently updated"):
+            om.find_approval(gh, CONFIG, PATH, MERGE)
+
     def test_unverified_merge_commit_is_refused(self):
         with self.assertRaisesRegex(om.OmnibusError, "not verified"):
             om.find_approval(FakeGitHub(approval_routes(verified=False)), CONFIG, PATH, MERGE)
@@ -430,6 +439,21 @@ class CliTests(unittest.TestCase):
         self.assertIn("# Omnibus `wave-1`", summary)
         self.assertIn("# Omnibus `wave-2`", summary)
         self.assertIn("Not run:", summary)
+
+    def test_main_reports_a_github_error_for_one_manifest_and_runs_the_rest(self):
+        routes = {**approval_routes(), **target_routes()}
+        routes[f"/repos/{LEDGER}/commits/{MERGE}"] = {
+            "commit": {"verification": {"verified": True, "reason": "valid"}},
+            "files": [{"filename": "omnibus/wave-1.json", "status": "added"},
+                      {"filename": "omnibus/wave-2.json", "status": "added"}]}
+        routes[f"/repos/{LEDGER}/commits?path=omnibus/wave-2.json&sha=dev-daily&per_page=100"] = \
+            om.GitHubError(500, "server error")
+        with tempfile.TemporaryDirectory() as tmp:
+            status, _gh, summary = self.run_main(routes, ["--push-commit", MERGE, "--dry-run"], tmp)
+        self.assertEqual(status, 1)
+        wave1, wave2 = summary.split("# Omnibus `wave-2`")
+        self.assertIn("dry-run", wave1)  # wave-1 still ran
+        self.assertIn("Not run: HTTP 500", wave2)
 
     def test_plan_records_current_heads(self):
         gh = FakeGitHub({f"/repos/{TARGET}/pulls/7": pull(), f"/repos/{OTHER}/pulls/3": pull(3, HEAD_B, "main")})
