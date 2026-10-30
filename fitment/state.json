@@ -16,6 +16,7 @@
     "dlworrell/AEMS:fitment:0f9263380dd004f0a0c9b24f2690d8c7a39939a9": "success:Ready for release:323e8474355e",
     "dlworrell/AEMS:fitment:268089d78e4c58f16fbcc2edfdcdcd2914543c81": "failure:Not ready for release:3ac74736bd47",
     "dlworrell/AEMS:fitment:2a90cb055c6cdfa1a8eb517a214bade939dbf884": "failure:Not ready for release:d861f36828e4",
+    "dlworrell/AEMS:fitment:37a32e09abf22e5e6e503a02a29a2ba60f4cb00d": "failure:Not ready for release:85a9b7a59abf",
     "dlworrell/AEMS:fitment:387d4955bd2eb0b0b8240f1708ddf4de7e6a874d": "success:Ready for release:1b8ba5f30309",
     "dlworrell/AEMS:fitment:566f28ec8b0c8942f9866e8f8f8c049d47b7361f": "success:Ready for release:0451ee338b5e",
     "dlworrell/AEMS:fitment:5e88c02d1a74caf98753a3eaab53639e1ce90363": "success:Ready for release:5156ef97eaa2",
@@ -126,7 +127,7 @@
   },
   "repos": {
     "dlworrell/AEMS": {
-      "reviewed": "c1391c25ab31de7ad50c95a3b1b1d3ad64e938d9"
+      "reviewed": "37a32e09abf22e5e6e503a02a29a2ba60f4cb00d"
     },
     "dlworrell/AES": {
       "reviewed": "e6fc8a7e9be2fcfd200bfd19e22cb62bc9f5ee10"
