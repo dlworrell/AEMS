@@ -53,6 +53,7 @@ APP_BOT_LOGIN = f"{APP_SLUG}[bot]"
 PASS = "pass"
 VIOLATION = "violation"
 INDETERMINATE = "indeterminate"
+MAX_INDETERMINATE_ATTEMPTS = 3  # paid evaluations of unchanged content that end indeterminate
 OUTCOMES = (PASS, VIOLATION, INDETERMINATE)
 LAWS = tuple(range(9))
 
@@ -1119,12 +1120,21 @@ class Sweep:
 
     def unchanged(self, key: str, digest: str) -> bool:
         seen = self.state["checked"].get(key)
-        return isinstance(seen, dict) and seen.get("sha256") == digest
+        if not isinstance(seen, dict) or seen.get("sha256") != digest:
+            return False
+        # An indeterminate result is retried, but each retry is a paid model
+        # call, so the same content is retried at most MAX_INDETERMINATE_ATTEMPTS
+        # times. Its failing check and moderation stay in place (fail closed).
+        return seen.get("outcome") != INDETERMINATE or seen.get("attempts", 0) >= MAX_INDETERMINATE_ATTEMPTS
 
     def remember(self, key: str, digest: str, outcome: str) -> None:
-        # An indeterminate result is retried next sweep, so it is not cached.
         if outcome != INDETERMINATE:
             self.state["checked"][key] = {"sha256": digest, "outcome": outcome, "at": self.now_iso}
+        elif self.enforcer.available:  # without a key nothing is paid, so retry freely
+            seen = self.state["checked"].get(key)
+            attempts = seen.get("attempts", 0) if isinstance(seen, dict) and seen.get("sha256") == digest else 0
+            self.state["checked"][key] = {"sha256": digest, "outcome": outcome, "at": self.now_iso,
+                                          "attempts": attempts + 1}
 
     def record(self, **kwargs: Any) -> dict[str, Any]:
         record = ledger_record(now=self.now_iso, code_version=self.code_version, **kwargs)

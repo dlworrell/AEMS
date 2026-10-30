@@ -69,6 +69,7 @@ BLOCKING = ("blocker", "major")
 LABEL_COLORS = {"fitment": "5319e7", "blocker": "b60205", "major": "d93f0b", "minor": "fbca04",
                 "documentation": "0075ca", "test": "0e8a16", "defect": "e11d21"}
 PASSING_CONCLUSIONS = frozenset({"success", "neutral", "skipped"})
+MAX_REVIEW_ATTEMPTS = 3  # failed model reviews of one fitment head before the cycle stops paying for retries
 
 FINGERPRINT_PATTERN = re.compile(r"<!-- fitment:fp=([0-9a-f]{16}) -->")
 CLOSING_PATTERN = re.compile(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b", re.IGNORECASE)
@@ -548,8 +549,22 @@ class Cycle:
 
     def review(self, repository: str, default: str, head: str) -> tuple[bool, str]:
         repo_state = self.state["repos"].setdefault(repository, {})
+        pending = repo_state.get("pending_findings")
+        if pending:
+            # Findings from a paid review whose filing failed are filed now,
+            # without asking the model again, even if fitment has moved since:
+            # the next review starts after that commit and would not find them.
+            self.file_findings(repository, repo_state.get("reviewed") or head, repo_state.get("pending_compare", ""),
+                               [ReviewFinding(**item) for item in pending])
+            repo_state.pop("pending_findings", None)
+            repo_state.pop("pending_compare", None)
         if repo_state.get("reviewed") == head:
             return True, f"{head[:12]} reviewed."
+        if repo_state.get("review_error_head") == head and repo_state.get("review_attempts", 0) >= MAX_REVIEW_ATTEMPTS:
+            # Every failed attempt is a paid model call; stop until fitment moves.
+            self.note(repository, "review", f"not retried: {MAX_REVIEW_ATTEMPTS} failed attempts on {head[:12]}")
+            return False, (f"could not run on {head[:12]} after {MAX_REVIEW_ATTEMPTS} attempts "
+                           f"({repo_state.get('review_error', 'unknown error')}); it is retried when fitment changes.")
         base = repo_state.get("reviewed")
         compare = None
         if base:
@@ -574,11 +589,22 @@ class Cycle:
                 findings.extend(found)
         except ReviewUnavailable as exc:
             repo_state["review_error"] = str(exc)
+            if self.reviewer.available:  # an unconfigured reviewer costs nothing to retry
+                attempts = repo_state.get("review_attempts", 0) if repo_state.get("review_error_head") == head else 0
+                repo_state["review_error_head"] = head
+                repo_state["review_attempts"] = attempts + 1
             self.note(repository, "review", f"could not run: {exc}")
             return False, f"could not run ({exc}); it is retried on the next cycle."
-        self.file_findings(repository, head, compare.get("html_url", ""), findings)
+        # Record the paid review before filing, so a filing failure is retried
+        # from the stored findings instead of by reviewing again.
         repo_state["reviewed"] = head
-        repo_state.pop("review_error", None)
+        repo_state["pending_findings"] = [dataclasses.asdict(f) for f in findings]
+        repo_state["pending_compare"] = compare.get("html_url", "")
+        for key in ("review_error", "review_error_head", "review_attempts"):
+            repo_state.pop(key, None)
+        self.file_findings(repository, head, compare.get("html_url", ""), findings)
+        repo_state.pop("pending_findings", None)
+        repo_state.pop("pending_compare", None)
         self.note(repository, "review", f"{head[:12]}: {len(files)} files, {len(findings)} findings")
         return True, f"{head[:12]} reviewed: {len(findings)} findings."
 

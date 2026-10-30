@@ -33,8 +33,9 @@ added, it:
 - for each entry in order, refuses unless the pull request is open, not a
   draft, on the listed base, at the approved head, `mergeable_state` is
   `clean`, every check on the head passed, and it was not authored by
-  `catylist-ring-0[bot]`; then merges it by merge commit with the approved
-  head as the expected `sha`, and comments the approval on it;
+  `catylist-ring-0[bot]` (except the classes below); then merges it by merge
+  commit with the approved head as the expected `sha`, and comments the
+  approval on it;
 - stops at the first refusal, marking later entries `not-attempted`;
 - comments the results on the omnibus pull request and records them in
   `omnibus/<id>.json` on the `ring0/ledger` branch.
@@ -50,10 +51,25 @@ dispatch **Omnibus Merge** with the id. It defaults to a dry run; set
 `dry_run` to false to merge. Entries already merged at their approved commit
 are reported as `already-merged`.
 
+## ring-0's own pull requests
+
+Catylist ADR-0017 (Code 1.2.0, Law 4) lets an omnibus carry pull requests
+that ring-0 opened, in three classes only:
+
+| Class | Head → base (same repository) | Also requires, posted by `catylist-ring-0` |
+|---|---|---|
+| promotion | `dev-daily` → `fitment` | `fitment/source` |
+| release candidate | `fitment` → the default branch | `fitment/source` and `fitment` |
+| automation | `automation/*` → any | nothing extra |
+
+Any other ring-0-authored pull request is refused. The merge commit and the
+comment name the class and ADR-0017. Merging a release candidate publishes
+nothing: the release workflow still waits at the `release` environment.
+
 ## Limits
 
-- ring-0 never merges a pull request it authored (Code, Law 4). Fitment
-  promotions and automation pull requests stay with the owner.
+- ring-0 merges a pull request it authored only in the classes above, and
+  only when an omnibus approved its exact head.
 - An omnibus never publishes a release (Law 5).
 - At most `max_entries` (100) pull requests per manifest.
 - The approval is found among the 200 most recently updated closed pull
