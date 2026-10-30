@@ -1,0 +1,125 @@
+{
+  "approval": {
+    "base": "dev-daily",
+    "merge_commit": "cddf12d1a5e91deb8e396314a03aa65b1d480da2",
+    "merged_by": "dlworrell",
+    "pull_request": 121,
+    "url": "https://github.com/dlworrell/AEMS/pull/121"
+  },
+  "entries": {
+    "dlworrell/AES#22": {
+      "approved_head": "b434284224e9e545237f0f02bfaa46936437dc9b",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 3 checks passed",
+      "merge_commit": "e6fc8a7e9be2fcfd200bfd19e22cb62bc9f5ee10",
+      "status": "merged"
+    },
+    "dlworrell/EWT#13": {
+      "approved_head": "20fbf20a245b8c4a741825252c3798a162e17344",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 3 checks passed",
+      "merge_commit": "d8b3bc1ef0475bcc0433b48889469112bed485d7",
+      "status": "merged"
+    },
+    "dlworrell/JAG#11": {
+      "approved_head": "3a4cef179589d6b45720d2efc7f7313a31c10f5a",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 3 checks passed",
+      "merge_commit": "6a9cc1811e2768b1e695c1bfe5ad887635da36b8",
+      "status": "merged"
+    },
+    "dlworrell/Just-a-Geek-LLC#11": {
+      "approved_head": "909fe567cdd9041dcbfad2116bcadd9757785fd8",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 3 checks passed",
+      "merge_commit": "dbb1e32c4fa8938f6b2955e8c47a21e183cc2c56",
+      "status": "merged"
+    },
+    "dlworrell/P0#24": {
+      "approved_head": "ab56d2949aa4e2e5b8d652d4895796476997690e",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 3 checks passed",
+      "merge_commit": "d9329bed081b523020528d52de41548fed582cb3",
+      "status": "merged"
+    },
+    "dlworrell/Rocket_demo#11": {
+      "approved_head": "5272d3bc7c26ee86718396375043951fcc651821",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 3 checks passed",
+      "merge_commit": "5bd8da8bfad3c325a4a13735f4f8f36b724a2281",
+      "status": "merged"
+    },
+    "dlworrell/atarix#107": {
+      "approved_head": "3258af9971bb5bbf07c81a1fcd1c254042f23bbc",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "release candidate opened by catylist-ring-0 (Catylist ADR-0017); all 15 checks passed",
+      "merge_commit": "cb7853b16ae5b3da8175b3513be9b1b476c6477d",
+      "status": "merged"
+    },
+    "dlworrell/code-noodling#86": {
+      "approved_head": "acc10186f78b08c34ce5578b20a200ff7d3e5b61",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 27 checks passed",
+      "merge_commit": "48c300cefcf0feb591cb81ae7c291d84bc9d116d",
+      "status": "merged"
+    },
+    "dlworrell/engineering-docs-toolkit#14": {
+      "approved_head": "7fac35b00d8b73f7f484c59c4283e4754731b726",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 7 checks passed",
+      "merge_commit": "c06b69c47b92c1d582ea2a6e1b8159c10a67160d",
+      "status": "merged"
+    },
+    "dlworrell/evo#147": {
+      "approved_head": "99ac3ada93b9b8381cf91b87b7daf0af074f646c",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 100 checks passed",
+      "merge_commit": "f5a875225c994e929cc01c939d0aa3135dd26443",
+      "status": "merged"
+    },
+    "dlworrell/herkules-1934-english#17": {
+      "approved_head": "81e7fa00fc305c28b0d52be8114786452e86ed33",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 7 checks passed",
+      "merge_commit": "bd817f02b3c7541dffa9099288928f17030b03fc",
+      "status": "merged"
+    },
+    "dlworrell/openCUDA#54": {
+      "approved_head": "0cc52e606d8f7a05086811cae898e66617a9bc55",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 35 checks passed",
+      "merge_commit": "afdec1a2743ccf341cca3473da3573f6e6e0c6d2",
+      "status": "merged"
+    },
+    "dlworrell/repo_templates#25": {
+      "approved_head": "b589b165795e1b4872e8fa67c856fac6fcd163f7",
+      "at": "2026-10-30T22:22:43Z",
+      "detail": "promotion opened by catylist-ring-0 (Catylist ADR-0017); all 7 checks passed",
+      "merge_commit": "f6f3f1cb35f486bf3b68fe508582739e66401c79",
+      "status": "merged"
+    }
+  },
+  "id": "ring0-wave-4",
+  "runs": [
+    {
+      "at": "2026-10-30T22:22:43Z",
+      "dry_run": false,
+      "statuses": [
+        "merged",
+        "merged",
+        "merged",
+        "merged",
+        "merged",
+        "merged",
+        "merged",
+        "merged",
+        "merged",
+        "merged",
+        "merged",
+        "merged",
+        "merged"
+      ]
+    }
+  ],
+  "schema": "aems.omnibus-result.v1"
+}
