@@ -513,9 +513,6 @@ class IntegrationBranchTests(unittest.TestCase):
         self.assertEqual(result["status"], "compliant", result.get("error"))
         self.assertEqual(client.writes, [])
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class RequiredChecksTests(unittest.TestCase):
     """ADR-0006 section 4: per-repository required checks, one ruleset per branch."""
@@ -594,3 +591,7 @@ class RequiredChecksTests(unittest.TestCase):
         self.assertEqual(cr.diff_ruleset(ruleset, current), [])
         current["rules"][0]["parameters"]["required_status_checks"] = []
         self.assertTrue(cr.diff_ruleset(ruleset, current))
+
+
+if __name__ == "__main__":
+    unittest.main()
