@@ -54,6 +54,19 @@ INTEGRATION_BRANCHES = ("dev-daily", "fitment")
 FITMENT_CONFIG_SCHEMA = "aems.fitment-config.v1"
 DEFAULT_FITMENT_CONFIG = Path(__file__).resolve().parents[1] / "config" / "fitment.json"
 
+# ADR-0006 section 4: required status checks are per repository and outside the
+# baseline. Each branch listed in config/required-checks.json gets its own
+# ruleset, require-ci-<branch>, holding only that rule. "main" targets the
+# default branch whatever it is called.
+REQUIRED_CHECKS_SCHEMA = "aems.required-checks.v1"
+DEFAULT_REQUIRED_CHECKS = Path(__file__).resolve().parents[1] / "config" / "required-checks.json"
+REQUIRED_CHECKS_PREFIX = "require-ci-"
+REQUIRED_CHECKS_REFS = {
+    "dev-daily": "refs/heads/dev-daily",
+    "fitment": "refs/heads/fitment",
+    "main": "~DEFAULT_BRANCH",
+}
+
 # Legacy explicit opt-in for ruleset sandbox experiments. Pending Catylist
 # ADR-0014 proposes removing the named testbed/adoption prerequisite; it has
 # not been accepted upstream. See the retained proposal in
@@ -271,14 +284,89 @@ def load_adopted(path: Path) -> frozenset[str]:
     return frozenset(n.lower() for n in names)
 
 
-def desired_for(
-    repository: str, desired: list[dict[str, Any]], adopted: frozenset[str]
-) -> list[dict[str, Any]]:
-    """The baseline rulesets that apply to one repository."""
+def load_required_checks(path: Path) -> dict[str, list[dict[str, Any]]]:
+    """Return the require-ci-<branch> rulesets per lower-cased repository."""
 
-    if repository.lower() in adopted:
-        return list(desired)
-    return [r for r in desired if r["name"] != INTEGRATION_RULESET_NAME]
+    if not path.is_file():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or data.get("schema") != REQUIRED_CHECKS_SCHEMA:
+        raise PlanError(f"{path}: schema must be {REQUIRED_CHECKS_SCHEMA}")
+    apps = data.get("apps")
+    if not isinstance(apps, dict) or not all(
+        isinstance(k, str) and isinstance(v, int) and not isinstance(v, bool) and v > 0
+        for k, v in apps.items()
+    ):
+        raise PlanError(f"{path}: apps must map names to positive integer App IDs")
+    repositories = data.get("repositories")
+    if not isinstance(repositories, dict):
+        raise PlanError(f"{path}: repositories must be an object")
+    result: dict[str, list[dict[str, Any]]] = {}
+    for repository, branches in repositories.items():
+        if not FULL_NAME_PATTERN.fullmatch(repository) or not isinstance(branches, dict):
+            raise PlanError(f"{path}: {repository!r} needs an object of branches")
+        rulesets = []
+        for branch in sorted(branches):
+            checks = branches[branch]
+            if branch not in REQUIRED_CHECKS_REFS:
+                raise PlanError(f"{path}: {repository}: unknown branch {branch!r}")
+            if not isinstance(checks, list):
+                raise PlanError(f"{path}: {repository} {branch}: checks must be a list")
+            required = []
+            for check in checks:
+                context = check.get("context") if isinstance(check, dict) else None
+                app = check.get("app") if isinstance(check, dict) else None
+                if not isinstance(context, str) or not context.strip() or app not in apps:
+                    raise PlanError(
+                        f"{path}: {repository} {branch}: each check needs a context "
+                        "and an app listed in apps"
+                    )
+                required.append({"context": context, "integration_id": apps[app]})
+            if len({c["context"] for c in required}) != len(required):
+                raise PlanError(f"{path}: {repository} {branch}: duplicate check")
+            if not required:
+                continue  # an empty list means no required checks, not an empty rule
+            rulesets.append({
+                "name": REQUIRED_CHECKS_PREFIX + branch,
+                "target": "branch",
+                "enforcement": "active",
+                "conditions": {"ref_name": {
+                    "include": [REQUIRED_CHECKS_REFS[branch]], "exclude": []}},
+                "bypass_actors": [],
+                "rules": [{
+                    "type": "required_status_checks",
+                    "parameters": {
+                        "required_status_checks": required,
+                        # Promotions and candidates are never rebased onto
+                        # their base, so requiring up-to-date heads would
+                        # block every one of them.
+                        "strict_required_status_checks_policy": False,
+                        "do_not_enforce_on_create": False,
+                    },
+                }],
+            })
+        result[repository.lower()] = rulesets
+    return result
+
+
+def desired_for(
+    repository: str,
+    desired: list[dict[str, Any]],
+    adopted: frozenset[str],
+    required: dict[str, list[dict[str, Any]]] | None = None,
+) -> list[dict[str, Any]]:
+    """The baseline rulesets, plus any required-checks rulesets, for one repository."""
+
+    rulesets = (
+        list(desired)
+        if repository.lower() in adopted
+        else [r for r in desired if r["name"] != INTEGRATION_RULESET_NAME]
+    )
+    extra = (required or {}).get(repository.lower(), [])
+    if repository.lower() not in adopted:
+        # dev-daily and fitment exist only after ADR-0013 adoption.
+        extra = [r for r in extra if r["name"] == REQUIRED_CHECKS_PREFIX + "main"]
+    return rulesets + copy.deepcopy(extra)
 
 
 # ---------------------------------------------------------------------------
@@ -898,6 +986,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         default=Path("build/aems/catylist-rulesets"))
     parser.add_argument("--fitment-config", type=Path, default=DEFAULT_FITMENT_CONFIG,
                         help="repositories that adopted Catylist ADR-0013 (integration-branch ruleset)")
+    parser.add_argument("--required-checks", type=Path, default=DEFAULT_REQUIRED_CHECKS,
+                        help="per-repository required status checks (ADR-0006 section 4)")
     return parser.parse_args(argv)
 
 
@@ -926,6 +1016,7 @@ def main(argv: list[str] | None = None) -> int:
         inventory = source.get_file(CATYLIST_REPOSITORY, INVENTORY_PATH, catylist_ref)
         selected, skipped = select_repositories(inventory, repos_filter)
         adopted = load_adopted(args.fitment_config)
+        required = load_required_checks(args.required_checks)
         desired = load_desired_rulesets(
             source, templates_ref,
             integration=any(r.lower() in adopted for r in selected),
@@ -936,7 +1027,8 @@ def main(argv: list[str] | None = None) -> int:
 
     results = [
         process_repository(
-            admin, repository, desired_for(repository, desired, adopted), apply=args.apply
+            admin, repository, desired_for(repository, desired, adopted, required),
+            apply=args.apply
         )
         for repository in selected
     ]
