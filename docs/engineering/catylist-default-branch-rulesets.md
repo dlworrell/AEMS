@@ -223,3 +223,18 @@ establish acceptance.
 
 Required status checks and code-scanning rules are outside this baseline
 (ADR-0006 section 4) and are never added by this workflow.
+
+## Required CI checks (ADR-0006 section 4)
+
+Required status checks are per repository and are kept out of the shared baseline. `config/required-checks.json` lists them for each repository and branch. Each branch with a non-empty list gets its own ruleset, named `require-ci-dev-daily`, `require-ci-fitment` or `require-ci-main`. The `require-ci-main` ruleset targets the default branch, whatever it is called. Each ruleset holds only the `required_status_checks` rule, so the shared baseline stays unchanged.
+
+- **Which checks are listed:** only checks that ran on every recent merged pull request into that branch, from workflows without path filters. A required check that never reports blocks every merge.
+- **Empty lists:** an empty list creates no ruleset. This is the case for AEMS and atarix `dev-daily` for now.
+- **Check sources:** every check is pinned to the App that posts it:
+  - `github-actions` (15368) for CI jobs;
+  - `catylist-ring-0` (5474337) for `fitment/source` and `fitment`.
+- **What the ring-0 checks guard:** requiring `fitment/source` on `fitment` and `main` stops a manual merge from the wrong source branch. Requiring `fitment` on `main` stops a manual release-candidate merge while the fitment gate is red.
+- **Up-to-date heads are not required** (`strict_required_status_checks_policy` is false). Promotions and release candidates are never rebased onto their base, so requiring it would block them.
+- **Before adoption:** `dev-daily` and `fitment` rulesets apply only to repositories in `config/fitment.json`. Other repositories get `require-ci-main` at most.
+
+To change a list, edit `config/required-checks.json` through a pull request. Then run the workflow as a dry run and read the plan before applying.
