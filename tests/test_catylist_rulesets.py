@@ -515,3 +515,82 @@ class IntegrationBranchTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RequiredChecksTests(unittest.TestCase):
+    """ADR-0006 section 4: per-repository required checks, one ruleset per branch."""
+
+    def write(self, data) -> Path:
+        import json, tempfile
+        path = Path(tempfile.mkdtemp()) / "required-checks.json"
+        path.write_text(json.dumps(data), encoding="utf-8")
+        return path
+
+    def config(self, branches):
+        return {"schema": cr.REQUIRED_CHECKS_SCHEMA,
+                "apps": {"github-actions": 15368, "catylist-ring-0": 5474337},
+                "repositories": {"dlworrell/demo": branches}}
+
+    def test_repository_config_is_valid(self):
+        required = cr.load_required_checks(cr.DEFAULT_REQUIRED_CHECKS)
+        self.assertIn("dlworrell/aems", required)
+        for rulesets in required.values():
+            for ruleset in rulesets:
+                checks = ruleset["rules"][0]["parameters"]["required_status_checks"]
+                self.assertTrue(checks)
+                self.assertTrue(ruleset["name"].startswith(cr.REQUIRED_CHECKS_PREFIX))
+
+    def test_each_branch_gets_its_own_ruleset_and_empty_lists_none(self):
+        required = cr.load_required_checks(self.write(self.config({
+            "dev-daily": [],
+            "fitment": [{"context": "fitment/source", "app": "catylist-ring-0"}],
+            "main": [{"context": "test", "app": "github-actions"},
+                     {"context": "fitment", "app": "catylist-ring-0"}],
+        })))["dlworrell/demo"]
+        self.assertEqual([r["name"] for r in required], ["require-ci-fitment", "require-ci-main"])
+        main = required[1]
+        self.assertEqual(main["conditions"]["ref_name"]["include"], ["~DEFAULT_BRANCH"])
+        self.assertEqual(main["bypass_actors"], [])
+        params = main["rules"][0]["parameters"]
+        self.assertEqual(params["required_status_checks"],
+                         [{"context": "test", "integration_id": 15368},
+                          {"context": "fitment", "integration_id": 5474337}])
+        self.assertFalse(params["strict_required_status_checks_policy"])
+
+    def test_refusals(self):
+        bad = [
+            self.config({"release": [{"context": "x", "app": "github-actions"}]}),
+            self.config({"main": [{"context": "x", "app": "unknown-app"}]}),
+            self.config({"main": [{"context": "", "app": "github-actions"}]}),
+            self.config({"main": [{"context": "x", "app": "github-actions"},
+                                  {"context": "x", "app": "github-actions"}]}),
+            {"schema": "wrong", "apps": {}, "repositories": {}},
+        ]
+        for data in bad:
+            with self.subTest(data=data), self.assertRaises(cr.PlanError):
+                cr.load_required_checks(self.write(data))
+
+    def test_missing_file_means_no_required_checks(self):
+        self.assertEqual(cr.load_required_checks(Path("/nonexistent/required.json")), {})
+
+    def test_only_default_branch_checks_apply_before_adoption(self):
+        required = cr.load_required_checks(self.write(self.config({
+            "dev-daily": [{"context": "a", "app": "github-actions"}],
+            "main": [{"context": "a", "app": "github-actions"}],
+        })))
+        names = lambda adopted: [r["name"] for r in cr.desired_for(
+            "dlworrell/demo", [], adopted, required)]
+        self.assertEqual(names(frozenset()), ["require-ci-main"])
+        self.assertEqual(names(frozenset({"dlworrell/demo"})),
+                         ["require-ci-dev-daily", "require-ci-main"])
+
+    def test_applied_ruleset_with_api_defaults_shows_no_drift(self):
+        ruleset = cr.load_required_checks(self.write(self.config({
+            "main": [{"context": "a", "app": "github-actions"}],
+        })))["dlworrell/demo"][0]
+        current = copy.deepcopy(ruleset)
+        current["id"] = 7
+        current["source_type"] = "Repository"
+        self.assertEqual(cr.diff_ruleset(ruleset, current), [])
+        current["rules"][0]["parameters"]["required_status_checks"] = []
+        self.assertTrue(cr.diff_ruleset(ruleset, current))

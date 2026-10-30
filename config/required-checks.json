@@ -1,0 +1,612 @@
+{
+  "schema": "aems.required-checks.v1",
+  "comment": "Per-repository required status checks (Catylist ADR-0006 section 4). Each branch's list becomes its own ruleset require-ci-<branch>. Only checks that ran on every recent merged pull request into that branch, from workflows without path filters, are listed; an empty list means no ruleset.",
+  "apps": {
+    "github-actions": 15368,
+    "catylist-ring-0": 5474337
+  },
+  "repositories": {
+    "dlworrell/AEMS": {
+      "dev-daily": [],
+      "fitment": [
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/atarix": {
+      "dev-daily": [],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "build-test",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "build-test",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/Catylist": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "scan",
+          "app": "github-actions"
+        },
+        {
+          "context": "validate",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "scan",
+          "app": "github-actions"
+        },
+        {
+          "context": "validate",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "scan",
+          "app": "github-actions"
+        },
+        {
+          "context": "validate",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/AES": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/P0": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/EWT": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/JAG": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/Rocket_demo": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/Just-a-Geek-LLC": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/repo_templates": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "verify",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "verify",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "verify",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/engineering-docs-toolkit": {
+      "dev-daily": [
+        {
+          "context": "test",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "test",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "test",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/evo": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "verify",
+          "app": "github-actions"
+        },
+        {
+          "context": "formatting",
+          "app": "github-actions"
+        },
+        {
+          "context": "static-analysis",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "verify",
+          "app": "github-actions"
+        },
+        {
+          "context": "formatting",
+          "app": "github-actions"
+        },
+        {
+          "context": "static-analysis",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "verify",
+          "app": "github-actions"
+        },
+        {
+          "context": "formatting",
+          "app": "github-actions"
+        },
+        {
+          "context": "static-analysis",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/herkules-1934-english": {
+      "dev-daily": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "build",
+          "app": "github-actions"
+        },
+        {
+          "context": "test",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "build",
+          "app": "github-actions"
+        },
+        {
+          "context": "test",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "governance / governance",
+          "app": "github-actions"
+        },
+        {
+          "context": "build",
+          "app": "github-actions"
+        },
+        {
+          "context": "test",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/code-noodling": {
+      "dev-daily": [
+        {
+          "context": "Scope coverage and applicability",
+          "app": "github-actions"
+        },
+        {
+          "context": "audit-and-test",
+          "app": "github-actions"
+        },
+        {
+          "context": "hosted-only",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "Scope coverage and applicability",
+          "app": "github-actions"
+        },
+        {
+          "context": "audit-and-test",
+          "app": "github-actions"
+        },
+        {
+          "context": "hosted-only",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "Scope coverage and applicability",
+          "app": "github-actions"
+        },
+        {
+          "context": "audit-and-test",
+          "app": "github-actions"
+        },
+        {
+          "context": "hosted-only",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    },
+    "dlworrell/openCUDA": {
+      "dev-daily": [
+        {
+          "context": "repository-policy",
+          "app": "github-actions"
+        },
+        {
+          "context": "formatting-static-analysis",
+          "app": "github-actions"
+        }
+      ],
+      "fitment": [
+        {
+          "context": "repository-policy",
+          "app": "github-actions"
+        },
+        {
+          "context": "formatting-static-analysis",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        }
+      ],
+      "main": [
+        {
+          "context": "repository-policy",
+          "app": "github-actions"
+        },
+        {
+          "context": "formatting-static-analysis",
+          "app": "github-actions"
+        },
+        {
+          "context": "fitment/source",
+          "app": "catylist-ring-0"
+        },
+        {
+          "context": "fitment",
+          "app": "catylist-ring-0"
+        }
+      ]
+    }
+  }
+}
