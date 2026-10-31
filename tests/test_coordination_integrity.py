@@ -44,8 +44,38 @@ class CoordinationIntegrityTests(unittest.TestCase):
     def test_missing_anchor_is_unverified_not_trusted(self):
         report = ci.verify(self.root, ci.build(self.root), "genesis")
         self.assertEqual(report["status"], "unverified")
+        self.assertEqual((report["anchor_checked"], report["chain_checked"]), (False, True))
         self.assertIn("not trusted", report["notes"][0])
+        self.assertIn("latest", report["notes"][-2])
         self.assertIn("authorship", report["notes"][-1])
+
+    def test_anchor_without_predecessor_check_is_unverified(self):
+        manifest = ci.build(self.root)
+        report = ci.verify(self.root, manifest, anchor=ci.manifest_digest(manifest))
+        self.assertEqual(report["status"], "unverified")
+        self.assertEqual((report["anchor_checked"], report["chain_checked"]), (True, False))
+        self.assertIn("chain was not checked", report["notes"][0])
+
+    def test_malformed_manifest_fields_are_rejected_not_raised(self):
+        manifest = ci.build(self.root)
+        cases = {"record_id": ["X"], "size": "7", "sha256": None}
+        for field, value in cases.items():
+            tampered = json.loads(json.dumps(manifest))
+            for entry in tampered["files"][:2]:
+                entry[field] = value
+            report = ci.verify(self.root, tampered, "genesis", ci.manifest_digest(tampered))
+            self.assertEqual(report["status"], "rejected", field)
+            self.assertTrue(any(p.startswith(f"malformed {field}") for p in report["problems"]), field)
+        tampered = json.loads(json.dumps(manifest))
+        tampered["files"][0]["size"] = True
+        self.assertIn("malformed size: PROTOCOL.md", ci.verify(self.root, tampered)["problems"])
+
+    def test_listed_record_id_must_match_the_file(self):
+        tampered = ci.build(self.root)
+        tampered["files"][1]["record_id"] = "EVT-9999"
+        report = ci.verify(self.root, tampered, "genesis", ci.manifest_digest(tampered))
+        self.assertEqual(report["status"], "rejected")
+        self.assertEqual(report["problems"], ["record id does not match the file: events/0001.json"])
 
     def test_tampered_missing_and_extra_files_are_rejected(self):
         manifest = ci.build(self.root)
@@ -88,6 +118,25 @@ class CoordinationIntegrityTests(unittest.TestCase):
         manifest = ci.build(self.root)
         os.symlink(self.root / "PROTOCOL.md", self.root / "link.md")
         self.assertIn("symlink not allowed: link.md", self.anchored(manifest)["problems"])
+
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks unavailable")
+    def test_root_symlink_is_refused_by_build_and_verify_alike(self):
+        link = Path(self.tmp.name) / "records-link"
+        os.symlink(self.root, link)
+        out = Path(self.tmp.name) / "m.json"
+        with redirect_stderr(io.StringIO()):
+            self.assertEqual(ci.main(["build", str(link), "--output", str(out)]), 2)
+        self.assertFalse(out.exists())
+        report = ci.verify(link, ci.build(self.root), "genesis")
+        self.assertEqual(report["status"], "rejected")
+        self.assertIn("is not a directory", report["problems"][0])
+        # A symlinked directory above the root is allowed in both commands.
+        parent = Path(self.tmp.name) / "parent-link"
+        os.symlink(self.root.parent, parent)
+        manifest = ci.build(parent / "records")
+        self.assertEqual(self.anchored(manifest)["status"], "verified")
+        self.assertEqual(ci.verify(parent / "records", manifest, "genesis",
+                                   ci.manifest_digest(manifest))["status"], "verified")
 
     def test_chain_predecessor_must_match(self):
         first = ci.build(self.root)
