@@ -87,6 +87,7 @@
     "dlworrell/atarix:fitment:eaa04cd9a586bb21106042320f279f372ac79c2f": "failure:Not ready for release:e77e252a8413",
     "dlworrell/code-noodling:fitment/source:48c300cefcf0feb591cb81ae7c291d84bc9d116d": "success:fitment \u2192 main is the ADR-0013 promotion path:0943ae377db8",
     "dlworrell/code-noodling:fitment/source:5bb66065ed85d9372e422cec8e3aa85467ce26ae": "success:fitment \u2192 main is the ADR-0013 promotion path:0943ae377db8",
+    "dlworrell/code-noodling:fitment/source:9eb90ad2b2746ba574aa496fc6435fc2cf8f8b1e": "failure:Pull requests into main come from fitment, not dependabot/pip/election-analysis/ci/pip-11b375465a:415764e146fc",
     "dlworrell/code-noodling:fitment/source:acc10186f78b08c34ce5578b20a200ff7d3e5b61": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:199e65194e02",
     "dlworrell/code-noodling:fitment/source:ace470f1f74e29f2c65f198c0476a4df4c10af36": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:12bdf816efd7",
     "dlworrell/code-noodling:fitment:48c300cefcf0feb591cb81ae7c291d84bc9d116d": "success:Ready for release:d8c1d9ad72a4",
