@@ -92,6 +92,9 @@ def build(root: Path, predecessor: dict | None = None) -> dict:
     files, problems = scan(root)
     if problems:
         raise IntegrityError("; ".join(problems))
+    empty = sorted(path for path, entry in files.items() if entry["record_id"] == "")
+    if empty:
+        raise IntegrityError(f"empty record id: {', '.join(empty)}")
     ids = [entry["record_id"] for entry in files.values() if entry["record_id"]]
     duplicates = sorted({i for i in ids if ids.count(i) > 1})
     if duplicates:
@@ -155,6 +158,7 @@ def verify(root: Path, manifest: dict, expected_predecessor: str | None = None,
                 problems.append(f"changed: {path}")
             elif listed[path].get("record_id") != actual[path]["record_id"]:
                 problems.append(f"record id does not match the file: {path}")
+        problems += [f"empty record id: {p}" for p in sorted(actual) if actual[p]["record_id"] == ""]
         ids = [entry["record_id"] for entry in actual.values() if entry["record_id"]]
         problems += [f"duplicate record id on disk: {i}" for i in sorted({i for i in ids if ids.count(i) > 1})]
     chain_checked = expected_predecessor is not None

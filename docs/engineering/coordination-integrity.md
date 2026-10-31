@@ -36,7 +36,8 @@ python3 scripts/coordination_integrity.py verify RECORDS --manifest m2.json \
   - a predecessor that differs from the expected previous manifest;
   - a manifest digest that differs from the trusted anchor.
 - **Also rejected:** a malformed manifest field (sha256, size or record id), and
-  a listed record id that differs from the `id` in the file itself.
+  a listed record id that differs from the `id` in the file itself, and a file
+  whose `id` is an empty string (refused by `build` too).
 - **Unverified:** everything matches, but no trusted anchor was given, or no
   expected predecessor was given so the chain was not checked. The report's
   `anchor_checked` and `chain_checked` fields say which.

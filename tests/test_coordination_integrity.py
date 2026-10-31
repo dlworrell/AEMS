@@ -70,6 +70,15 @@ class CoordinationIntegrityTests(unittest.TestCase):
         tampered["files"][0]["size"] = True
         self.assertIn("malformed size: PROTOCOL.md", ci.verify(self.root, tampered)["problems"])
 
+    def test_empty_record_id_is_refused_by_build_and_verify_alike(self):
+        manifest = ci.build(self.root)
+        self.write("events/0002.json", json.dumps({"id": ""}))
+        with self.assertRaisesRegex(ci.IntegrityError, "empty record id: events/0002.json"):
+            ci.build(self.root)
+        report = ci.verify(self.root, manifest, "genesis", ci.manifest_digest(manifest))
+        self.assertEqual(report["status"], "rejected")
+        self.assertIn("empty record id: events/0002.json", report["problems"])
+
     def test_listed_record_id_must_match_the_file(self):
         tampered = ci.build(self.root)
         tampered["files"][1]["record_id"] = "EVT-9999"
