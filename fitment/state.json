@@ -28,6 +28,7 @@
     "dlworrell/AEMS:fitment:c1391c25ab31de7ad50c95a3b1b1d3ad64e938d9": "failure:Not ready for release:51fc277db77c",
     "dlworrell/AEMS:fitment:e873ca5cd497ecf42dd1df6974a4b737fb901044": "success:Ready for release:d6925637b646",
     "dlworrell/AEMS:fitment:ecad36ecca1ac98628fa3ea9e4422e6b6bca73b7": "failure:Not ready for release:e77e252a8413",
+    "dlworrell/AEMS:fitment:f1d473064c8b2a512f849716e187ca488d437d88": "success:Ready for release:4fe7e97dce01",
     "dlworrell/AES:fitment/source:9621195801aace56fab186c1affba9ca7a7e928e": "success:fitment \u2192 main is the ADR-0013 promotion path:4418bf76a913",
     "dlworrell/AES:fitment/source:9d1b66ada7ad1a0238518489ef9987d29c1e62a9": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:0d94e967328f",
     "dlworrell/AES:fitment/source:b434284224e9e545237f0f02bfaa46936437dc9b": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:49944386a0ee",
@@ -132,7 +133,7 @@
   },
   "repos": {
     "dlworrell/AEMS": {
-      "reviewed": "37a32e09abf22e5e6e503a02a29a2ba60f4cb00d"
+      "reviewed": "f1d473064c8b2a512f849716e187ca488d437d88"
     },
     "dlworrell/AES": {
       "reviewed": "e6fc8a7e9be2fcfd200bfd19e22cb62bc9f5ee10"
