@@ -76,6 +76,7 @@
     "dlworrell/atarix:fitment/source:31ed65bef6c0809d29c461062756a06188c6c762": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:36de45a80144",
     "dlworrell/atarix:fitment/source:3258af9971bb5bbf07c81a1fcd1c254042f23bbc": "success:fitment \u2192 main is the ADR-0013 promotion path:adaaea54cdf3",
     "dlworrell/atarix:fitment/source:4207fabb658a638dea3f32e2c9d9dd0676886e41": "success:fitment \u2192 main is the ADR-0013 promotion path:702f2ae72e72",
+    "dlworrell/atarix:fitment/source:8188917a9cc64103532985f8cbf17e4a71e7bdce": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:8f1b66ba73e7",
     "dlworrell/atarix:fitment/source:cc1f3519b4bc0a6849705335be70e579644025ef": "failure:Pull requests into fitment come from dev-daily, not automation/project-zero-inventory:946740c28533",
     "dlworrell/atarix:fitment/source:ea5e0508f24a098886cd434f0161249ab0801b3c": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:044ea6c344e5",
     "dlworrell/atarix:fitment:1b6c52c2861b7cc85073069dac34376d64cd3e16": "failure:Not ready for release:e77e252a8413",
