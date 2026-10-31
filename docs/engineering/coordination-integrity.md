@@ -21,7 +21,8 @@ python3 scripts/coordination_integrity.py verify RECORDS --manifest m2.json \
 ```
 
 `verify` exits with 0 for `verified`, 1 for `unverified`, 3 for `rejected` and
-2 for unusable input. `--format markdown` prints a short report instead of JSON.
+2 for unusable input (a missing or symlinked records directory, or an
+unreadable manifest). `--format markdown` prints a short report instead of JSON.
 
 ## What it checks
 

@@ -175,6 +175,15 @@ class CoordinationIntegrityTests(unittest.TestCase):
         self.assertEqual((code, json.loads(printed.getvalue())["status"]), (0, "verified"))
         with redirect_stdout(io.StringIO()):
             self.assertEqual(ci.main(["verify", str(self.root), "--manifest", str(out)]), 1)
+        self.write("PROTOCOL.md", "# Changed\n")
+        with redirect_stdout(io.StringIO()) as printed:
+            code = ci.main(["verify", str(self.root), "--manifest", str(out), "--expected-predecessor",
+                            "genesis", "--anchor", digest, "--format", "markdown"])
+        self.assertEqual(code, 3)
+        self.assertIn("# Coordination record integrity: rejected", printed.getvalue())
+        self.assertIn("- Problem: changed: PROTOCOL.md", printed.getvalue())
+        with redirect_stderr(io.StringIO()):
+            self.assertEqual(ci.main(["verify", str(self.root / "missing"), "--manifest", str(out)]), 2)
         inside = self.root / "manifest.json"
         with redirect_stderr(io.StringIO()):
             self.assertEqual(ci.main(["build", str(self.root), "--output", str(inside)]), 2)

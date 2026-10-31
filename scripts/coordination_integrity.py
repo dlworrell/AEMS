@@ -222,8 +222,10 @@ def main(argv=None) -> int:
             output.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
             print(manifest_digest(manifest))
             return 0
-        report = verify(Path(args.root), _load(args.manifest),
-                        args.expected_predecessor, args.anchor)
+        root = Path(args.root)
+        if root.is_symlink() or not root.is_dir():
+            raise IntegrityError(f"{root} is not a directory")
+        report = verify(root, _load(args.manifest), args.expected_predecessor, args.anchor)
     except IntegrityError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
