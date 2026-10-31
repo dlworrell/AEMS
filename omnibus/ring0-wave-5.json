@@ -1,0 +1,91 @@
+{
+  "schema": "aems.omnibus-manifest.v1",
+  "id": "ring0-wave-5",
+  "summary": "Release candidates (fitment to main) for the 12 repositories promoted in ring0-wave-4; merging publishes no release",
+  "entries": [
+    {
+      "repository": "dlworrell/AES",
+      "pull_request": 20,
+      "base": "main",
+      "head_sha": "e6fc8a7e9be2fcfd200bfd19e22cb62bc9f5ee10",
+      "title": "Release candidate from fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/P0",
+      "pull_request": 22,
+      "base": "main",
+      "head_sha": "d9329bed081b523020528d52de41548fed582cb3",
+      "title": "Release candidate from fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/repo_templates",
+      "pull_request": 23,
+      "base": "main",
+      "head_sha": "f6f3f1cb35f486bf3b68fe508582739e66401c79",
+      "title": "Release candidate from fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/engineering-docs-toolkit",
+      "pull_request": 12,
+      "base": "main",
+      "head_sha": "c06b69c47b92c1d582ea2a6e1b8159c10a67160d",
+      "title": "Release candidate from fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/EWT",
+      "pull_request": 11,
+      "base": "main",
+      "head_sha": "d8b3bc1ef0475bcc0433b48889469112bed485d7",
+      "title": "Release candidate from fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/evo",
+      "pull_request": 145,
+      "base": "main",
+      "head_sha": "f5a875225c994e929cc01c939d0aa3135dd26443",
+      "title": "Release candidate from fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/herkules-1934-english",
+      "pull_request": 15,
+      "base": "main",
+      "head_sha": "bd817f02b3c7541dffa9099288928f17030b03fc",
+      "title": "Release candidate from fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/JAG",
+      "pull_request": 13,
+      "base": "main",
+      "head_sha": "6a9cc1811e2768b1e695c1bfe5ad887635da36b8",
+      "title": "Release candidate from fitment (2026-10-30)"
+    },
+    {
+      "repository": "dlworrell/code-noodling",
+      "pull_request": 84,
+      "base": "main",
+      "head_sha": "48c300cefcf0feb591cb81ae7c291d84bc9d116d",
+      "title": "Release candidate from fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/openCUDA",
+      "pull_request": 56,
+      "base": "main",
+      "head_sha": "afdec1a2743ccf341cca3473da3573f6e6e0c6d2",
+      "title": "Release candidate from fitment (2026-10-30)"
+    },
+    {
+      "repository": "dlworrell/Rocket_demo",
+      "pull_request": 9,
+      "base": "main",
+      "head_sha": "5bd8da8bfad3c325a4a13735f4f8f36b724a2281",
+      "title": "Release candidate from fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/Just-a-Geek-LLC",
+      "pull_request": 9,
+      "base": "main",
+      "head_sha": "dbb1e32c4fa8938f6b2955e8c47a21e183cc2c56",
+      "title": "Release candidate from fitment (2026-10-29)"
+    }
+  ]
+}

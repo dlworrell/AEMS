@@ -1,0 +1,98 @@
+{
+  "schema": "aems.omnibus-manifest.v1",
+  "id": "ring0-wave-4",
+  "summary": "First ADR-0017 omnibus: land the 12 waiting dev-daily to fitment promotions (they carry the release-documentation fixes) and the atarix release candidate",
+  "entries": [
+    {
+      "repository": "dlworrell/AES",
+      "pull_request": 22,
+      "base": "fitment",
+      "head_sha": "b434284224e9e545237f0f02bfaa46936437dc9b",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/P0",
+      "pull_request": 24,
+      "base": "fitment",
+      "head_sha": "ab56d2949aa4e2e5b8d652d4895796476997690e",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/repo_templates",
+      "pull_request": 25,
+      "base": "fitment",
+      "head_sha": "b589b165795e1b4872e8fa67c856fac6fcd163f7",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/engineering-docs-toolkit",
+      "pull_request": 14,
+      "base": "fitment",
+      "head_sha": "7fac35b00d8b73f7f484c59c4283e4754731b726",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/EWT",
+      "pull_request": 13,
+      "base": "fitment",
+      "head_sha": "20fbf20a245b8c4a741825252c3798a162e17344",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/evo",
+      "pull_request": 147,
+      "base": "fitment",
+      "head_sha": "99ac3ada93b9b8381cf91b87b7daf0af074f646c",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/herkules-1934-english",
+      "pull_request": 17,
+      "base": "fitment",
+      "head_sha": "81e7fa00fc305c28b0d52be8114786452e86ed33",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/JAG",
+      "pull_request": 11,
+      "base": "fitment",
+      "head_sha": "3a4cef179589d6b45720d2efc7f7313a31c10f5a",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/code-noodling",
+      "pull_request": 86,
+      "base": "fitment",
+      "head_sha": "acc10186f78b08c34ce5578b20a200ff7d3e5b61",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/openCUDA",
+      "pull_request": 54,
+      "base": "fitment",
+      "head_sha": "0cc52e606d8f7a05086811cae898e66617a9bc55",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/Rocket_demo",
+      "pull_request": 11,
+      "base": "fitment",
+      "head_sha": "5272d3bc7c26ee86718396375043951fcc651821",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/Just-a-Geek-LLC",
+      "pull_request": 11,
+      "base": "fitment",
+      "head_sha": "909fe567cdd9041dcbfad2116bcadd9757785fd8",
+      "title": "Promote dev-daily to fitment (2026-10-29)"
+    },
+    {
+      "repository": "dlworrell/atarix",
+      "pull_request": 107,
+      "base": "main",
+      "head_sha": "3258af9971bb5bbf07c81a1fcd1c254042f23bbc",
+      "title": "Release candidate from fitment (2026-10-29)"
+    }
+  ]
+}
