@@ -8,10 +8,17 @@ against a manifest and reports ``verified``, ``unverified`` or ``rejected``.
 
 Matching hashes show only that the files equal what the manifest lists. They
 do not show who wrote the records, that anyone authorized them, or that the
-data and its manifest were not replaced together. Only a manifest digest
-anchored somewhere the records' writers cannot change (``--anchor``) makes the
-result ``verified``; without one it is ``unverified``. Integrity evidence is
-not task status, engineering closure or owner approval.
+data and its manifest were not replaced together. The result is ``verified``
+only when the manifest's digest matches an anchor kept somewhere the records'
+writers cannot change (``--anchor``) and its chain predecessor was checked
+(``--expected-predecessor``); otherwise it is at most ``unverified``. A matching
+anchor does not show the manifest is the latest one. Integrity evidence is not
+task status, engineering closure or owner approval.
+
+The records directory itself must not be a symlink, in ``build`` and
+``verify`` alike; directories above it may be, as system paths often are.
+Record identity is the file's own top-level ``id`` field only; other ID fields
+such as ``event_id`` are not read until the coordinator's schema is agreed.
 """
 from __future__ import annotations
 
@@ -28,6 +35,8 @@ SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 LIMITS = ("Matching hashes do not establish authorship or authorization, and an "
           "unanchored manifest does not protect against replacement of both the "
           "records and the manifest.")
+FRESHNESS = ("A matching anchor shows the records equal that manifest; it does not show "
+             "the manifest is the latest one.")
 
 
 class IntegrityError(ValueError):
@@ -109,9 +118,14 @@ def _manifest_problems(manifest: dict) -> list[str]:
             continue
         if not (isinstance(entry.get("sha256"), str) and SHA256.match(entry["sha256"])):
             problems.append(f"malformed sha256: {entry['path']}")
+        size, record_id = entry.get("size"), entry.get("record_id")
+        if not isinstance(size, int) or isinstance(size, bool) or size < 0:
+            problems.append(f"malformed size: {entry['path']}")
+        if record_id is not None and not (isinstance(record_id, str) and record_id):
+            problems.append(f"malformed record_id: {entry['path']}")
         paths.append(entry["path"])
-        if entry.get("record_id"):
-            ids.append(entry["record_id"])
+        if isinstance(record_id, str) and record_id:
+            ids.append(record_id)
     problems += [f"duplicate path: {p}" for p in sorted({p for p in paths if paths.count(p) > 1})]
     problems += [f"duplicate record id: {i}" for i in sorted({i for i in ids if ids.count(i) > 1})]
     return problems
@@ -139,24 +153,32 @@ def verify(root: Path, manifest: dict, expected_predecessor: str | None = None,
         for path in sorted(set(listed) & set(actual)):
             if listed[path]["sha256"] != actual[path]["sha256"] or listed[path].get("size") != actual[path]["size"]:
                 problems.append(f"changed: {path}")
+            elif listed[path].get("record_id") != actual[path]["record_id"]:
+                problems.append(f"record id does not match the file: {path}")
         ids = [entry["record_id"] for entry in actual.values() if entry["record_id"]]
         problems += [f"duplicate record id on disk: {i}" for i in sorted({i for i in ids if ids.count(i) > 1})]
-    if expected_predecessor is not None and isinstance(manifest, dict):
+    chain_checked = expected_predecessor is not None
+    if chain_checked and isinstance(manifest, dict):
         want = None if expected_predecessor == "genesis" else expected_predecessor
         if manifest.get("predecessor_sha256") != want:
             problems.append("predecessor does not match the expected previous manifest")
     if anchor is not None and digest != anchor:
         problems.append("manifest digest does not match the trusted anchor")
+    # "verified" needs both a trusted anchor and a checked chain predecessor.
     if problems:
         status = "rejected"
-    elif anchor is None:
+    elif anchor is None or not chain_checked:
         status = "unverified"
     else:
         status = "verified"
-    notes = [LIMITS]
-    if status == "unverified":
-        notes.insert(0, "No trusted anchor was given, so the manifest itself is not trusted.")
+    notes = []
+    if anchor is None:
+        notes.append("No trusted anchor was given, so the manifest itself is not trusted.")
+    if not chain_checked:
+        notes.append("No expected predecessor was given, so the manifest's place in the chain was not checked.")
+    notes += [FRESHNESS, LIMITS]
     return {"schema": REPORT_SCHEMA, "status": status, "manifest_sha256": digest,
+            "anchor_checked": anchor is not None, "chain_checked": chain_checked,
             "files": len(actual), "problems": problems, "notes": notes}
 
 
@@ -186,10 +208,13 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.command == "build":
-            root, output = Path(args.root).resolve(), Path(args.output).resolve()
+            given = Path(args.root)
+            if given.is_symlink():
+                raise IntegrityError(f"{given} is not a directory")
+            root, output = given.resolve(), Path(args.output).resolve()
             if output == root or root in output.parents:
                 raise IntegrityError("the manifest must be written outside the records directory")
-            manifest = build(root, _load(args.predecessor))
+            manifest = build(given, _load(args.predecessor))
             output.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
             print(manifest_digest(manifest))
             return 0
