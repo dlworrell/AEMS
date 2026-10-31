@@ -12,6 +12,7 @@ on:
       - "scripts/aems_*.py"
       - "scripts/catylist_rulesets.py"
       - "scripts/cleanup_merged_branches.py"
+      - "scripts/coordination_integrity.py"
       - "scripts/validate_traceability.py"
       - "tests/test_inventory.py"
       - "tests/test_issue_graph.py"
@@ -20,6 +21,7 @@ on:
       - "tests/test_traceability.py"
       - "tests/test_catylist_rulesets.py"
       - "tests/test_cleanup_merged_branches.py"
+      - "tests/test_coordination_integrity.py"
       - ".github/workflows/project-zero.yml"
   push:
     branches:
