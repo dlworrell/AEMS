@@ -38,6 +38,7 @@
     "dlworrell/AES:fitment:9621195801aace56fab186c1affba9ca7a7e928e": "failure:Not ready for release:b7a67d026cbc",
     "dlworrell/AES:fitment:b68a38cc3105dd56b310a8c42361b4dde1763b0c": "success:Ready for release:96d7f11ed0e4",
     "dlworrell/AES:fitment:e6fc8a7e9be2fcfd200bfd19e22cb62bc9f5ee10": "success:Ready for release:cfc0c7e7ebd2",
+    "dlworrell/Catylist:fitment/source:394d9c6a68a98af611d46752c2aa62751dd73b07": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:1964c332e9d7",
     "dlworrell/Catylist:fitment/source:8d1a65dead043e011efb15c98283ffc53776d1e9": "success:fitment \u2192 main is the ADR-0013 promotion path:fbbeebe891f2",
     "dlworrell/Catylist:fitment/source:99237b98628f45ede7c101af2458c073b679a0cb": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:40ce092a67b3",
     "dlworrell/Catylist:fitment:8d1a65dead043e011efb15c98283ffc53776d1e9": "success:Ready for release:f54ec9bd8699",
