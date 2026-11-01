@@ -119,7 +119,16 @@ jobs:
         env:
           RING0_APP_TOKEN: ${{ steps.app.outputs.token }}
           LEDGER_TOKEN: ${{ github.token }}
-        run: python3 scripts/ring0_gate.py record --name fitment-cycle --config config/fitment.json
+          GATE_FINGERPRINT: ${{ steps.gate.outputs.fingerprint }}
+        run: |
+          set -euo pipefail
+          # Record what the gate saw before the run, so changes made during the run trigger the
+          # next tick (docs/engineering/ring0-gate.md). Recompute only if the gate failed open.
+          if [ -n "${GATE_FINGERPRINT:-}" ]; then
+            python3 scripts/ring0_gate.py record --name fitment-cycle --fingerprint "$GATE_FINGERPRINT"
+          else
+            python3 scripts/ring0_gate.py record --name fitment-cycle --config config/fitment.json
+          fi
 
       - name: Add cycle report to summary
         if: ${{ always() }}

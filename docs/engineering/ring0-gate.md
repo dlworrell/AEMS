@@ -22,7 +22,8 @@ The gate leaves out ring-0's own `fitment` and `fitment/source` checks, so the c
    - nothing has been recorded yet;
    - the last recorded run is older than `--max-age-hours`, which defaults to 6. This is the safety net for anything the fingerprint does not capture.
 3. Otherwise the job's later steps are skipped, and the job summary says so.
-4. After a successful enforce run, `ring0_gate.py record --config …` recomputes the fingerprint. The recorded state therefore already includes the pull requests, issues and checks the job itself created, and the job's own output does not cause an extra run.
+4. After a successful enforce run, the workflow records the fingerprint the gate computed **before** the run (`record --fingerprint`). Anything that changed while the job was running, such as a CI result finishing on `fitment` or a new topic merge, therefore still triggers the next tick. The cost is one extra, cheap run after a run that opened pull requests or issues: that run finds nothing to do and records the settled state.
+   - `record --config` recomputes the fingerprint after the job instead. It avoids that extra run but absorbs changes made during the run, which then wait for the `--max-age-hours` safety net. The workflow uses it only as a fallback when the gate step produced no fingerprint (it failed open).
 
 ## Fail-safe behaviour
 

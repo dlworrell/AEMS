@@ -12,8 +12,11 @@ forced when nothing was recorded yet, or the last recorded run is older than
 
 ``record`` stores a fingerprint on the ``ring0/ledger`` branch; workflows call
 it only after the gated job succeeded, so a failed run is retried next time.
-With ``--config`` it recomputes the fingerprint after the job, so the pull
-requests and issues the job itself opened do not trigger an extra run.
+Workflows pass ``--fingerprint`` with the value ``check`` printed, so anything
+that changed while the job ran still triggers the next tick (at the cost of one
+cheap extra run after the job opens pull requests or issues). ``--config``
+recomputes the fingerprint after the job instead; it absorbs changes made during
+the run, so workflows use it only when ``check`` failed open.
 
 Standard library only. Exit codes: 0 decision made or recorded, 2 unusable
 input or GitHub error.

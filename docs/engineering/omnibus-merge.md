@@ -72,7 +72,9 @@ nothing: the release workflow still waits at the `release` environment.
   only when an omnibus approved its exact head.
 - An omnibus never publishes a release (Law 5).
 - At most `max_entries` (100) pull requests per manifest.
-- The approval is found among the 200 most recently updated closed pull
-  requests into `dev-daily`. A push finds it at once; a dispatch of a manifest
-  approved longer ago than that is refused and needs a new omnibus.
+- The approval is found among the 200 (`MERGED_PULL_SCAN` in
+  `scripts/omnibus_merge.py`) most recently updated closed pull requests into
+  **each** approval branch, searched separately per branch. A push finds it at
+  once; a dispatch of a manifest approved longer ago than that is refused,
+  with a message naming the limit, and needs a new omnibus.
 - The executor runs from `main`, so changes to it take effect after release.

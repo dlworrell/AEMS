@@ -34,6 +34,7 @@ repository in `config/fitment.json` it:
 | Fixes | A `fitment` issue closes when a commit with `Fixes #N` reaches `fitment` |
 | Review | The [fitment reviewer](../../prompts/fitment-reviewer.md) reads the `fitment` commits not reviewed yet (file names, patches and commit messages; never runs code) |
 | Findings | One issue per finding, labelled `fitment`, its severity and its kind, assigned to whoever last changed the file, and never filed twice while open |
+| Follow-ups | A `minor` finding in a file changed by a commit that says `Fixes #N` for a `fitment` issue becomes a comment on #N, not a new issue, and is never posted twice. `blocker` and `major` findings always get their own issue. Follow-ups do not hold the gate |
 | Gate | `fitment` on the `fitment` head fails while another check on it fails, a `blocker` or `major` fitment issue is open, or the review could not run |
 | Promotion | Opens `dev-daily` → `fitment` when `dev-daily` is ahead and its CI is green, and `fitment` → `main` when the gate passes |
 
@@ -47,6 +48,7 @@ otherwise merging it would let "delete branch on merge" remove `dev-daily` or
 1. Cut your branch from `dev-daily` (`git switch --no-track -c fix/42-short origin/dev-daily`) and open your pull request into `dev-daily`.
 2. If the fitment review assigns you an issue, fix it on `fix/<issue>-<slug>` into `dev-daily` with `Fixes #<issue>` in the fix commit's message.
 3. If a finding is wrong, say why on the issue. The owner closes it as not planned.
+4. A minor follow-up posted on an issue you fixed is advisory: address it in a later change to that file, or file an issue if it should be tracked on its own.
 
 ## Trial
 
@@ -68,6 +70,18 @@ reviewed with everything else.
 - **State:** `fitment/state.json` on AEMS's `ring0/ledger` branch records the
   last reviewed `fitment` head per repository and the checks already posted.
   Deleting a repository's entry makes the next cycle review from `main` again.
+- **Review retry limit:** a paid review of one `fitment` head is attempted at
+  most `MAX_REVIEW_ATTEMPTS` (3) times. After that the `fitment` gate keeps
+  failing with "it is retried when fitment changes", and no further model
+  calls are made for that head. An unconfigured reviewer (no API key) costs
+  nothing and does not use up attempts. To retry an unchanged head after an
+  outage, remove `review_attempts`, `review_error_head` and `review_error` from
+  that repository's entry in `fitment/state.json`, or move `fitment` (a new
+  head resets the count).
+- **Stored findings:** findings from a paid review are stored as
+  `pending_findings` (with `pending_compare`) before
+  they are filed. If filing fails, the next cycle files them without asking the
+  model again, even if `fitment` has moved.
 
 ## Branch retention and recovery
 
