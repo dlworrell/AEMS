@@ -68,6 +68,18 @@ reviewed with everything else.
 - **State:** `fitment/state.json` on AEMS's `ring0/ledger` branch records the
   last reviewed `fitment` head per repository and the checks already posted.
   Deleting a repository's entry makes the next cycle review from `main` again.
+- **Review retry limit:** a paid review of one `fitment` head is attempted at
+  most `MAX_REVIEW_ATTEMPTS` (3) times. After that the `fitment` gate keeps
+  failing with "it is retried when fitment changes", and no further model
+  calls are made for that head. An unconfigured reviewer (no API key) costs
+  nothing and does not use up attempts. To retry an unchanged head after an
+  outage, remove `review_attempts`, `review_error_head` and `review_error` from
+  that repository's entry in `fitment/state.json`, or move `fitment` (a new
+  head resets the count).
+- **Stored findings:** findings from a paid review are stored as
+  `pending_findings` (with `pending_compare`) before
+  they are filed. If filing fails, the next cycle files them without asking the
+  model again, even if `fitment` has moved.
 
 ## Branch retention and recovery
 

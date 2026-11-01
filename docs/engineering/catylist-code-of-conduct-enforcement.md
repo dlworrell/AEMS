@@ -126,8 +126,15 @@ Every evaluated input appends one JSON line to `ledger/YYYY/MM/DD.jsonl` on the
 SHA-256 of the content (never the content), outcome, action and the non-passing
 findings. `state.json` on the same branch holds the last sweep time per
 repository, the hashes already checked, the posts ring 0 has hidden, and the
-violation issues it has opened. Indeterminate results are not cached, so they
-are retried on every sweep.
+violation issues it has opened.
+
+Indeterminate results are retried on later sweeps, but each retry is a paid
+model call, so unchanged content is re-evaluated at most
+`MAX_INDETERMINATE_ATTEMPTS` (3) times (without an API key nothing is paid and
+attempts are not counted). After that the content stays held, fail closed: its
+failing check and any moderation remain in place. To re-evaluate it once the
+model is healthy again, either edit the content (a new hash is evaluated
+afresh) or delete its entry under `checked` in `state.json`.
 
 ## Operating it
 
