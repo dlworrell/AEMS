@@ -1,0 +1,72 @@
+name: Ruleset Drift Audit
+
+# Read-only daily check that the Catylist ADR-0006/ADR-0013 protections are
+# still in place on every protected repository: rulesets present and active,
+# effective branch rules (no deletion, no force-push, signed commits, merge
+# commits only, no linear-history rule), required checks matching
+# config/required-checks.json, and merge settings. It never changes a
+# setting. Drift opens or updates one "Ruleset drift" issue in AEMS, and the
+# issue closes itself once the audit is clean.
+# See docs/engineering/catylist-default-branch-rulesets.md.
+
+on:
+  schedule:
+    - cron: '23 11 * * *'  # daily, outside the busy morning window
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Print the report in the job summary instead of opening or updating the issue.
+        required: false
+        default: false
+        type: boolean
+
+# The protected repositories are public, so the workflow token reads them.
+# issues: write reaches only the AEMS drift issue. No admin token is used.
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ruleset-drift-audit
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  audit:
+    name: Ruleset drift audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out AEMS
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.x'
+
+      - name: Test the audit
+        run: python3 -m unittest tests.test_ruleset_drift_audit -v
+
+      - name: Audit the protections
+        env:
+          AUDIT_TOKEN: ${{ github.token }}
+          ISSUE_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          args=(--output "$RUNNER_TEMP/ruleset-drift.md")
+          if [ "${DRY_RUN:-false}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+          status=0
+          python3 scripts/ruleset_drift_audit.py "${args[@]}" || status=$?
+          cat "$RUNNER_TEMP/ruleset-drift.md" >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          # 1 = drift found (reported in the issue); 2 = the audit itself failed.
+          exit "$status"

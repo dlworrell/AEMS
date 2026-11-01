@@ -242,3 +242,22 @@ To change a list, edit `config/required-checks.json` through a pull request. The
 
 - **Another file:** `scripts/catylist_rulesets.py --required-checks PATH` reads a different file (the default is `config/required-checks.json`). A missing file means no required-check rulesets.
 - **Removing checks:** the workflow only creates and updates rulesets; it never deletes one. Emptying a branch's list, or removing a repository's entry, stops planning that `require-ci-<branch>` ruleset but leaves an already-applied one in place. Delete it by hand in the repository's **Settings → Rules → Rulesets**.
+
+## Drift audit
+
+`.github/workflows/ruleset-drift-audit.yml` runs `scripts/ruleset_drift_audit.py` every day, and on demand. It is read-only and uses no admin token: the protected repositories are public, so the workflow's own token can read their rulesets, effective branch rules and merge settings.
+
+For every `protected` inventory entry it checks:
+
+- `protect-default-branch` and `protect-release-tags` exist and are active;
+- the default branch's effective rules include deletion, non_fast_forward, required_signatures and a merge-commit-only pull_request rule, and never `required_linear_history`;
+- merge commits are on, and squash and rebase merges are off.
+
+For repositories in `config/fitment.json` it also checks `protect-integration-branches` and the same rules on `dev-daily` and `fitment`. On every branch it compares the required status checks with `config/required-checks.json`.
+
+What happens with the result:
+
+- **Drift:** the audit opens one **Ruleset drift** issue in AEMS, or updates it if one is already open. The issue closes itself once the audit is clean.
+- **Hidden settings:** a merge setting the token cannot see is listed as unverified, not counted as drift.
+- **Repair:** dispatch **Apply Catylist Rulesets** as a dry run, read the plan, then apply.
+
