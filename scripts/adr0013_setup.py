@@ -9,8 +9,10 @@ Used by ``catylist_rulesets.py`` for repositories listed in AEMS
   missing it is never recreated from the default branch, because the
   survivor may hold unreleased work that the missing branch also held; the
   run stops and asks for it to be restored from promotion history. On a first
-  adoption each branch creation is retried once; if the second still fails
-  after the first succeeded, the error names the commit to create it from.
+  adoption each branch creation is retried once, after checking whether the
+  failed write in fact created the branch; if the branch still cannot be
+  created after the first succeeded, the error names the commit to create it
+  from.
 * **Release environment.** ``release`` requires the repository owner's
   approval, keeps any other reviewers already configured, allows the
   person who dispatched a run to approve it (a single-owner repository has
@@ -147,6 +149,14 @@ def has_changes(setup: dict[str, Any]) -> bool:
 # ---------------------------------------------------------------------------
 
 
+def _ref_sha(client: Client, repository: str, name: str) -> str | None:
+    """The commit branch ``name`` points at, or None when it does not exist or cannot be read."""
+    try:
+        return (client.request("GET", f"/repos/{repository}/git/ref/heads/{name}") or {}).get("object", {}).get("sha")
+    except Exception:  # the client's own error type, usually a 404
+        return None
+
+
 def apply(client: Client, repository: str, setup: dict[str, Any]) -> None:
     if setup["branches"]["action"] == "create":
         default = client.request("GET", f"/repos/{repository}")["default_branch"]
@@ -158,8 +168,19 @@ def apply(client: Client, repository: str, setup: dict[str, Any]) -> None:
                 client.request("POST", f"/repos/{repository}/git/refs", body)
             except Exception as first:  # the client's own error type; retried once, as for a transient failure
                 try:
-                    client.request("POST", f"/repos/{repository}/git/refs", body)
+                    # A write can succeed on GitHub's side and still return an error (a 502, say).
+                    # Check before resending, so that case is not reported as a failure.
+                    if _ref_sha(client, repository, name) != sha:
+                        client.request("POST", f"/repos/{repository}/git/refs", body)
                 except Exception as second:
+                    existing = _ref_sha(client, repository, name)
+                    if existing == sha:
+                        created.append(name)
+                        continue
+                    if existing:
+                        raise SetupError(
+                            f"{repository}: {name} appeared at {existing[:12]} while it was being created from "
+                            f"{sha[:12]}; check who created it before running again") from second
                     if not created:
                         raise second from first
                     # The next run would see one branch missing and refuse to repair it, with advice

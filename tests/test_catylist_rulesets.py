@@ -152,7 +152,12 @@ class FakeClient:
             if "/deployment-branch-policies" in path:
                 return {"branch_policies": copy.deepcopy(self.policies)}
             if "/git/ref/heads/" in path:
-                return {"object": {"sha": "a" * 40}}
+                name = path.rsplit("/heads/", 1)[1]
+                if name == "main":
+                    return {"object": {"sha": "a" * 40}}
+                if name not in self.branches:
+                    raise cr.GitHubError(404, "Not Found")
+                return {"object": {"sha": self.branches[name]}}
             return dict(self.settings, archived=False, default_branch="main")
         self.writes.append((method, path))
         self.bodies.append((method, path, copy.deepcopy(body)))
@@ -540,6 +545,44 @@ class IntegrationBranchTests(unittest.TestCase):
         result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
         self.assertEqual(result["status"], "applied", result.get("error"))
         self.assertEqual(sorted(client.branches), ["dev-daily", "fitment"])
+
+    def test_write_that_succeeded_despite_an_error_is_not_a_failure(self) -> None:
+        # Fixes #160: GitHub created the ref but returned an error; the retry would say "already exists".
+        for flaky in ("dev-daily", "fitment"):
+            with self.subTest(flaky=flaky):
+                client = FakeClient([], COMPLIANT_SETTINGS, branches=(), environment=None, policies=())
+                original = client.request
+                posts = []
+
+                def request(method, path, body=None, flaky=flaky, original=original, posts=posts, client=client):
+                    if method == "POST" and path.endswith("/git/refs"):
+                        posts.append(body["ref"])
+                        name = body["ref"].removeprefix("refs/heads/")
+                        if name in client.branches:
+                            raise cr.GitHubError(422, "Reference already exists")
+                        if name == flaky and posts.count(body["ref"]) == 1:
+                            original(method, path, body)  # created on GitHub's side...
+                            raise cr.GitHubError(502, "Bad Gateway")  # ...but reported as an error
+                    return original(method, path, body)
+                client.request = request
+                result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+                self.assertEqual(result["status"], "applied", result.get("error"))
+                self.assertEqual(sorted(client.branches), ["dev-daily", "fitment"])
+                self.assertEqual(posts.count(f"refs/heads/{flaky}"), 1)  # checked, not resent
+
+    def test_existing_ref_at_another_commit_is_still_an_error(self) -> None:
+        client = FakeClient([], COMPLIANT_SETTINGS, branches=(), environment=None, policies=())
+        original = client.request
+
+        def request(method, path, body=None):
+            if method == "POST" and path.endswith("/git/refs") and body["ref"].endswith("/fitment"):
+                client.branches["fitment"] = "9" * 40  # someone else's branch appeared
+                raise cr.GitHubError(422, "Reference already exists")
+            return original(method, path, body)
+        client.request = request
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+        self.assertEqual(result["status"], "error")
+        self.assertIn(f"fitment appeared at {'9' * 12}", result["error"])
 
     def test_setup_that_still_differs_after_apply_is_an_error_before_rulesets(self) -> None:
         # Fixes #96: the re-read after apply catches a write GitHub accepted but did not keep.
