@@ -305,6 +305,10 @@ def load_required_checks(path: Path) -> dict[str, list[dict[str, Any]]]:
     for repository, branches in repositories.items():
         if not FULL_NAME_PATTERN.fullmatch(repository) or not isinstance(branches, dict):
             raise PlanError(f"{path}: {repository!r} needs an object of branches")
+        if repository.lower() in result:
+            # GitHub names are case-insensitive: a second spelling would
+            # silently replace the first entry's checks.
+            raise PlanError(f"{path}: {repository!r} duplicates another entry (names are case-insensitive)")
         rulesets = []
         for branch in sorted(branches):
             checks = branches[branch]

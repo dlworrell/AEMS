@@ -567,6 +567,13 @@ class RequiredChecksTests(unittest.TestCase):
             with self.subTest(data=data), self.assertRaises(cr.PlanError):
                 cr.load_required_checks(self.write(data))
 
+    def test_case_duplicate_repository_is_refused(self):
+        # Fixes #119: the later spelling used to replace the earlier one's checks.
+        data = self.config({"main": [{"context": "a", "app": "github-actions"}]})
+        data["repositories"]["dlworrell/DEMO"] = {"main": [{"context": "b", "app": "github-actions"}]}
+        with self.assertRaisesRegex(cr.PlanError, "duplicates another entry"):
+            cr.load_required_checks(self.write(data))
+
     def test_missing_file_means_no_required_checks(self):
         self.assertEqual(cr.load_required_checks(Path("/nonexistent/required.json")), {})
 

@@ -147,6 +147,20 @@ class CoordinationIntegrityTests(unittest.TestCase):
         self.assertEqual(ci.verify(parent / "records", manifest, "genesis",
                                    ci.manifest_digest(manifest))["status"], "verified")
 
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks unavailable")
+    def test_cli_refuses_symlinked_records_root(self):
+        # Fixes #135: a symlink to a real directory passes is_dir(), so only
+        # the is_symlink() check refuses it; the CLI must exit 2 with a diagnostic.
+        out = Path(self.tmp.name) / "manifest.json"
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(ci.main(["build", str(self.root), "--output", str(out)]), 0)
+        link = Path(self.tmp.name) / "records-link"
+        os.symlink(self.root, link)
+        err = io.StringIO()
+        with redirect_stderr(err), redirect_stdout(io.StringIO()):
+            self.assertEqual(ci.main(["verify", str(link), "--manifest", str(out)]), 2)
+        self.assertIn("is not a directory", err.getvalue())
+
     def test_chain_predecessor_must_match(self):
         first = ci.build(self.root)
         self.write("events/0003.json", json.dumps({"id": "EVT-0003"}))
