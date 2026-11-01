@@ -9,7 +9,11 @@ For each repository in ``config/fitment.json`` this:
    reached ``fitment``;
 3. reviews the ``fitment`` commits not reviewed yet with the AEMS fitment
    reviewer (documentation and tests), and files each finding as an issue
-   assigned to the person who last changed that file;
+   assigned to the person who last changed that file. A **minor** finding in a
+   file changed by a commit that says ``Fixes #N`` for a ``fitment`` issue is
+   posted as a follow-up comment on #N instead of as a new issue, so fixing a
+   finding does not spawn a new issue for every nit in the fix; blocker and
+   major findings always get their own issue;
 4. posts the ``fitment`` check on the ``fitment`` head: it fails while any other
    check on that commit fails, while a blocker or major ``fitment`` issue is
    open, or while the review could not run; and
@@ -260,6 +264,30 @@ def source_outcome(base: str, head: str, default: str) -> tuple[str, str] | None
     if head == expected:
         return "success", f"{head} → {base} is the ADR-0013 promotion path"
     return "failure", f"Pull requests into {base} come from {expected}, not {head}"
+
+
+def followup_body(finding: ReviewFinding, *, head: str, compare_url: str) -> str:
+    """A minor finding about the fix for this issue, posted on the issue instead of as a new one."""
+    return "\n".join([
+        f"The fitment review of `{head[:12]}` found a **minor** {finding.kind} follow-up in `{finding.file}`, "
+        "which the fix for this issue changed. It is recorded here instead of as a new issue because it is "
+        "minor and belongs to this fix.",
+        "",
+        f"**{finding.title}**",
+        "",
+        f"**What is missing:** {finding.detail}",
+        "",
+        f"**Remedy:** {finding.remedy}",
+        "",
+        "Address it in a later change to this file, or file an issue if it should be tracked on its own. "
+        "It does not block release.",
+        "",
+        f"- Reviewed range: {compare_url}",
+        "",
+        f"Machine review by the AEMS fitment reviewer ({ADR}). Not human review.",
+        "",
+        f"<!-- fitment:fp={finding.fingerprint} -->",
+    ])
 
 
 def issue_title(finding: ReviewFinding) -> str:
@@ -555,9 +583,9 @@ class Cycle:
             # without asking the model again, even if fitment has moved since:
             # the next review starts after that commit and would not find them.
             self.file_findings(repository, repo_state.get("reviewed") or head, repo_state.get("pending_compare", ""),
-                               [ReviewFinding(**item) for item in pending])
-            repo_state.pop("pending_findings", None)
-            repo_state.pop("pending_compare", None)
+                               [ReviewFinding(**item) for item in pending], repo_state.get("pending_followups"))
+            for key in ("pending_findings", "pending_compare", "pending_followups"):
+                repo_state.pop(key, None)
         if repo_state.get("reviewed") == head:
             return True, f"{head[:12]} reviewed."
         if repo_state.get("review_error_head") == head and repo_state.get("review_attempts", 0) >= MAX_REVIEW_ATTEMPTS:
@@ -580,6 +608,7 @@ class Cycle:
             repo_state["reviewed"] = head
             return True, f"{head[:12]} has no unreviewed changes."
         messages = [((c.get("commit") or {}).get("message") or "").splitlines()[0] for c in compare.get("commits") or []]
+        followups = self.fixed_files(repository, compare.get("commits") or [])
         changed = {f["path"] for f in files}
         findings: list[ReviewFinding] = []
         try:
@@ -600,25 +629,75 @@ class Cycle:
         repo_state["reviewed"] = head
         repo_state["pending_findings"] = [dataclasses.asdict(f) for f in findings]
         repo_state["pending_compare"] = compare.get("html_url", "")
+        repo_state["pending_followups"] = followups
         for key in ("review_error", "review_error_head", "review_attempts"):
             repo_state.pop(key, None)
-        self.file_findings(repository, head, compare.get("html_url", ""), findings)
-        repo_state.pop("pending_findings", None)
-        repo_state.pop("pending_compare", None)
+        self.file_findings(repository, head, compare.get("html_url", ""), findings, followups)
+        for key in ("pending_findings", "pending_compare", "pending_followups"):
+            repo_state.pop(key, None)
         self.note(repository, "review", f"{head[:12]}: {len(files)} files, {len(findings)} findings")
         return True, f"{head[:12]} reviewed: {len(findings)} findings."
 
-    def file_findings(self, repository: str, head: str, compare_url: str, findings: list[ReviewFinding]) -> None:
+    def fixed_files(self, repository: str, commits: list[dict[str, Any]]) -> dict[str, int]:
+        """Each file changed by a commit that says ``Fixes #N`` for a ``fitment`` issue, mapped to N.
+
+        When several fixes touch one file, the lowest issue number wins. A lookup that fails only
+        means the finding is filed as a new issue, as before.
+        """
+        result: dict[str, int] = {}
+        for commit in commits:
+            refs = closing_references((commit.get("commit") or {}).get("message") or "")
+            if not refs or not commit.get("sha"):
+                continue
+            try:
+                numbers = sorted(n for n in refs if self.is_fitment_issue(repository, n))
+                if not numbers:
+                    continue
+                detail = self.gh.get(f"/repos/{repository}/commits/{commit['sha']}") or {}
+            except GitHubError:
+                continue
+            for changed in detail.get("files") or []:
+                name = changed.get("filename")
+                if name and (name not in result or numbers[0] < result[name]):
+                    result[name] = numbers[0]
+        return result
+
+    def is_fitment_issue(self, repository: str, number: int) -> bool:
+        issue = self.gh.get(f"/repos/{repository}/issues/{number}") or {}
+        return "pull_request" not in issue and LABEL in {l.get("name") for l in issue.get("labels") or []}
+
+    def _followup_fingerprints(self, repository: str, number: int) -> set[str]:
+        try:
+            comments = self.gh.get_all(f"/repos/{repository}/issues/{number}/comments?per_page=100", limit=300)
+        except GitHubError:
+            return set()
+        return {fp for c in comments for fp in FINGERPRINT_PATTERN.findall(c.get("body") or "")}
+
+    def file_findings(self, repository: str, head: str, compare_url: str, findings: list[ReviewFinding],
+                      followups: dict[str, int] | None = None) -> None:
         if not findings:
             return
         known = set()
         for issue in self.open_fitment_issues(repository):
             known.update(FINGERPRINT_PATTERN.findall(issue.get("body") or ""))
         self.ensure_labels(repository, [LABEL, *SEVERITIES, *KINDS])
+        commented: dict[int, set[str]] = {}
         for finding in findings:
             if finding.fingerprint in known:
                 continue
             known.add(finding.fingerprint)
+            target = (followups or {}).get(finding.file) if not finding.blocking else None
+            if target:
+                if target not in commented:
+                    commented[target] = self._followup_fingerprints(repository, target)
+                if finding.fingerprint in commented[target]:
+                    continue  # already posted, e.g. by a filing retry
+                commented[target].add(finding.fingerprint)
+                self.note(repository, "follow-up", f"minor {finding.kind} in {finding.file} → comment on #{target}")
+                if not self.dry_run:
+                    self.gh.post(f"/repos/{repository}/issues/{target}/comments",
+                                 {"body": followup_body(finding, head=head, compare_url=compare_url)})
+                continue
             author = self.last_author(repository, finding.file, head)
             assignee = None
             if not is_bot(author):

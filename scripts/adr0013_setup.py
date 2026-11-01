@@ -8,7 +8,9 @@ Used by ``catylist_rulesets.py`` for repositories listed in AEMS
   branch head when *both* are missing (a first adoption). When only one is
   missing it is never recreated from the default branch, because the
   survivor may hold unreleased work that the missing branch also held; the
-  run stops and asks for it to be restored from promotion history.
+  run stops and asks for it to be restored from promotion history. On a first
+  adoption each branch creation is retried once; if the second still fails
+  after the first succeeded, the error names the commit to create it from.
 * **Release environment.** ``release`` requires the repository owner's
   approval, keeps any other reviewers already configured, allows the
   person who dispatched a run to approve it (a single-owner repository has
@@ -149,8 +151,24 @@ def apply(client: Client, repository: str, setup: dict[str, Any]) -> None:
     if setup["branches"]["action"] == "create":
         default = client.request("GET", f"/repos/{repository}")["default_branch"]
         sha = client.request("GET", f"/repos/{repository}/git/ref/heads/{default}")["object"]["sha"]
+        created: list[str] = []
         for name in INTEGRATION_BRANCHES:
-            client.request("POST", f"/repos/{repository}/git/refs", {"ref": f"refs/heads/{name}", "sha": sha})
+            body = {"ref": f"refs/heads/{name}", "sha": sha}
+            try:
+                client.request("POST", f"/repos/{repository}/git/refs", body)
+            except Exception as first:  # the client's own error type; retried once, as for a transient failure
+                try:
+                    client.request("POST", f"/repos/{repository}/git/refs", body)
+                except Exception as second:
+                    if not created:
+                        raise second from first
+                    # The next run would see one branch missing and refuse to repair it, with advice
+                    # that does not fit a first adoption, so say exactly how to finish it instead.
+                    raise SetupError(
+                        f"{repository}: created {', '.join(created)} from the default branch at {sha[:12]}, but "
+                        f"creating {name} failed twice ({second}). Nothing unreleased can be lost yet: create "
+                        f"{name} from the same commit ({sha}), then run again") from second
+            created.append(name)
     environment = setup["environment"]
     if environment["action"] != "none":
         client.request("PUT", f"/repos/{repository}/environments/{RELEASE_ENVIRONMENT}", environment["payload"])

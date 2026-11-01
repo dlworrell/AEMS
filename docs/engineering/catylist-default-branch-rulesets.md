@@ -235,6 +235,10 @@ Required status checks are per repository and are kept out of the shared baselin
   - `catylist-ring-0` (5474337) for `fitment/source` and `fitment`.
 - **What the ring-0 checks guard:** requiring `fitment/source` on `fitment` and `main` stops a manual merge from the wrong source branch. Requiring `fitment` on `main` stops a manual release-candidate merge while the fitment gate is red.
 - **Up-to-date heads are not required** (`strict_required_status_checks_policy` is false). Promotions and release candidates are never rebased onto their base, so requiring it would block them.
+- **One entry per repository:** repository names are matched case-insensitively, as GitHub matches them. Two spellings of the same repository (for example `dlworrell/AEMS` and `dlworrell/aems`) are refused when the file is loaded, rather than one silently replacing the other's checks.
 - **Before adoption:** `dev-daily` and `fitment` rulesets apply only to repositories in `config/fitment.json`. Other repositories get `require-ci-main` at most.
 
 To change a list, edit `config/required-checks.json` through a pull request. Then run the workflow as a dry run and read the plan before applying.
+
+- **Another file:** `scripts/catylist_rulesets.py --required-checks PATH` reads a different file (the default is `config/required-checks.json`). A missing file means no required-check rulesets.
+- **Removing checks:** the workflow only creates and updates rulesets; it never deletes one. Emptying a branch's list, or removing a repository's entry, stops planning that `require-ci-<branch>` ruleset but leaves an already-applied one in place. Delete it by hand in the repository's **Settings → Rules → Rulesets**.

@@ -28,15 +28,28 @@ def pull(number, base, head, merged=None, sha=None, title="t", user="dlworrell")
 class FakeGitHub:
     """Commit graph: a topic merged into dev-daily (t1) promoted (p1) and released (r1); t2 only on fitment."""
 
-    def __init__(self, contains=None, branches=True):
+    def __init__(self, contains=None, branches=True, open_pulls=None, fail=None, mergeable="clean",
+                 promotions=None, candidates=None):
         self.contains = contains if contains is not None else {
             ("t1", "fitment"), ("t1", "main"), ("t1", "v1.0.0"), ("t1", "p1"), ("t1", "r1"),
             ("t2", "fitment"), ("t2", "p2")}
         self.branches = branches
+        self.open_pulls = open_pulls if open_pulls is not None else [
+            pull(9, "dev-daily", "feature"), pull(8, "main", "fitment"),
+            pull(7, "main", "dependabot/pip/x", user="dependabot[bot]")]
+        self.fail = fail            # path fragment whose GET raises GitHubError(500)
+        self.mergeable = mergeable
+        self.promotions = promotions if promotions is not None else [
+            pull(4, "fitment", "dev-daily", "2026-10-30T06:00:00Z", "p1"),
+            pull(6, "fitment", "dev-daily", "2026-10-31T06:00:00Z", "p2")]
+        self.candidates = candidates if candidates is not None else [
+            pull(5, "main", "fitment", "2026-10-30T12:00:00Z", "r1")]
         self.posts, self.patches = [], []
         self.issues = []
 
     def get(self, path):
+        if self.fail and self.fail in path:
+            raise pb.GitHubError(500, "Server Error")
         if path == f"/repos/{REPO}":
             return {"default_branch": "main"}
         if "/branches/" in path:
@@ -51,22 +64,20 @@ class FakeGitHub:
                 return {"ahead_by": 2}
             return {"status": "ahead" if (base, head) in self.contains else "diverged"}
         if path.startswith(f"/repos/{REPO}/pulls/"):
-            return {"mergeable_state": "clean"}
+            return {"mergeable_state": self.mergeable}
         raise AssertionError(path)
 
     def get_all(self, path, limit=1000):
         if "pulls?state=open" in path:
-            return [pull(9, "dev-daily", "feature"), pull(8, "main", "fitment"),
-                    pull(7, "main", "dependabot/pip/x", user="dependabot[bot]")]
+            return self.open_pulls
         if "pulls?state=closed&base=dev-daily" in path:
             return [pull(1, "dev-daily", "fix/1", "2026-10-30T00:00:00Z", "t1"),
                     pull(2, "dev-daily", "fix/2", "2026-10-31T00:00:00Z", "t2"),
                     pull(3, "dev-daily", "old", "2026-09-01T00:00:00Z", "t0")]
         if "pulls?state=closed&base=fitment" in path:
-            return [pull(4, "fitment", "dev-daily", "2026-10-30T06:00:00Z", "p1"),
-                    pull(6, "fitment", "dev-daily", "2026-10-31T06:00:00Z", "p2")]
+            return self.promotions
         if "pulls?state=closed&base=main" in path:
-            return [pull(5, "main", "fitment", "2026-10-30T12:00:00Z", "r1")]
+            return self.candidates
         if "/releases" in path:
             return [{"tag_name": "v1.0.0"}]
         if "/issues?" in path:
@@ -145,6 +156,52 @@ class PipelineBoardTests(unittest.TestCase):
             with redirect_stderr(io.StringIO()):
                 self.assertEqual(pb.main(["--config", str(Path(tmp) / "missing.json"), "--dry-run"],
                                          reader=FakeGitHub(), now=NOW), 2)
+
+    def test_stage_follows_ancestry_when_no_carrier_matches(self):
+        # Fixes #145: a squash merge, direct push or carrier outside the window still shows its real stage.
+        status = pb.inspect(FakeGitHub(promotions=[], candidates=[]), REPO, NOW)
+        changes = {c.number: c for c in status.changes}
+        self.assertEqual((changes[1].stage, changes[1].promotion, changes[1].candidate, changes[1].release),
+                         ("released", None, None, "v1.0.0"))
+        self.assertEqual((changes[2].stage, changes[2].promotion), ("fitment", None))
+        body = pb.render([status], NOW)
+        self.assertIn("on fitment (carrier unknown) → on main (carrier unknown) → released v1.0.0", body)
+        self.assertIn("[#2](https://github.com/dlworrell/demo/pull/2) → on fitment (carrier unknown) → awaiting RC",
+                      body)
+
+    def test_compare_errors_become_the_warning_row(self):
+        # Fixes #146: a failing compare must not read as "up to date" or an earlier stage.
+        for fragment in ("/compare/fitment...dev-daily", "/compare/t1...fitment"):
+            with self.subTest(fragment=fragment):
+                with self.assertRaises(pb.GitHubError):
+                    pb.inspect(FakeGitHub(fail=fragment), REPO, NOW)
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = Path(tmp) / "fitment.json"
+                    path.write_text(json.dumps({"schema": pb.CONFIG_SCHEMA, "repositories": [REPO]}))
+                    out = io.StringIO()
+                    with redirect_stdout(out):
+                        self.assertEqual(pb.main(["--config", str(path), "--dry-run"],
+                                                 reader=FakeGitHub(fail=fragment), now=NOW), 0)
+                self.assertIn(f"| {REPO} | ⚠️ unreadable (", out.getvalue())
+                self.assertNotIn("up to date", out.getvalue())
+
+    def test_unreadable_repository_and_remaining_needs_lines(self):
+        # Fixes #148.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fitment.json"
+            path.write_text(json.dumps({"schema": pb.CONFIG_SCHEMA, "repositories": [REPO]}))
+            out = io.StringIO()
+            with redirect_stdout(out):
+                self.assertEqual(pb.main(["--config", str(path), "--dry-run"],
+                                         reader=FakeGitHub(fail=f"/repos/{REPO}"), now=NOW), 0)
+        self.assertIn(f"| {REPO} | ⚠️ unreadable (", out.getvalue())
+        self.assertIn("Nothing to merge right now.", out.getvalue())
+        no_rc = pb.render([pb.inspect(FakeGitHub(open_pulls=[pull(9, "dev-daily", "feature")]), REPO, NOW)], NOW)
+        self.assertIn("**dlworrell/demo**: 2 commit(s) on fitment are not on main yet", no_rc)
+        promoting = FakeGitHub(open_pulls=[pull(10, "fitment", "dev-daily")], mergeable="blocked")
+        body = pb.render([pb.inspect(promoting, REPO, NOW)], NOW)
+        self.assertIn("**dlworrell/demo** promotion [#10](https://github.com/dlworrell/demo/pull/10) "
+                      "(dev-daily → fitment): waiting on checks", body)
 
     def test_committed_config_loads(self):
         self.assertIn("dlworrell/AEMS", pb.load_repositories(pb.DEFAULT_CONFIG))

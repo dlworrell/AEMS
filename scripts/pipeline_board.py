@@ -82,19 +82,19 @@ def load_repositories(path: Path) -> list[str]:
 
 
 def _contains(gh: Client, repo: str, sha: str, ref: str) -> bool:
-    """True when commit ``sha`` is reachable from ``ref``."""
-    try:
-        status = gh.get(f"/repos/{repo}/compare/{sha}...{ref}").get("status")
-    except GitHubError:
-        return False
+    """True when commit ``sha`` is reachable from ``ref``.
+
+    A failing compare raises GitHubError rather than reading as "not contained": ``main`` turns it
+    into the repository's warning row, so an API error is never shown as "up to date" or as an
+    earlier stage.
+    """
+    status = gh.get(f"/repos/{repo}/compare/{sha}...{ref}").get("status")
     return status in ("ahead", "identical")
 
 
 def _ahead(gh: Client, repo: str, base: str, head: str) -> int:
-    try:
-        return int(gh.get(f"/repos/{repo}/compare/{base}...{head}").get("ahead_by", 0))
-    except GitHubError:
-        return 0
+    """Commits on ``head`` not on ``base``; a failing compare raises (see ``_contains``)."""
+    return int(gh.get(f"/repos/{repo}/compare/{base}...{head}").get("ahead_by", 0))
 
 
 def _merged(gh: Client, repo: str, base: str, head: str | None = None) -> list[dict[str, Any]]:
@@ -155,12 +155,16 @@ def inspect(gh: Client, repo: str, now: dt.datetime) -> RepoStatus:
     promotions = _merged(gh, repo, FITMENT, DAILY) if topics else []
     candidates = _merged(gh, repo, main, FITMENT) if topics else []
     for pull in topics:
+        # The stage comes from ancestry alone; the carrier pull request is optional detail, because a
+        # squash merge, a direct push or a carrier outside the scanned window has none to show.
         sha = pull["merge_commit_sha"]
-        promotion = _carrier(gh, repo, sha, promotions) if _contains(gh, repo, sha, FITMENT) else None
-        candidate = _carrier(gh, repo, sha, candidates) if _contains(gh, repo, sha, main) else None
-        released = bool(status.release) and candidate is not None and _contains(gh, repo, sha, status.release)
-        stage = ("released" if released else "main" if candidate else
-                 "fitment" if promotion else "dev-daily")
+        on_fitment = _contains(gh, repo, sha, FITMENT)
+        on_main = on_fitment and _contains(gh, repo, sha, main)
+        released = on_main and bool(status.release) and _contains(gh, repo, sha, status.release)
+        promotion = _carrier(gh, repo, sha, promotions) if on_fitment else None
+        candidate = _carrier(gh, repo, sha, candidates) if on_main else None
+        stage = ("released" if released else "main" if on_main else
+                 "fitment" if on_fitment else "dev-daily")
         status.changes.append(Change(pull["number"], pull["title"], stage, promotion, candidate,
                                      status.release if released else None))
     return status
@@ -172,11 +176,14 @@ def _link(repo: str, number: int) -> str:
 
 def _chain(repo: str, change: Change) -> str:
     parts = [_link(repo, change.number)]
-    parts.append(f"in promotion {_link(repo, change.promotion)}" if change.promotion else "awaiting promotion")
-    if change.promotion:
-        parts.append(f"in RC {_link(repo, change.candidate)}" if change.candidate else "awaiting RC")
-    if change.candidate:
-        parts.append(f"released {change.release}" if change.release else "not in a release yet")
+    if change.stage == "dev-daily":
+        return " → ".join(parts + ["awaiting promotion"])
+    parts.append(f"in promotion {_link(repo, change.promotion)}" if change.promotion
+                 else "on fitment (carrier unknown)")
+    if change.stage == "fitment":
+        return " → ".join(parts + ["awaiting RC"])
+    parts.append(f"in RC {_link(repo, change.candidate)}" if change.candidate else "on main (carrier unknown)")
+    parts.append(f"released {change.release}" if change.release else "not in a release yet")
     return " → ".join(parts)
 
 

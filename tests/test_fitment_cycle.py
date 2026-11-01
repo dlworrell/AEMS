@@ -299,6 +299,52 @@ class CycleTests(unittest.TestCase):
         cycle.run()
         self.assertFalse([p for p, _ in gh.posts if p == f"/repos/{REPO}/issues"])
 
+    def _fix_routes(self, issue_labels=("fitment", "minor"), comments=None, other_files=()):
+        fix = "f" * 40
+        compare = promoted(files=("src/tool.py", *other_files), messages=("fix: tighten --strict\n\nFixes #12",))
+        compare["commits"][0]["sha"] = fix
+        return FakeGitHub(routes(**{
+            f"/repos/{REPO}/compare/main...{FIT}": compare,
+            f"/repos/{REPO}/issues/12": {"number": 12, "labels": [{"name": n} for n in issue_labels]},
+            f"/repos/{REPO}/commits/{fix}": {"files": [{"filename": "src/tool.py"}]},
+            f"/repos/{REPO}/issues/12/comments": comments if comments is not None else [],
+        }))
+
+    def test_minor_finding_in_a_fix_is_a_comment_on_the_fixed_issue(self):
+        gh = self._fix_routes(other_files=("src/other.py",))
+        review, _ = reviewer([finding(severity="minor"),
+                              finding(severity="minor", file="src/other.py", title="Other gap"),
+                              finding(severity="major", title="Major gap in the fix")])
+        self.assertEqual(self.make(gh, review).run(), 0)
+        comments = [b for p, b in gh.posts if p == f"/repos/{REPO}/issues/12/comments"]
+        self.assertEqual(len(comments), 1)
+        self.assertIn("New --strict flag has no test", comments[0]["body"])
+        self.assertIn("does not block release", comments[0]["body"])
+        self.assertIn(f"fitment:fp={fc.ReviewFinding(**finding(severity='minor')).fingerprint}", comments[0]["body"])
+        filed = sorted(b["title"] for p, b in gh.posts if p == f"/repos/{REPO}/issues")
+        # The minor gap in a file the fix did not touch, and the major gap in the fixed file, stay issues.
+        self.assertEqual(filed, ["fitment: Major gap in the fix (src/tool.py)", "fitment: Other gap (src/other.py)"])
+
+    def test_follow_up_is_not_posted_twice_and_needs_a_fitment_issue(self):
+        fp = fc.ReviewFinding(**finding(severity="minor")).fingerprint
+        gh = self._fix_routes(comments=[{"body": f"earlier <!-- fitment:fp={fp} -->"}])
+        self.make(gh, reviewer([finding(severity="minor")])[0]).run()
+        self.assertFalse([p for p, _ in gh.posts if p.startswith(f"/repos/{REPO}/issues")
+                          and not p.endswith("/labels")])
+        gh = self._fix_routes(issue_labels=("bug",))  # Fixes #12 where #12 is not a fitment issue
+        self.make(gh, reviewer([finding(severity="minor")])[0]).run()
+        self.assertFalse([p for p, _ in gh.posts if p == f"/repos/{REPO}/issues/12/comments"])
+        self.assertEqual(len([p for p, _ in gh.posts if p == f"/repos/{REPO}/issues"]), 1)
+
+    def test_follow_up_routing_survives_a_filing_retry(self):
+        state = {"repos": {REPO: {"reviewed": FIT, "pending_compare": "u", "pending_followups": {"src/tool.py": 12},
+                                  "pending_findings": [finding(severity="minor")]}}, "posted": {}}
+        gh = self._fix_routes()
+        cycle = self.make(gh, reviewer()[0], state=state)
+        cycle.run()
+        self.assertEqual(len([p for p, _ in gh.posts if p == f"/repos/{REPO}/issues/12/comments"]), 1)
+        self.assertNotIn("pending_followups", cycle.state["repos"][REPO])
+
     def test_bot_author_is_not_assigned(self):
         gh = FakeGitHub(routes(**{
             f"/repos/{REPO}/compare/main...{FIT}": promoted(),
@@ -331,6 +377,22 @@ class CycleTests(unittest.TestCase):
         self.assertIn("could not run", gate["output"]["summary"])
         self.assertNotIn("reviewed", cycle.state["repos"][REPO])
         self.assertEqual(model.requests, [])
+
+    def test_unconfigured_reviewer_never_uses_up_attempts(self):
+        # Fixes #103: without a key nothing is paid, so the cycle keeps retrying past MAX_REVIEW_ATTEMPTS.
+        state = {"repos": {}, "posted": {}}
+        for _ in range(fc.MAX_REVIEW_ATTEMPTS + 2):
+            state["posted"] = {}  # repost the gate each round so its text can be checked
+            gh = FakeGitHub(routes(**{f"/repos/{REPO}/compare/main...{FIT}": promoted()}))
+            review, model = reviewer(key=None)
+            self.make(gh, review, state=state).run()
+            repo_state = state["repos"][REPO]
+            self.assertNotIn("review_attempts", repo_state)
+            self.assertNotIn("review_error_head", repo_state)
+            summary = self.checks(gh, "fitment")[0]["output"]["summary"]
+            self.assertIn("retried on the next cycle", summary)
+            self.assertNotIn("after", summary.split("could not run", 1)[1][:20])
+            self.assertEqual(model.requests, [])
 
     def test_failed_reviews_stop_paying_after_the_attempt_limit(self):
         state = {"repos": {}, "posted": {}}

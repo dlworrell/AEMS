@@ -36,7 +36,7 @@ The board is the open AEMS issue titled **Pipeline board**, labelled `pipeline-b
 - **Writing.** It edits only the AEMS board issue, using the workflow's own `issues: write` token.
 - **No noise.** When nothing but the timestamp would change, the issue is not edited.
 
-A change counts as having reached a branch when its merge commit is an ancestor of that branch. Its carrier is the first merged promotion or release-candidate pull request whose merge commit contains it.
+A change counts as having reached a branch when its merge commit is an ancestor of that branch. Its carrier is the first merged promotion or release-candidate pull request whose merge commit contains it. The carrier is detail only: a change with no matching carrier (a squash-merged promotion, a direct push, or a carrier older than the 50 most recently updated closed pull requests) still shows at the stage its ancestry proves, marked "carrier unknown".
 
 To run it locally (read-only):
 
@@ -47,5 +47,5 @@ RING0_APP_TOKEN=… python3 scripts/pipeline_board.py --dry-run
 ## Limits
 
 - The board reports state; it never merges, approves, retries, or changes settings.
-- A repository it cannot read, or one missing `dev-daily` or `fitment`, shows a warning row instead of failing the whole board.
+- A repository it cannot read, one where any compare call fails, or one missing `dev-daily` or `fitment`, shows a warning row instead of failing the whole board. A failed API call is never shown as "up to date" or as an earlier stage.
 - The release column shows the latest GitHub release. A change counts as released only when the latest release's tag contains it.
