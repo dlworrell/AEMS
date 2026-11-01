@@ -35,6 +35,7 @@
     "dlworrell/AEMS:fitment:5e88c02d1a74caf98753a3eaab53639e1ce90363": "success:Ready for release:5156ef97eaa2",
     "dlworrell/AEMS:fitment:807263c4e6aa362f1854359f45bf82d1d38d2c5d": "success:Ready for release:6b6c80f7df2f",
     "dlworrell/AEMS:fitment:9be2cbb676ae6e3e23e98e4d479319078093d9eb": "failure:Not ready for release:d861f36828e4",
+    "dlworrell/AEMS:fitment:b315f87a7fab295465eff9d9441fe88c1943f411": "success:Ready for release:545e04b87452",
     "dlworrell/AEMS:fitment:c1391c25ab31de7ad50c95a3b1b1d3ad64e938d9": "failure:Not ready for release:51fc277db77c",
     "dlworrell/AEMS:fitment:c365887ef64877813971e333436d7996ddb8d9e3": "success:Ready for release:8325f2bf4193",
     "dlworrell/AEMS:fitment:e80129c76aa870bc6f372a31f85ce154c1981bcd": "success:Ready for release:3ffec0b708ad",
@@ -134,6 +135,7 @@
     "dlworrell/evo:fitment/source:1d32f6eecd79d9ebe861ca79b940d4093b56ec3f": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:697232337aed",
     "dlworrell/evo:fitment/source:524b4552030a638a8f61552682d4067e2b777f18": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:bcf7b3fec322",
     "dlworrell/evo:fitment/source:658c210f57ae780caa7af609efe265b58767cc1b": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:697232337aed",
+    "dlworrell/evo:fitment/source:66b2290c37fba63476248a7b719dbe79a77ce96d": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:a7a5c99693a7",
     "dlworrell/evo:fitment/source:729c990c37a1a0421ac41e8b3d26b78aaed8e67c": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:e8f7dc9c9483",
     "dlworrell/evo:fitment/source:99ac3ada93b9b8381cf91b87b7daf0af074f646c": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:9eeb2c3b8425",
     "dlworrell/evo:fitment/source:c7606adca57b22adf305084ece392882dd6cc2b3": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:697232337aed",
@@ -168,7 +170,7 @@
   },
   "repos": {
     "dlworrell/AEMS": {
-      "reviewed": "c365887ef64877813971e333436d7996ddb8d9e3"
+      "reviewed": "b315f87a7fab295465eff9d9441fe88c1943f411"
     },
     "dlworrell/AES": {
       "reviewed": "e6fc8a7e9be2fcfd200bfd19e22cb62bc9f5ee10"
