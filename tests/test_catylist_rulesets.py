@@ -568,11 +568,17 @@ class RequiredChecksTests(unittest.TestCase):
                 cr.load_required_checks(self.write(data))
 
     def test_case_duplicate_repository_is_refused(self):
-        # Fixes #119: the later spelling used to replace the earlier one's checks.
-        data = self.config({"main": [{"context": "a", "app": "github-actions"}]})
-        data["repositories"]["dlworrell/DEMO"] = {"main": [{"context": "b", "app": "github-actions"}]}
-        with self.assertRaisesRegex(cr.PlanError, "duplicates another entry"):
-            cr.load_required_checks(self.write(data))
+        # Fixes #119 and #139: every spelling order is refused, not only lower-case first.
+        branches = {"main": [{"context": "a", "app": "github-actions"}]}
+        for first, second in (("dlworrell/demo", "dlworrell/DEMO"),
+                              ("dlworrell/DEMO", "dlworrell/demo"),
+                              ("Dlworrell/Demo", "dlworrell/DEMO"),
+                              ("DLWORRELL/demo", "dlworrell/demo")):
+            data = self.config(branches)
+            data["repositories"] = {first: branches, second: branches}
+            with self.subTest(first=first, second=second), \
+                    self.assertRaisesRegex(cr.PlanError, "duplicates another entry"):
+                cr.load_required_checks(self.write(data))
 
     def test_missing_file_means_no_required_checks(self):
         self.assertEqual(cr.load_required_checks(Path("/nonexistent/required.json")), {})
