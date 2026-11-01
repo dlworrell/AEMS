@@ -239,3 +239,6 @@ Required status checks are per repository and are kept out of the shared baselin
 - **Before adoption:** `dev-daily` and `fitment` rulesets apply only to repositories in `config/fitment.json`. Other repositories get `require-ci-main` at most.
 
 To change a list, edit `config/required-checks.json` through a pull request. Then run the workflow as a dry run and read the plan before applying.
+
+- **Another file:** `scripts/catylist_rulesets.py --required-checks PATH` reads a different file (the default is `config/required-checks.json`). A missing file means no required-check rulesets.
+- **Removing checks:** the workflow only creates and updates rulesets; it never deletes one. Emptying a branch's list, or removing a repository's entry, stops planning that `require-ci-<branch>` ruleset but leaves an already-applied one in place. Delete it by hand in the repository's **Settings → Rules → Rulesets**.

@@ -221,6 +221,27 @@ class ApprovalTests(unittest.TestCase):
         with self.assertRaisesRegex(om.OmnibusError, f"among the {om.MERGED_PULL_SCAN} most recently updated"):
             om.find_approval(gh, CONFIG, PATH, MERGE)
 
+    def test_dispatch_approval_beyond_the_scan_window_is_refused_and_says_so(self):
+        # Fixes #91: a dispatch (no push commit) finds the approval by the added manifest, within the same window.
+        older = [{"number": n, "merged_at": "x", "merge_commit_sha": f"{n:040x}"}
+                 for n in range(1000, 1000 + om.MERGED_PULL_SCAN)]
+        routes = approval_routes(merged=older + [{"number": 90, "merged_at": "x", "merge_commit_sha": MERGE}])
+        gh = FakeGitHub(routes)
+        scanned = []
+
+        def get_all(path, limit=1000):
+            if "/files" in path:
+                scanned.append(path)
+                if "/pulls/90/" in path:
+                    return list(gh.get(path))
+                return [{"filename": "docs/other.md", "status": "added"}]
+            return list(gh.get(path))[:limit]
+        gh.get_all = get_all
+        with self.assertRaisesRegex(om.OmnibusError, f"among the {om.MERGED_PULL_SCAN} most recently updated"):
+            om.find_approval(gh, CONFIG, PATH, None)
+        self.assertNotIn(f"/repos/{LEDGER}/pulls/90/files?per_page=100", scanned)  # #90 lies beyond the window
+        self.assertEqual(len(scanned), om.MERGED_PULL_SCAN * len(CONFIG.approval_branches))
+
     def test_unverified_merge_commit_is_refused(self):
         with self.assertRaisesRegex(om.OmnibusError, "not verified"):
             om.find_approval(FakeGitHub(approval_routes(verified=False)), CONFIG, PATH, MERGE)
@@ -279,11 +300,13 @@ class ExecutorTests(unittest.TestCase):
         self.assertEqual([o.status for o in run.outcomes], ["refused", "not-attempted"])
         self.assertIn("head moved", run.outcomes[0].detail)
 
-    def test_ring0_never_merges_its_own_pull_request(self):
+    def test_ring0_refuses_its_own_topic_pull_request(self):
+        # Fixes #107: ring-0 may merge its own pull requests only in the ADR-0017 classes.
         gh = FakeGitHub(target_routes(first=pull(user={"login": "catylist-ring-0[bot]"})))
         run = executor(gh)
         self.assertEqual(run.run(), 1)
         self.assertEqual(gh.puts, [])
+        self.assertIn("not a promotion, release candidate", run.outcomes[0].detail)
         self.assertIn("Code Law 4", run.outcomes[0].detail)
 
     def own_run(self, head_ref, base, runs, *, fork=False, default_branch="main"):
@@ -335,11 +358,28 @@ class ExecutorTests(unittest.TestCase):
         self.assertEqual(run.outcomes[0].status, "merged")
         self.assertIn("automation opened by catylist-ring-0", run.outcomes[0].detail)
 
+    def test_dry_run_of_a_ring0_class_names_the_class_and_writes_nothing(self):
+        # Fixes #108.
+        own = pull(base="dev-daily", user={"login": "catylist-ring-0[bot]"})
+        own["head"].update({"ref": "automation/census", "label": "dlworrell:automation/census",
+                            "repo": {"full_name": TARGET}})
+        own["base"]["repo"] = {"default_branch": "main"}
+        routes = target_routes(first=own)
+        routes[f"/repos/{TARGET}/commits/{HEAD_A}/check-runs?per_page=100"] = {"check_runs": [GREEN["check_runs"][0]]}
+        gh = FakeGitHub(routes)
+        text = manifest_text([{"repository": TARGET, "pull_request": 7, "base": "dev-daily", "head_sha": HEAD_A}])
+        run = executor(gh, dry_run=True, text=text)
+        run.run()
+        self.assertEqual(run.outcomes[0].status, "dry-run")
+        self.assertTrue(run.outcomes[0].detail.startswith("would merge; automation opened by catylist-ring-0"))
+        self.assertEqual(gh.puts, [])
+
     def test_ring0_refuses_its_own_pull_request_outside_the_classes(self):
         for head_ref, base, fork, default in (("feat/x", "dev-daily", False, "main"),  # not a class
                                               ("main", "fitment", False, "main"),       # promotion not from dev-daily
                                               ("fitment", "main", False, "trunk"),      # main is not the default
-                                              ("dev-daily", "fitment", True, "main")):  # same names from a fork
+                                              ("dev-daily", "fitment", True, "main"),   # same names from a fork
+                                              ("automation/x", "dev-daily", True, "main")):  # automation from a fork
             gh, run = self.own_run(head_ref, base, [GREEN["check_runs"][0], self.ring0_check("fitment/source"),
                                                     self.ring0_check("fitment")], fork=fork, default_branch=default)
             self.assertEqual(gh.puts, [], head_ref)

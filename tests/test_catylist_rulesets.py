@@ -506,6 +506,73 @@ class IntegrationBranchTests(unittest.TestCase):
         self.assertIn("other deployment branch policies kept: tag:v*", markdown)
         self.assertIn("environment release", markdown)
 
+    def test_second_branch_failing_twice_says_how_to_finish_the_first_adoption(self) -> None:
+        # Fixes #95: a half-created first adoption must not get the "restore from promotion history" advice.
+        client = FakeClient([], COMPLIANT_SETTINGS, branches=(), environment=None, policies=())
+        original = client.request
+        calls = []
+
+        def request(method, path, body=None):
+            if method == "POST" and path.endswith("/git/refs") and body["ref"].endswith("/fitment"):
+                calls.append(body)
+                raise cr.GitHubError(502, "Bad Gateway")
+            return original(method, path, body)
+        client.request = request
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+        self.assertEqual(result["status"], "error")
+        self.assertIn("created dev-daily from the default branch", result["error"])
+        self.assertIn(f"create fitment from the same commit ({'a' * 40})", result["error"])
+        self.assertNotIn("promotion history", result["error"])
+        self.assertEqual(len(calls), 2)  # retried once
+        self.assertFalse([p for _, p in client.writes if "/environments/" in p or p.endswith("/rulesets")])
+
+    def test_transient_branch_failure_is_retried_once(self) -> None:
+        client = FakeClient([], COMPLIANT_SETTINGS, branches=(), environment=None, policies=())
+        original = client.request
+        failures = []
+
+        def request(method, path, body=None):
+            if method == "POST" and path.endswith("/git/refs") and body["ref"].endswith("/fitment") and not failures:
+                failures.append(body)
+                raise cr.GitHubError(502, "Bad Gateway")
+            return original(method, path, body)
+        client.request = request
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+        self.assertEqual(result["status"], "applied", result.get("error"))
+        self.assertEqual(sorted(client.branches), ["dev-daily", "fitment"])
+
+    def test_setup_that_still_differs_after_apply_is_an_error_before_rulesets(self) -> None:
+        # Fixes #96: the re-read after apply catches a write GitHub accepted but did not keep.
+        client = FakeClient([], COMPLIANT_SETTINGS, environment=None, policies=())
+        original = client.request
+
+        def request(method, path, body=None):
+            if method == "PUT" and path.endswith("/environments/release"):
+                client.writes.append((method, path))
+                return {}  # accepted, not applied
+            return original(method, path, body)
+        client.request = request
+        result = cr.process_repository(client, "example/repo", desired_with_integration(), apply=True)
+        self.assertEqual(result["status"], "error")
+        self.assertIn("ADR-0013 setup still differs after apply: environment missing", result["error"])
+        self.assertFalse([p for _, p in client.writes if p.endswith("/rulesets")])
+
+    def test_admin_bypass_warning_and_dry_run_rows_are_rendered(self) -> None:
+        # Fixes #97.
+        env = dict(copy.deepcopy(COMPLIANT_ENVIRONMENT), can_admins_bypass=True)
+        result = cr.process_repository(FakeClient([], COMPLIANT_SETTINGS, environment=env), "example/repo",
+                                       desired_with_integration(), apply=False)
+        report = cr.build_report(mode="dry-run", catylist_ref="c" * 40, templates_ref="t" * 40,
+                                 repos_filter=[], skipped=[], results=[result])
+        self.assertIn("administrators may bypass the release gate", cr.render_markdown(report))
+        first = cr.process_repository(FakeClient([], COMPLIANT_SETTINGS, branches=(), environment=None, policies=()),
+                                      "example/repo", desired_with_integration(), apply=False)
+        report = cr.build_report(mode="dry-run", catylist_ref="c" * 40, templates_ref="t" * 40,
+                                 repos_filter=[], skipped=[], results=[first])
+        markdown = cr.render_markdown(report)
+        self.assertRegex(markdown, r"dev-daily \+ fitment[^\n]*would create")
+        self.assertRegex(markdown, r"environment release[^\n]*would create")
+
     def test_compliant_setup_alone_reports_compliant(self) -> None:
         client = FakeClient([as_current(BRANCH_RULESET, 1), as_current(TAG_RULESET, 2),
                              as_current(INTEGRATION_RULESET, 3)], COMPLIANT_SETTINGS)
@@ -562,10 +629,58 @@ class RequiredChecksTests(unittest.TestCase):
             self.config({"main": [{"context": "x", "app": "github-actions"},
                                   {"context": "x", "app": "github-actions"}]}),
             {"schema": "wrong", "apps": {}, "repositories": {}},
+            # Fixes #116: apps validation and malformed shapes.
+            dict(self.config({}), apps={"x": True}),
+            dict(self.config({}), apps={"x": 0}),
+            dict(self.config({}), apps={"x": -1}),
+            dict(self.config({}), apps={"x": "15368"}),
+            dict(self.config({}), repositories={"not a repo": {}}),
+            dict(self.config({}), repositories={"dlworrell/demo": []}),
+            self.config({"main": {}}),
+            self.config({"main": ["x"]}),
+            dict(self.config({}), repositories=[]),
         ]
         for data in bad:
             with self.subTest(data=data), self.assertRaises(cr.PlanError):
                 cr.load_required_checks(self.write(data))
+
+    def test_required_checks_option_reaches_the_plan_through_main(self):
+        # Fixes #117: --required-checks is parsed and its rulesets are planned by main().
+        import io, json, os, tempfile
+        from contextlib import redirect_stdout
+        from unittest import mock
+
+        tmp = Path(tempfile.mkdtemp())
+        required = self.write({"schema": cr.REQUIRED_CHECKS_SCHEMA, "apps": {"github-actions": 15368},
+                               "repositories": {"dlworrell/JAG": {"main": [{"context": "build",
+                                                                            "app": "github-actions"}]}}})
+        fitment = tmp / "fitment.json"
+        fitment.write_text(json.dumps({"schema": cr.FITMENT_CONFIG_SCHEMA, "repositories": []}))
+
+        class Source:
+            def __init__(self, *_a, **_k):
+                pass
+
+            def get_file(self, repository, path, ref):
+                if path == cr.INVENTORY_PATH:
+                    return inventory()
+                return copy.deepcopy(TAG_RULESET if path == cr.TAG_RULESET_PATH else BRANCH_RULESET)
+
+        admin = FakeClient([], COMPLIANT_SETTINGS)
+        clients = iter([Source(), admin])
+        argv = ["--catylist-ref", "c" * 40, "--templates-ref", "d" * 40, "--repos", "dlworrell/JAG",
+                "--output-dir", str(tmp / "out"), "--fitment-config", str(fitment),
+                "--required-checks", str(required)]
+        with mock.patch.dict(os.environ, {cr.ADMIN_TOKEN_ENV: "x"}), \
+                mock.patch.object(cr, "GitHubClient", side_effect=lambda *_a, **_k: next(clients)), \
+                redirect_stdout(io.StringIO()):
+            self.assertEqual(cr.main(argv), 0)
+        report = json.loads((tmp / "out" / "report.json").read_text())
+        planned = [r["name"] for entry in report["repositories"] for r in entry["before"]["rulesets"]]
+        self.assertIn("require-ci-main", planned)
+        created = [b for m, p, b in admin.bodies if m == "POST" and p.endswith("/rulesets")]
+        self.assertEqual(created, [])  # a dry run plans the ruleset but writes nothing
+        self.assertEqual(cr.parse_args(argv).required_checks, required)
 
     def test_case_duplicate_repository_is_refused(self):
         # Fixes #119 and #139: every spelling order is refused, not only lower-case first.

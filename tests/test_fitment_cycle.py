@@ -332,6 +332,22 @@ class CycleTests(unittest.TestCase):
         self.assertNotIn("reviewed", cycle.state["repos"][REPO])
         self.assertEqual(model.requests, [])
 
+    def test_unconfigured_reviewer_never_uses_up_attempts(self):
+        # Fixes #103: without a key nothing is paid, so the cycle keeps retrying past MAX_REVIEW_ATTEMPTS.
+        state = {"repos": {}, "posted": {}}
+        for _ in range(fc.MAX_REVIEW_ATTEMPTS + 2):
+            state["posted"] = {}  # repost the gate each round so its text can be checked
+            gh = FakeGitHub(routes(**{f"/repos/{REPO}/compare/main...{FIT}": promoted()}))
+            review, model = reviewer(key=None)
+            self.make(gh, review, state=state).run()
+            repo_state = state["repos"][REPO]
+            self.assertNotIn("review_attempts", repo_state)
+            self.assertNotIn("review_error_head", repo_state)
+            summary = self.checks(gh, "fitment")[0]["output"]["summary"]
+            self.assertIn("retried on the next cycle", summary)
+            self.assertNotIn("after", summary.split("could not run", 1)[1][:20])
+            self.assertEqual(model.requests, [])
+
     def test_failed_reviews_stop_paying_after_the_attempt_limit(self):
         state = {"repos": {}, "posted": {}}
         requests = 0
