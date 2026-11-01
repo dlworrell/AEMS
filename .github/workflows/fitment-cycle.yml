@@ -55,12 +55,8 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Test the cycle
-        run: python3 -m unittest tests.test_check_integration_branches tests.test_fitment_cycle -v
-
-      - name: Install the Anthropic SDK
-        run: python3 -m pip install --disable-pip-version-check --no-input -r requirements/ring0.txt
-
+      # The App token is created first: the change gate below needs it to read
+      # the adopted repositories, and it is cheap compared with the cycle.
       - name: Create catylist-ring-0 installation token
         id: app
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
@@ -73,7 +69,36 @@ jobs:
           permission-issues: write
           permission-pull-requests: write
 
+      # Scheduled runs go ahead only when something the cycle reacts to has
+      # changed since the last successful run, or 6 hours have passed.
+      # Manual runs always go ahead. See docs/engineering/ring0-gate.md.
+      - name: Check for changes since the last successful cycle
+        id: gate
+        env:
+          RING0_APP_TOKEN: ${{ steps.app.outputs.token }}
+          LEDGER_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          # Fail open: if the gate itself cannot decide, run the cycle.
+          if ! python3 scripts/ring0_gate.py check --name fitment-cycle --config config/fitment.json --max-age-hours 6; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test the cycle
+        if: ${{ steps.gate.outputs.run == 'true' }}
+        run: python3 -m unittest tests.test_check_integration_branches tests.test_fitment_cycle -v
+
+      - name: Install the Anthropic SDK
+        if: ${{ steps.gate.outputs.run == 'true' }}
+        run: python3 -m pip install --disable-pip-version-check --no-input -r requirements/ring0.txt
+
       - name: Run the cycle
+        id: cycle
+        if: ${{ steps.gate.outputs.run == 'true' }}
         env:
           RING0_APP_TOKEN: ${{ steps.app.outputs.token }}
           LEDGER_TOKEN: ${{ github.token }}
@@ -89,10 +114,21 @@ jobs:
           fi
           python3 scripts/fitment_cycle.py "$mode" --repos "${INPUT_REPOS:-}" --output-dir build/aems/fitment
 
+      - name: Record the successful cycle for the change gate
+        if: ${{ steps.gate.outputs.run == 'true' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run != false) }}
+        env:
+          RING0_APP_TOKEN: ${{ steps.app.outputs.token }}
+          LEDGER_TOKEN: ${{ github.token }}
+        run: python3 scripts/ring0_gate.py record --name fitment-cycle --config config/fitment.json
+
       - name: Add cycle report to summary
         if: ${{ always() }}
+        env:
+          GATE_RUN: ${{ steps.gate.outputs.run }}
         run: |
-          if [ -f build/aems/fitment/summary.md ]; then
+          if [ "$GATE_RUN" = "false" ]; then
+            echo "Skipped: nothing the fitment cycle reacts to changed since its last successful run." >> "$GITHUB_STEP_SUMMARY"
+          elif [ -f build/aems/fitment/summary.md ]; then
             cat build/aems/fitment/summary.md >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No cycle report was produced; see the job log." >> "$GITHUB_STEP_SUMMARY"

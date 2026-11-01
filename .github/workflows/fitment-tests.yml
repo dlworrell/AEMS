@@ -14,6 +14,8 @@ on:
       - 'tests/test_cleanup_merged_branches.py'
       - 'scripts/pipeline_board.py'
       - 'tests/test_pipeline_board.py'
+      - 'scripts/ring0_gate.py'
+      - 'tests/test_ring0_gate.py'
       - '.github/workflows/pipeline-board.yml'
       - '.github/actions/integration-branches/**'
       - '.github/workflows/fitment*.yml'
@@ -31,6 +33,8 @@ on:
       - 'tests/test_cleanup_merged_branches.py'
       - 'scripts/pipeline_board.py'
       - 'tests/test_pipeline_board.py'
+      - 'scripts/ring0_gate.py'
+      - 'tests/test_ring0_gate.py'
       - '.github/workflows/pipeline-board.yml'
       - '.github/actions/integration-branches/**'
       - '.github/workflows/fitment*.yml'
@@ -51,7 +55,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Test retention, promotion, ruleset planning, cleanup and the pipeline board
-        run: python3 -m unittest tests.test_check_integration_branches tests.test_fitment_cycle tests.test_catylist_rulesets tests.test_cleanup_merged_branches tests.test_pipeline_board -v
+        run: python3 -m unittest tests.test_check_integration_branches tests.test_fitment_cycle tests.test_catylist_rulesets tests.test_cleanup_merged_branches tests.test_pipeline_board tests.test_ring0_gate -v
       # Exercise the composite action as consuming repositories run it, so a
       # wrong relative script path or a broken import fails here, not there.
       # AEMS itself has dev-daily and fitment under protect-integration-branches.
