@@ -34,6 +34,7 @@ repository in `config/fitment.json` it:
 | Fixes | A `fitment` issue closes when a commit with `Fixes #N` reaches `fitment` |
 | Review | The [fitment reviewer](../../prompts/fitment-reviewer.md) reads the `fitment` commits not reviewed yet (file names, patches and commit messages; never runs code) |
 | Findings | One issue per finding, labelled `fitment`, its severity and its kind, assigned to whoever last changed the file, and never filed twice while open |
+| Follow-ups | A `minor` finding in a file changed by a commit that says `Fixes #N` for a `fitment` issue becomes a comment on #N, not a new issue, and is never posted twice. `blocker` and `major` findings always get their own issue. Follow-ups do not hold the gate |
 | Gate | `fitment` on the `fitment` head fails while another check on it fails, a `blocker` or `major` fitment issue is open, or the review could not run |
 | Promotion | Opens `dev-daily` → `fitment` when `dev-daily` is ahead and its CI is green, and `fitment` → `main` when the gate passes |
 
@@ -47,6 +48,7 @@ otherwise merging it would let "delete branch on merge" remove `dev-daily` or
 1. Cut your branch from `dev-daily` (`git switch --no-track -c fix/42-short origin/dev-daily`) and open your pull request into `dev-daily`.
 2. If the fitment review assigns you an issue, fix it on `fix/<issue>-<slug>` into `dev-daily` with `Fixes #<issue>` in the fix commit's message.
 3. If a finding is wrong, say why on the issue. The owner closes it as not planned.
+4. A minor follow-up posted on an issue you fixed is advisory: address it in a later change to that file, or file an issue if it should be tracked on its own.
 
 ## Trial
 
