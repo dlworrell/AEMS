@@ -127,6 +127,33 @@ class Ring0GateTests(unittest.TestCase):
         config.write_text(json.dumps({"schema": "aems.fitment-config.v1", "repositories": [REPO]}))
         return config
 
+    def test_fingerprint_printed_by_check_round_trips_through_record(self):
+        # Fixes #159: the workflow records exactly what `check` printed.
+        import re
+        gh = FakeGitHub()
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self._config(tmp)
+            out = io.StringIO()
+            with redirect_stdout(out):
+                self.assertEqual(gate.main(["check", "--name", "fitment-cycle", "--config", str(config)],
+                                           reader=gh, ledger=gh, now=NOW), 0)
+            printed = re.findall(r"^fingerprint=([0-9a-f]{64})$", out.getvalue(), re.M)
+            self.assertEqual(len(printed), 1, out.getvalue())
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(gate.main(["record", "--name", "fitment-cycle", "--fingerprint", printed[0]],
+                                           reader=gh, ledger=gh, now=NOW), 0)
+            out = io.StringIO()
+            with redirect_stdout(out):
+                gate.main(["check", "--name", "fitment-cycle", "--config", str(config)],
+                          reader=gh, ledger=gh, now=NOW + dt.timedelta(minutes=30))
+            self.assertIn("run=false", out.getvalue())
+            gh.pulls.append({"number": 6, "base": {"ref": "fitment"}, "head": {"sha": "d1"}})  # the run opened a PR
+            out = io.StringIO()
+            with redirect_stdout(out):
+                gate.main(["check", "--name", "fitment-cycle", "--config", str(config)],
+                          reader=gh, ledger=gh, now=NOW + dt.timedelta(minutes=30))
+            self.assertIn("run=true", out.getvalue())  # so the next tick runs and posts its checks
+
     def test_github_errors_other_than_404_exit_2_so_the_workflow_fails_open(self):
         # Fixes #149: snapshot re-raises a non-404 error; the workflow then runs the cycle.
         gh = FakeGitHub()
