@@ -28,8 +28,11 @@ class FakeGitHub:
                        "d1": [{"name": "tests", "status": "in_progress", "conclusion": None}]}
         self.files = {}
         self.puts = []
+        self.fail = None  # path fragment whose GET raises GitHubError(500)
 
     def get(self, path):
+        if self.fail and self.fail in path:
+            raise gate.GitHubError(500, "Server Error")
         if path == f"/repos/{REPO}":
             return {"default_branch": "main"}
         if "/branches/" in path:
@@ -110,14 +113,53 @@ class Ring0GateTests(unittest.TestCase):
             self.assertEqual(gh.puts[0]["branch"], gate.LEDGER_BRANCH)
             out = io.StringIO()
             with redirect_stdout(out):
-                gate.main(["check", "--name", "fitment-cycle", "--config", str(config)],
-                          reader=gh, ledger=gh, now=NOW + dt.timedelta(minutes=30))
+                self.assertEqual(gate.main(["check", "--name", "fitment-cycle", "--config", str(config)],
+                                           reader=gh, ledger=gh, now=NOW + dt.timedelta(minutes=30)), 0)
             self.assertIn("run=false", out.getvalue())
             with redirect_stderr(io.StringIO()):
                 self.assertEqual(gate.main(["record", "--name", "x", "--fingerprint", "short"],
                                            reader=gh, ledger=gh, now=NOW), 2)
                 self.assertEqual(gate.main(["check", "--name", "bad/name", "--config", str(config)],
                                            reader=gh, ledger=gh, now=NOW), 2)
+
+    def _config(self, tmp):
+        config = Path(tmp) / "fitment.json"
+        config.write_text(json.dumps({"schema": "aems.fitment-config.v1", "repositories": [REPO]}))
+        return config
+
+    def test_github_errors_other_than_404_exit_2_so_the_workflow_fails_open(self):
+        # Fixes #149: snapshot re-raises a non-404 error; the workflow then runs the cycle.
+        gh = FakeGitHub()
+        gh.fail = "/branches/"
+        with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()), \
+                redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(gate.main(["check", "--name", "fitment-cycle", "--config", str(self._config(tmp))],
+                                       reader=gh, ledger=gh, now=NOW), 2)
+        self.assertIn("500", err.getvalue())
+
+    def test_second_record_overwrites_with_the_blob_sha(self):
+        gh = FakeGitHub()
+        value = "c" * 64
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(gate.main(["record", "--name", "fitment-cycle", "--fingerprint", value],
+                                       reader=gh, ledger=gh, now=NOW), 0)
+            self.assertEqual(gate.main(["record", "--name", "fitment-cycle", "--fingerprint", value],
+                                       reader=gh, ledger=gh, now=NOW + dt.timedelta(hours=1)), 0)
+        self.assertNotIn("sha", gh.puts[0])  # first write creates the file
+        self.assertEqual(gh.puts[1]["sha"], "blob1")  # second write must name the blob it replaces
+
+    def test_record_with_the_wrong_schema_forces_a_run(self):
+        gh = FakeGitHub()
+        current = gate.fingerprint(gh, [REPO])
+        gh.files["ring0/gate-fitment-cycle.json"] = json.dumps(
+            {"schema": "something-else", "fingerprint": current, "recorded_at": NOW.isoformat()})
+        with tempfile.TemporaryDirectory() as tmp:
+            out = io.StringIO()
+            with redirect_stdout(out):
+                self.assertEqual(gate.main(["check", "--name", "fitment-cycle", "--config", str(self._config(tmp))],
+                                           reader=gh, ledger=gh, now=NOW), 0)
+        self.assertIn("run=true", out.getvalue())
+        self.assertIn("no recorded run yet", out.getvalue())
 
 
 if __name__ == "__main__":

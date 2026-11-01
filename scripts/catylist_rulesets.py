@@ -285,7 +285,12 @@ def load_adopted(path: Path) -> frozenset[str]:
 
 
 def load_required_checks(path: Path) -> dict[str, list[dict[str, Any]]]:
-    """Return the require-ci-<branch> rulesets per lower-cased repository."""
+    """Return the require-ci-<branch> rulesets per lower-cased repository.
+
+    Repository keys are matched case-insensitively, as GitHub matches names:
+    two spellings of one repository (``dlworrell/AEMS`` and ``dlworrell/aems``)
+    are refused with PlanError rather than letting one replace the other.
+    """
 
     if not path.is_file():
         return {}
