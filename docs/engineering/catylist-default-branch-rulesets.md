@@ -245,7 +245,7 @@ To change a list, edit `config/required-checks.json` through a pull request. The
 
 ## Drift audit
 
-`.github/workflows/ruleset-drift-audit.yml` runs `scripts/ruleset_drift_audit.py` every day, and on demand. It is read-only and uses no admin token: the protected repositories are public, so the workflow's own token can read their rulesets, effective branch rules and merge settings.
+`.github/workflows/ruleset-drift-audit.yml` runs `scripts/ruleset_drift_audit.py` every day, and on demand. It is read-only and uses no admin token. The workflow's own token reads the public repositories' rulesets, effective branch rules and merge settings.
 
 For every `protected` inventory entry it checks:
 
@@ -257,7 +257,19 @@ For repositories in `config/fitment.json` it also checks `protect-integration-br
 
 What happens with the result:
 
-- **Drift:** the audit opens one **Ruleset drift** issue in AEMS, or updates it if one is already open. The issue closes itself once the audit is clean.
-- **Hidden settings:** a merge setting the token cannot see is listed as unverified, not counted as drift.
+- **Drift:** the audit opens one **Ruleset drift audit** issue in AEMS, or updates it if one is already open. The issue closes itself once the audit is clean.
+- **Unverified:** a repository the audit could not read, or a merge setting the token cannot see, is listed as unverified, not counted as drift. An unverified run never opens or closes the issue; it updates an open one and exits 3, which the workflow reports as a warning.
+
+Public-safe output:
+
+- **One rendering:** stdout, `--output`, the job summary and the issue all get the same report.
+- **Names:** only repositories GitHub reports as public are named. Private repositories, and repositories whose visibility the token cannot see, are counted as withheld: no name and no findings. Audit them privately with an authorized token.
+- **Errors:** GitHub errors show the HTTP status only, never the message or URL.
+- **Dry run:** a dry run prints the same report and writes nothing. It is not a privacy boundary, which is why the report itself is safe.
+
+Issue handling:
+
+- The audit touches only an open `ruleset-drift` issue whose body starts with its marker line, `<!-- aems:ruleset-drift-audit:v2 -->`. A matching title alone never selects an issue.
+- It never edits, comments on or closes a preserved issue. Issue #170, the record of the first version (which published private repository names), is always preserved. `--preserve-issue N` adds more.
 - **Repair:** dispatch **Apply Catylist Rulesets** as a dry run, read the plan, then apply.
 

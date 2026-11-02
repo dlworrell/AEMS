@@ -5,8 +5,11 @@ name: Ruleset Drift Audit
 # effective branch rules (no deletion, no force-push, signed commits, merge
 # commits only, no linear-history rule), required checks matching
 # config/required-checks.json, and merge settings. It never changes a
-# setting. Drift opens or updates one "Ruleset drift" issue in AEMS, and the
-# issue closes itself once the audit is clean.
+# setting. Drift opens or updates one "Ruleset drift audit" issue in AEMS,
+# and the issue closes itself once the audit is clean. Every output (log,
+# job summary, issue) names public repositories only; private repositories
+# and ones the token cannot read are counted, not named, and errors show the
+# HTTP status only. Preserved issues (#170) are never touched.
 # See docs/engineering/catylist-default-branch-rulesets.md.
 
 on:
@@ -20,8 +23,9 @@ on:
         default: false
         type: boolean
 
-# The protected repositories are public, so the workflow token reads them.
-# issues: write reaches only the AEMS drift issue. No admin token is used.
+# The workflow token reads public repositories. Private ones it cannot read
+# are reported as withheld and unverified, never named. issues: write reaches
+# only the audit's own marked issue. No admin token is used.
 permissions:
   contents: read
   issues: write
@@ -68,5 +72,10 @@ jobs:
           status=0
           python3 scripts/ruleset_drift_audit.py "${args[@]}" || status=$?
           cat "$RUNNER_TEMP/ruleset-drift.md" >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-          # 1 = drift found (reported in the issue); 2 = the audit itself failed.
+          # 1 = drift found (reported in the issue); 2 = the audit itself failed;
+          # 3 = no drift, but some repositories could not be verified.
+          if [ "$status" -eq 3 ]; then
+            echo "::warning::Some repositories could not be verified with this token; see the job summary."
+            exit 0
+          fi
           exit "$status"
