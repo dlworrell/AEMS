@@ -336,6 +336,37 @@ class CycleTests(unittest.TestCase):
         self.assertFalse([p for p, _ in gh.posts if p == f"/repos/{REPO}/issues/12/comments"])
         self.assertEqual(len([p for p, _ in gh.posts if p == f"/repos/{REPO}/issues"]), 1)
 
+    def test_lowest_fixed_issue_wins_when_two_fixes_touch_one_file(self):
+        # Fixes #158.
+        fix12, fix7 = "f" * 40, "e" * 40
+        compare = promoted(messages=("fix: a\n\nFixes #12", "fix: b\n\nFixes #7"))
+        compare["commits"][0]["sha"], compare["commits"][1]["sha"] = fix12, fix7
+        gh = FakeGitHub(routes(**{
+            f"/repos/{REPO}/compare/main...{FIT}": compare,
+            f"/repos/{REPO}/issues/12": {"number": 12, "labels": [{"name": "fitment"}]},
+            f"/repos/{REPO}/issues/7": {"number": 7, "labels": [{"name": "fitment"}]},
+            f"/repos/{REPO}/commits/{fix12}": {"files": [{"filename": "src/tool.py"}]},
+            f"/repos/{REPO}/commits/{fix7}": {"files": [{"filename": "src/tool.py"}]},
+            f"/repos/{REPO}/issues/7/comments": [],
+        }))
+        self.make(gh, reviewer([finding(severity="minor")])[0]).run()
+        self.assertEqual([p for p, _ in gh.posts if p.endswith("/comments")], [f"/repos/{REPO}/issues/7/comments"])
+
+    def test_failed_lookups_file_a_new_issue(self):
+        # Fixes #158: a lookup that fails only means the old behaviour.
+        for broken in ("issues/12", "commits/" + "f" * 40):
+            with self.subTest(broken=broken):
+                gh = self._fix_routes()
+                gh.routes[f"/repos/{REPO}/{broken}"] = fc.GitHubError(500, "boom")
+                self.assertEqual(self.make(gh, reviewer([finding(severity="minor")])[0]).run(), 0)
+                self.assertFalse([p for p, _ in gh.posts if p.endswith("/issues/12/comments")])
+                self.assertEqual(len([p for p, _ in gh.posts if p == f"/repos/{REPO}/issues"]), 1)
+
+    def test_dry_run_posts_no_follow_up(self):
+        gh = self._fix_routes()
+        self.make(gh, reviewer([finding(severity="minor")])[0], dry_run=True).run()
+        self.assertEqual(gh.posts, [])
+
     def test_follow_up_routing_survives_a_filing_retry(self):
         state = {"repos": {REPO: {"reviewed": FIT, "pending_compare": "u", "pending_followups": {"src/tool.py": 12},
                                   "pending_findings": [finding(severity="minor")]}}, "posted": {}}
