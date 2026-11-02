@@ -79,9 +79,11 @@ reviewed with everything else.
   that repository's entry in `fitment/state.json`, or move `fitment` (a new
   head resets the count).
 - **Stored findings:** findings from a paid review are stored as
-  `pending_findings` (with `pending_compare`) before
-  they are filed. If filing fails, the next cycle files them without asking the
-  model again, even if `fitment` has moved.
+  `pending_findings` before they are filed, with `pending_compare` (the
+  reviewed range) and `pending_followups` (a map from file to the `fitment`
+  issue whose fix changed it, which decides which minor findings become
+  follow-up comments). If filing fails, the next cycle files them from these
+  keys without asking the model again, even if `fitment` has moved.
 
 ## Branch retention and recovery
 
