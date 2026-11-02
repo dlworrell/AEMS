@@ -343,7 +343,8 @@ class ErrorPathTests(_Case):
                                "--dry-run", "--output", str(Path(self.tmp.name) / "missing-dir" / PRIVATE)],
                               reader=FakeGitHub(), writer=FakeGitHub())
         self.assertEqual(code, 2)
-        self.assertEqual(err.getvalue(), "error: could not write an output file (FileNotFoundError)\n")
+        self.assertEqual(err.getvalue(), "error: could not write an output file (FileNotFoundError)\n"
+                                         "error: the report was not written\n")
 
     def test_issue_update_failure_reports_status_only(self):
         gh = FakeGitHub()
@@ -437,6 +438,69 @@ class OwnIssueLifecycleTests(_Case):
         gh.rulesets.pop(2)
         del gh.rules["fitment"], gh.rules["dev-daily"]
         self.assertEqual(self.run_audit(gh, "--dry-run")[0], 0)
+
+
+class ResultFileContractTests(_Case):
+    """The result file is terminal: never stale, and error whenever the run fails after auditing.
+
+    Acceptance cases, written before the fix:
+    AC1 an issue-publication failure leaves {"outcome": "error"};
+    AC2 a stale result from an earlier run never survives a later failure;
+    AC3 a report-output failure leaves {"outcome": "error"};
+    AC4 if the result file itself cannot be written, it is absent and the exit is 2;
+    AC5 on success the result is written only after issue publication.
+    """
+
+    ERROR = {"schema": audit.RESULT_SCHEMA, "outcome": "error"}
+
+    def failing_post(self, gh):
+        gh.post = lambda p, b: (_ for _ in ()).throw(audit.GitHubError(502, "x"))
+
+    def test_ac1_issue_publication_failure_records_error(self):
+        gh = FakeGitHub()
+        gh.meta["allow_squash_merge"] = True
+        self.failing_post(gh)
+        self.assertEqual(self.run_audit(gh)[0], 2)
+        self.assertEqual(self.result_json(), self.ERROR)
+
+    def test_ac2_stale_clean_result_does_not_survive_a_publication_failure(self):
+        self.result.write_text(json.dumps({"schema": audit.RESULT_SCHEMA, "outcome": "clean"}))
+        gh = FakeGitHub()
+        gh.issues = [{"number": 9, "title": "Ruleset drift audit", "body": audit.ISSUE_MARKER + "\nold"}]
+        gh.patch = lambda p, b: (_ for _ in ()).throw(audit.GitHubError(500, "x"))
+        gh.meta["allow_squash_merge"] = True
+        self.assertEqual(self.run_audit(gh)[0], 2)
+        self.assertEqual(self.result_json(), self.ERROR)
+
+    def test_ac3_report_output_failure_records_error(self):
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = audit.main(["--fitment-config", str(self.fitment), "--required-checks", str(self.required),
+                               "--dry-run", "--output", str(Path(self.tmp.name) / "missing" / "r.md"),
+                               "--result-json", str(self.result)], reader=FakeGitHub(), writer=FakeGitHub())
+        self.assertEqual(code, 2)
+        self.assertEqual(self.result_json(), self.ERROR)
+
+    def test_ac4_unwritable_result_file_is_absent_with_exit_2(self):
+        target = Path(self.tmp.name) / "missing" / "result.json"
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = audit.main(["--fitment-config", str(self.fitment), "--required-checks", str(self.required),
+                               "--dry-run", "--result-json", str(target)], reader=FakeGitHub(), writer=FakeGitHub())
+        self.assertEqual(code, 2)
+        self.assertFalse(target.exists())
+        self.assertEqual(err.getvalue(), "error: could not write an output file (FileNotFoundError)\n")
+
+    def test_ac5_result_is_written_after_publication(self):
+        self.result.write_text("stale")
+        gh = FakeGitHub()
+        gh.meta["allow_squash_merge"] = True
+        seen = []
+        real = gh.post
+        gh.post = lambda p, b: (seen.append(self.result.exists()), real(p, b))[1]
+        self.assertEqual(self.run_audit(gh)[0], 1)
+        self.assertEqual(seen, [False])
+        self.assertEqual(self.result_json()["outcome"], "drift")
 
 
 class WorkflowContractTests(unittest.TestCase):

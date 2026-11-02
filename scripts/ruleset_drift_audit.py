@@ -44,8 +44,12 @@ preserved (``--preserve-issue`` adds more). The audit never edits, comments on
 or closes a preserved issue.
 
 Outcome, also written to ``--result-json``: clean (exit 0), drift (exit 1),
-unverified (exit 3), error (exit 2: unusable input, or a GitHub error before
-any result). Standard library only.
+unverified (exit 3), error (exit 2: unusable input, a GitHub error, a failed
+report write or a failed issue update). The result file is removed at start and
+written only once the outcome is terminal, so it never holds a stale outcome:
+any failure leaves ``{"outcome": "error"}``, or no file at all if the file
+itself cannot be written. A missing result file means error. Standard library
+only.
 """
 from __future__ import annotations
 
@@ -315,6 +319,13 @@ def _fail(args: argparse.Namespace, message: str) -> int:
 
 def main(argv: list[str] | None = None, *, reader: Client | None = None, writer: Client | None = None) -> int:
     args = parse_args(argv)
+    if args.result_json is not None:
+        # The result file is written last, once the outcome is terminal; a stale one must never survive.
+        try:
+            args.result_json.unlink(missing_ok=True)
+        except OSError:
+            print("error: could not reset the result file", file=sys.stderr)
+            return EXIT_CODES["error"]
     # No exception text reaches any sink: messages from input validation can name repositories.
     try:
         adopted = cr.load_adopted(args.fitment_config)
@@ -337,8 +348,8 @@ def main(argv: list[str] | None = None, *, reader: Client | None = None, writer:
     body = render(audits)
     result = summary(audits)
     print(body)
-    if not (_write(args.output, body) and _write(args.result_json, json.dumps(result, sort_keys=True) + "\n")):
-        return EXIT_CODES["error"]
+    if not _write(args.output, body):
+        return _fail(args, "the report was not written")
     if not args.dry_run:
         writer = writer or GitHubClient(os.environ.get("ISSUE_TOKEN") or os.environ.get("GITHUB_TOKEN"),
                                         agent="aems-ruleset-audit")
@@ -346,8 +357,9 @@ def main(argv: list[str] | None = None, *, reader: Client | None = None, writer:
         try:
             print(f"issue {publish(writer, args.issue_repository, body, result['outcome'], preserved)}")
         except GitHubError as exc:
-            print(f"error: issue update failed ({_status(exc)})", file=sys.stderr)
-            return EXIT_CODES["error"]
+            return _fail(args, f"issue update failed ({_status(exc)})")
+    if not _write(args.result_json, json.dumps(result, sort_keys=True) + "\n"):
+        return EXIT_CODES["error"]  # absent result file: consumers treat that as error
     return EXIT_CODES[result["outcome"]]
 
 

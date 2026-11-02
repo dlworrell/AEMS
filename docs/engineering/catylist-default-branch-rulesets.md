@@ -264,9 +264,9 @@ For repositories in `config/fitment.json` it also checks `protect-integration-br
 | clean | 0 | Every check passed and was verified. | Closes the audit's open issue. |
 | drift | 1 | At least one definite finding in a public repository. | Opens or updates the issue. |
 | unverified | 3 | No drift, but some evidence was unavailable. | Updates an open issue; never opens or closes one. |
-| error | 2 | Unusable input, or a GitHub error before any result. | Untouched. |
+| error | 2 | Unusable input, a GitHub error, or a failed report write or issue update. | Untouched, or left as it was when the update failed. |
 
-Unverified is not a pass. It covers a merge setting the token cannot see, a branch-rules request that fails (a 404 there does not prove the branch or its protection is missing), and a repository whose visibility could not be read. The workflow passes the exit status through, so drift, unverified and error all fail the job. It also publishes the outcome as the step output `outcome`. `--result-json PATH` writes the outcome and counts (schema `aems.ruleset-drift-result.v1`, no repository names), and writes `{"outcome": "error"}` when the audit cannot run.
+Unverified is not a pass. It covers a merge setting the token cannot see, a branch-rules request that fails (a 404 there does not prove the branch or its protection is missing), and a repository whose visibility could not be read. The workflow passes the exit status through, so drift, unverified and error all fail the job. It also publishes the outcome as the step output `outcome`. `--result-json PATH` writes the outcome and counts (schema `aems.ruleset-drift-result.v1`, no repository names). The file is removed at start and written last, once the outcome is final: after the report and any issue update. Any failure (configuration, inventory, report write or issue update) leaves `{"outcome": "error"}`. If the result file itself cannot be written, it is absent. A missing result file means error, and the workflow treats it that way.
 
 ### Public-safe output
 
