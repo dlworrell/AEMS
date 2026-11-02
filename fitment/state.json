@@ -158,6 +158,7 @@
     "dlworrell/evo:fitment:4ab2502b183aac45a3248e9cb33d1d97c6ff3355": "success:Ready for release:8af0feece047",
     "dlworrell/evo:fitment:53fa9152295ad1a173cfa79f73850be771822f9e": "failure:Not ready for release:48958b2cff64",
     "dlworrell/evo:fitment:5cf03a1560317bf8e41a991ff1e751ae0620e527": "success:Ready for release:f45a6d14c0b5",
+    "dlworrell/evo:fitment:a6f8d7b9b4d5cb16bfd1893dfebdf9780d63bb4c": "success:Ready for release:4bbd417950a5",
     "dlworrell/evo:fitment:abe14ddc8a07f145f21e0595c8b8b6fbabd20bfa": "failure:Not ready for release:48958b2cff64",
     "dlworrell/evo:fitment:b4e2f74185b77b58f35defa001a8002703150133": "success:Ready for release:09da236ab968",
     "dlworrell/evo:fitment:d6d1b795ef658fc40394f4e0e7ec627b70ec45c9": "failure:Not ready for release:1fbd3956d454",
@@ -219,7 +220,7 @@
       "reviewed": "c06b69c47b92c1d582ea2a6e1b8159c10a67160d"
     },
     "dlworrell/evo": {
-      "reviewed": "5cf03a1560317bf8e41a991ff1e751ae0620e527"
+      "reviewed": "a6f8d7b9b4d5cb16bfd1893dfebdf9780d63bb4c"
     },
     "dlworrell/herkules-1934-english": {
       "reviewed": "bd817f02b3c7541dffa9099288928f17030b03fc"
