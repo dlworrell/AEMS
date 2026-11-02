@@ -5,11 +5,15 @@ name: Ruleset Drift Audit
 # effective branch rules (no deletion, no force-push, signed commits, merge
 # commits only, no linear-history rule), required checks matching
 # config/required-checks.json, and merge settings. It never changes a
-# setting. Drift opens or updates one "Ruleset drift audit" issue in AEMS,
-# and the issue closes itself once the audit is clean. Every output (log,
-# job summary, issue) names public repositories only; private repositories
-# and ones the token cannot read are counted, not named, and errors show the
-# HTTP status only. Preserved issues (#170) are never touched.
+# setting. It audits public repositories only: private ones, and ones the
+# token cannot see, are counted as excluded, never named or audited. Errors
+# show their kind or HTTP status only. Drift opens or updates one "Ruleset
+# drift audit" issue in AEMS, which closes only once the audit is clean and
+# fully verified. Preserved issues (#170) are never touched.
+#
+# Outcomes (exit code, and the step output "outcome"): clean 0, drift 1,
+# error 2, unverified 3. Unverified means some evidence was unavailable; it
+# fails the job like drift does, because it is not a pass.
 # See docs/engineering/catylist-default-branch-rulesets.md.
 
 on:
@@ -23,9 +27,8 @@ on:
         default: false
         type: boolean
 
-# The workflow token reads public repositories. Private ones it cannot read
-# are reported as withheld and unverified, never named. issues: write reaches
-# only the audit's own marked issue. No admin token is used.
+# The workflow token reads public repositories. issues: write reaches only the
+# audit's own marked issue. No admin token is used.
 permissions:
   contents: read
   issues: write
@@ -59,23 +62,22 @@ jobs:
         run: python3 -m unittest tests.test_ruleset_drift_audit -v
 
       - name: Audit the protections
+        id: audit
         env:
           AUDIT_TOKEN: ${{ github.token }}
           ISSUE_TOKEN: ${{ github.token }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
-          args=(--output "$RUNNER_TEMP/ruleset-drift.md")
+          args=(--output "$RUNNER_TEMP/ruleset-drift.md" --result-json "$RUNNER_TEMP/ruleset-drift.json")
           if [ "${DRY_RUN:-false}" = "true" ]; then
             args+=(--dry-run)
           fi
           status=0
           python3 scripts/ruleset_drift_audit.py "${args[@]}" || status=$?
           cat "$RUNNER_TEMP/ruleset-drift.md" >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-          # 1 = drift found (reported in the issue); 2 = the audit itself failed;
-          # 3 = no drift, but some repositories could not be verified.
-          if [ "$status" -eq 3 ]; then
-            echo "::warning::Some repositories could not be verified with this token; see the job summary."
-            exit 0
-          fi
+          outcome=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["outcome"])' \
+            "$RUNNER_TEMP/ruleset-drift.json" 2>/dev/null || echo error)
+          echo "outcome=$outcome" >> "$GITHUB_OUTPUT"
+          # Pass the audit's own status through: 1 drift, 2 error, 3 unverified all fail the job.
           exit "$status"

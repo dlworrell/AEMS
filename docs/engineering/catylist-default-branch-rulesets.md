@@ -245,31 +245,41 @@ To change a list, edit `config/required-checks.json` through a pull request. The
 
 ## Drift audit
 
-`.github/workflows/ruleset-drift-audit.yml` runs `scripts/ruleset_drift_audit.py` every day, and on demand. It is read-only and uses no admin token. The workflow's own token reads the public repositories' rulesets, effective branch rules and merge settings.
+`.github/workflows/ruleset-drift-audit.yml` runs `scripts/ruleset_drift_audit.py` every day, and on demand. It is read-only and uses no admin token. The workflow is currently disabled; re-enabling it is the owner's decision.
 
-For every `protected` inventory entry it checks:
+**Scope: public repositories only.** The report is published, so the audit covers only inventory entries GitHub reports as public. A repository that is private, or that answers 404 to the token, is excluded: it is counted, never named, and nothing beyond the visibility lookup is requested for it. Its state cannot change the public report, the outcome or the issue. Private repositories need a separate, private audit.
+
+For every public `protected` inventory entry it checks:
 
 - `protect-default-branch` and `protect-release-tags` exist and are active;
 - the default branch's effective rules include deletion, non_fast_forward, required_signatures and a merge-commit-only pull_request rule, and never `required_linear_history`;
 - merge commits are on, and squash and rebase merges are off.
 
-For repositories in `config/fitment.json` it also checks `protect-integration-branches` and the same rules on `dev-daily` and `fitment`. On every branch it compares the required status checks with `config/required-checks.json`.
+For repositories in `config/fitment.json` it also checks `protect-integration-branches` and the same rules on `dev-daily` and `fitment`. On every branch it compares the required status checks with `config/required-checks.json`. A check matches only when both its context and the App (integration ID) that must report it match.
 
-What happens with the result:
+### Outcomes
 
-- **Drift:** the audit opens one **Ruleset drift audit** issue in AEMS, or updates it if one is already open. The issue closes itself once the audit is clean.
-- **Unverified:** a repository the audit could not read, or a merge setting the token cannot see, is listed as unverified, not counted as drift. An unverified run never opens or closes the issue; it updates an open one and exits 3, which the workflow reports as a warning.
+| Outcome | Exit | Meaning | Issue |
+|---|---|---|---|
+| clean | 0 | Every check passed and was verified. | Closes the audit's open issue. |
+| drift | 1 | At least one definite finding in a public repository. | Opens or updates the issue. |
+| unverified | 3 | No drift, but some evidence was unavailable. | Updates an open issue; never opens or closes one. |
+| error | 2 | Unusable input, or a GitHub error before any result. | Untouched. |
 
-Public-safe output:
+Unverified is not a pass. It covers a merge setting the token cannot see, a branch-rules request that fails (a 404 there does not prove the branch or its protection is missing), and a repository whose visibility could not be read. The workflow passes the exit status through, so drift, unverified and error all fail the job. It also publishes the outcome as the step output `outcome`. `--result-json PATH` writes the outcome and counts (schema `aems.ruleset-drift-result.v1`, no repository names), and writes `{"outcome": "error"}` when the audit cannot run.
 
-- **One rendering:** stdout, `--output`, the job summary and the issue all get the same report.
-- **Names:** only repositories GitHub reports as public are named. Private repositories, and repositories whose visibility the token cannot see, are counted as withheld: no name and no findings. Audit them privately with an authorized token.
-- **Errors:** GitHub errors show the HTTP status only, never the message or URL.
+### Public-safe output
+
+- **One rendering:** stdout, `--output`, the job summary and the issue get the same report.
+- **Names:** only public repositories are named. Repositories with unknown visibility are counted, not named.
+- **Errors:** GitHub errors show the HTTP status only. Configuration, inventory and file errors show a fixed message, never exception text, since validation messages can name repositories.
 - **Dry run:** a dry run prints the same report and writes nothing. It is not a privacy boundary, which is why the report itself is safe.
 
-Issue handling:
+### Issue handling
 
 - The audit touches only an open `ruleset-drift` issue whose body starts with its marker line, `<!-- aems:ruleset-drift-audit:v2 -->`. A matching title alone never selects an issue.
 - It never edits, comments on or closes a preserved issue. Issue #170, the record of the first version (which published private repository names), is always preserved. `--preserve-issue N` adds more.
-- **Repair:** dispatch **Apply Catylist Rulesets** as a dry run, read the plan, then apply.
 
+### Repair
+
+Dispatch **Apply Catylist Rulesets** as a dry run, read the plan, then apply.
