@@ -1,0 +1,101 @@
+{
+  "approval": {
+    "base": "dev-daily",
+    "merge_commit": "c613228adde82886e8447ed1c9f5d42bab912d64",
+    "merged_by": "dlworrell",
+    "pull_request": 173,
+    "url": "https://github.com/dlworrell/AEMS/pull/173"
+  },
+  "entries": {
+    "dlworrell/AEMS#171": {
+      "approved_head": "e6e19026ed0f501387f9cb9380b02b848e846677",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "all 1 checks passed",
+      "merge_commit": "e03490b0011aa1dd05903dbadd9ac234ac6f0364",
+      "status": "merged"
+    },
+    "dlworrell/EWT#15": {
+      "approved_head": "1a46cf3a4d07e2bce7422752e75d635454fb35bc",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "merged at the approved commit",
+      "merge_commit": "12ca2e2cbb51fda853b5383dd0d67ff1413a9a20",
+      "status": "already-merged"
+    },
+    "dlworrell/Just-a-Geek-LLC#12": {
+      "approved_head": "eb9e41ee5e454fa1f611861643711ceeebe4bb51",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "merged at the approved commit",
+      "merge_commit": "4ddf6274277dca3420894a2153417c8f55280375",
+      "status": "already-merged"
+    },
+    "dlworrell/atarix#121": {
+      "approved_head": "4de514439d0bf5cb4d70c3377b60d2288122a2ec",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "all 12 checks passed",
+      "merge_commit": "9488e0c0d7c117e21d57e63b82a556575cc626f0",
+      "status": "merged"
+    },
+    "dlworrell/code-noodling#96": {
+      "approved_head": "c444e0a12b0cf1bdd27d99a3cf68785e15064522",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "merged at the approved commit",
+      "merge_commit": "c5e7e324cd251ebcc628495eaa3ce70ab8a22369",
+      "status": "already-merged"
+    },
+    "dlworrell/engineering-docs-toolkit#16": {
+      "approved_head": "f0907e095ffb8972adcae52ae35d53e4d59edb06",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "merged at the approved commit",
+      "merge_commit": "01d935329836f4bd3f635e3cfe47230858e3aad1",
+      "status": "already-merged"
+    },
+    "dlworrell/evo#181": {
+      "approved_head": "a4e53b3b5422a594fdde5bf07704b41e834bec38",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "merged at the approved commit",
+      "merge_commit": "e0c0fe9afba72ff68f14dd9b6629cc7d015ccf67",
+      "status": "already-merged"
+    },
+    "dlworrell/herkules-1934-english#19": {
+      "approved_head": "b74794a257781577f16e64e09ba2456f2720ba86",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "merged at the approved commit",
+      "merge_commit": "e2eb93ca4c24fadb6faecc4d84b7de1ad20b1ac9",
+      "status": "already-merged"
+    },
+    "dlworrell/openCUDA#57": {
+      "approved_head": "5197181667a3a5824d6e239fbc3021ea0c114b7c",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "merged at the approved commit",
+      "merge_commit": "0a315c7c5fdf96aa9fc936628dd18fb31cdda5fb",
+      "status": "already-merged"
+    },
+    "dlworrell/repo_templates#27": {
+      "approved_head": "76f1c6dcb8b2a6470db68bee1124cb8bf2582c9a",
+      "at": "2026-11-03T07:54:10Z",
+      "detail": "merged at the approved commit",
+      "merge_commit": "8c418ec6fbd14b7179474c8fbe1862c0956a6731",
+      "status": "already-merged"
+    }
+  },
+  "id": "public-headers-v2-20261102",
+  "runs": [
+    {
+      "at": "2026-11-03T07:54:10Z",
+      "dry_run": false,
+      "statuses": [
+        "merged",
+        "already-merged",
+        "already-merged",
+        "already-merged",
+        "already-merged",
+        "already-merged",
+        "already-merged",
+        "already-merged",
+        "merged",
+        "already-merged"
+      ]
+    }
+  ],
+  "schema": "aems.omnibus-result.v1"
+}
