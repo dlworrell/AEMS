@@ -24,6 +24,7 @@
     "dlworrell/AEMS:fitment/source:cddf12d1a5e91deb8e396314a03aa65b1d480da2": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:cb2908224f9a",
     "dlworrell/AEMS:fitment/source:d27b7245627714349fdebddfbafff8fcafa4c6aa": "success:fitment \u2192 main is the ADR-0013 promotion path:8f5237324a5e",
     "dlworrell/AEMS:fitment/source:d9014bed543f882edd8ef9d6182836641734a0b2": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:f67014dc8e67",
+    "dlworrell/AEMS:fitment/source:d938c37441a3948aac166cbe3ab699dd6134d960": "success:fitment \u2192 main is the ADR-0013 promotion path:a9bc1824e890",
     "dlworrell/AEMS:fitment/source:e03490b0011aa1dd05903dbadd9ac234ac6f0364": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:8e1229fe4000",
     "dlworrell/AEMS:fitment/source:e80129c76aa870bc6f372a31f85ce154c1981bcd": "success:fitment \u2192 main is the ADR-0013 promotion path:5c9613e115cf",
     "dlworrell/AEMS:fitment/source:e873ca5cd497ecf42dd1df6974a4b737fb901044": "success:fitment \u2192 main is the ADR-0013 promotion path:e5d84c08315e",
@@ -49,7 +50,7 @@
     "dlworrell/AEMS:fitment:c1391c25ab31de7ad50c95a3b1b1d3ad64e938d9": "failure:Not ready for release:51fc277db77c",
     "dlworrell/AEMS:fitment:c365887ef64877813971e333436d7996ddb8d9e3": "success:Ready for release:8325f2bf4193",
     "dlworrell/AEMS:fitment:d27b7245627714349fdebddfbafff8fcafa4c6aa": "success:Ready for release:a77661431c96",
-    "dlworrell/AEMS:fitment:d938c37441a3948aac166cbe3ab699dd6134d960": "success:Ready for release:e45b40540228",
+    "dlworrell/AEMS:fitment:d938c37441a3948aac166cbe3ab699dd6134d960": "success:Ready for release:3a02a5240040",
     "dlworrell/AEMS:fitment:e80129c76aa870bc6f372a31f85ce154c1981bcd": "success:Ready for release:3ffec0b708ad",
     "dlworrell/AEMS:fitment:e873ca5cd497ecf42dd1df6974a4b737fb901044": "success:Ready for release:d6925637b646",
     "dlworrell/AEMS:fitment:ecad36ecca1ac98628fa3ea9e4422e6b6bca73b7": "failure:Not ready for release:e77e252a8413",
@@ -75,6 +76,7 @@
     "dlworrell/EWT:fitment/source:a2c60c9ba49b2f751ef4e7d6d94e7898ca539f2b": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:18dc154a5584",
     "dlworrell/EWT:fitment/source:d8b3bc1ef0475bcc0433b48889469112bed485d7": "success:fitment \u2192 main is the ADR-0013 promotion path:d361ae7ad644",
     "dlworrell/EWT:fitment:93c5408b9db7ee5491e12e7c91a1b3e14fa2caa0": "failure:Not ready for release:37eb1502d3f7",
+    "dlworrell/EWT:fitment:bd8a808f6eb85b83526bae16ff57f5efdfeccb67": "success:Ready for release:d86c69e20e4e",
     "dlworrell/EWT:fitment:d8b3bc1ef0475bcc0433b48889469112bed485d7": "success:Ready for release:467d0ac7e82b",
     "dlworrell/EWT:fitment:dc98c5eaf15fca2d6140a60106e7659101a09c1b": "success:Ready for release:8857d8f6c3a5",
     "dlworrell/JAG:fitment/source:24a4be8ee8740779e03655eced9ed8e0cc3212a7": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:4cd68ef948d6",
@@ -167,6 +169,7 @@
     "dlworrell/engineering-docs-toolkit:fitment:27f2329ba8c5f0fd6b977a962993d6ca926a39fc": "success:Ready for release:eb3cb4f1df93",
     "dlworrell/engineering-docs-toolkit:fitment:78ba9c5f183f7efe09d9fed566eb055c776b9395": "failure:Not ready for release:f37ac4668ee7",
     "dlworrell/engineering-docs-toolkit:fitment:c06b69c47b92c1d582ea2a6e1b8159c10a67160d": "success:Ready for release:ace257313fa8",
+    "dlworrell/engineering-docs-toolkit:fitment:c242c06ec10771efe754f8a48448411b67a9c8ee": "success:Ready for release:b4ea94d9e39e",
     "dlworrell/evo:fitment/source:0804e0237a15ef4ffca98a94c3005f1bf63a4505": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:950227a7b62a",
     "dlworrell/evo:fitment/source:1d32f6eecd79d9ebe861ca79b940d4093b56ec3f": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:697232337aed",
     "dlworrell/evo:fitment/source:4ab2502b183aac45a3248e9cb33d1d97c6ff3355": "success:fitment \u2192 main is the ADR-0013 promotion path:a9861db957bf",
@@ -214,6 +217,7 @@
     "dlworrell/repo_templates:fitment/source:f6f3f1cb35f486bf3b68fe508582739e66401c79": "success:fitment \u2192 main is the ADR-0013 promotion path:0639ff0d888c",
     "dlworrell/repo_templates:fitment:a5e2130ffa8abe9c7c7ea68cec15e0914215ede7": "failure:Not ready for release:3cc48dc23284",
     "dlworrell/repo_templates:fitment:b32754c909c841f57a664d0915dbaf565b122af8": "success:Ready for release:cf3bca06ea0f",
+    "dlworrell/repo_templates:fitment:e2b70f82063f1d9bd7f47c095ce6bea199109ccd": "success:Ready for release:03a5b055c5ef",
     "dlworrell/repo_templates:fitment:f6f3f1cb35f486bf3b68fe508582739e66401c79": "success:Ready for release:96ad59fbc833"
   },
   "repos": {
@@ -227,7 +231,7 @@
       "reviewed": "cc8a1f671764dd42c6b5473015c344e3b2a5dfad"
     },
     "dlworrell/EWT": {
-      "reviewed": "d8b3bc1ef0475bcc0433b48889469112bed485d7"
+      "reviewed": "bd8a808f6eb85b83526bae16ff57f5efdfeccb67"
     },
     "dlworrell/JAG": {
       "reviewed": "6a9cc1811e2768b1e695c1bfe5ad887635da36b8"
@@ -248,7 +252,7 @@
       "reviewed": "21b097dbc5f6a5637c8df2989fe398c933495251"
     },
     "dlworrell/engineering-docs-toolkit": {
-      "reviewed": "c06b69c47b92c1d582ea2a6e1b8159c10a67160d"
+      "reviewed": "c242c06ec10771efe754f8a48448411b67a9c8ee"
     },
     "dlworrell/evo": {
       "reviewed": "0551c6b18bdeababbfb15f55262ca1b059ebe909"
@@ -260,7 +264,7 @@
       "reviewed": "afdec1a2743ccf341cca3473da3573f6e6e0c6d2"
     },
     "dlworrell/repo_templates": {
-      "reviewed": "f6f3f1cb35f486bf3b68fe508582739e66401c79"
+      "reviewed": "e2b70f82063f1d9bd7f47c095ce6bea199109ccd"
     }
   },
   "schema": "aems.fitment-state.v1"
