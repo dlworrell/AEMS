@@ -1,0 +1,77 @@
+{
+  "schema": "aems.omnibus-manifest.v1",
+  "id": "public-headers-v2-20261102",
+  "summary": "Apply the remaining reviewed public document-header packet v2 and reconciled Atarix headers to dev-daily across ten repositories.",
+  "entries": [
+    {
+      "repository": "dlworrell/atarix",
+      "pull_request": 121,
+      "base": "dev-daily",
+      "head_sha": "4de514439d0bf5cb4d70c3377b60d2288122a2ec",
+      "title": "docs: add the reconciled public v2 headers to three held documents"
+    },
+    {
+      "repository": "dlworrell/engineering-docs-toolkit",
+      "pull_request": 16,
+      "base": "dev-daily",
+      "head_sha": "f0907e095ffb8972adcae52ae35d53e4d59edb06",
+      "title": "docs: apply reviewed public document-header packet v2 (draft)"
+    },
+    {
+      "repository": "dlworrell/evo",
+      "pull_request": 181,
+      "base": "dev-daily",
+      "head_sha": "a4e53b3b5422a594fdde5bf07704b41e834bec38",
+      "title": "docs: apply reviewed public document-header packet v2 (draft)"
+    },
+    {
+      "repository": "dlworrell/openCUDA",
+      "pull_request": 57,
+      "base": "dev-daily",
+      "head_sha": "5197181667a3a5824d6e239fbc3021ea0c114b7c",
+      "title": "docs: apply reviewed public document-header packet v2 (draft)"
+    },
+    {
+      "repository": "dlworrell/herkules-1934-english",
+      "pull_request": 19,
+      "base": "dev-daily",
+      "head_sha": "b74794a257781577f16e64e09ba2456f2720ba86",
+      "title": "docs: apply reviewed public document-header packet v2 (draft)"
+    },
+    {
+      "repository": "dlworrell/repo_templates",
+      "pull_request": 27,
+      "base": "dev-daily",
+      "head_sha": "76f1c6dcb8b2a6470db68bee1124cb8bf2582c9a",
+      "title": "docs: apply reviewed public document-header packet v2 (draft)"
+    },
+    {
+      "repository": "dlworrell/code-noodling",
+      "pull_request": 96,
+      "base": "dev-daily",
+      "head_sha": "c444e0a12b0cf1bdd27d99a3cf68785e15064522",
+      "title": "docs: apply reviewed public document-header packet v2 (draft)"
+    },
+    {
+      "repository": "dlworrell/Just-a-Geek-LLC",
+      "pull_request": 12,
+      "base": "dev-daily",
+      "head_sha": "eb9e41ee5e454fa1f611861643711ceeebe4bb51",
+      "title": "docs: apply reviewed public document-header packet v2 (draft)"
+    },
+    {
+      "repository": "dlworrell/AEMS",
+      "pull_request": 171,
+      "base": "dev-daily",
+      "head_sha": "e6e19026ed0f501387f9cb9380b02b848e846677",
+      "title": "docs: apply reviewed public document-header packet v2 (draft)"
+    },
+    {
+      "repository": "dlworrell/EWT",
+      "pull_request": 15,
+      "base": "dev-daily",
+      "head_sha": "1a46cf3a4d07e2bce7422752e75d635454fb35bc",
+      "title": "docs: apply reviewed public document-header packet v2 (draft)"
+    }
+  ]
+}

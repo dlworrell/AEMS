@@ -1,5 +1,6 @@
 <!--
 SPDX-License-Identifier: MIT AND Apache-2.0
+SPDX-FileCopyrightText: 2025 AgentLand Contributors
 Derived from engineering/engineering-git-workflow-master.md in
 https://github.com/dlworrell/agency-agents at commit
 4e3ac3ca6604c75113f52c695dbddcc7af928b46 (fork of msitarzewski/agency-agents),
