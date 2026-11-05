@@ -131,6 +131,7 @@
     "dlworrell/atarix:fitment:43ee45d5af3486d24852201f39d6efad3bf23825": "success:Ready for release:991487332e4d",
     "dlworrell/atarix:fitment:756eea9fa28733be55ab2e01c515f8105be0bcfb": "success:Ready for release:67755224c23e",
     "dlworrell/atarix:fitment:e245ca32b0f02b0354b11101f9ca0670cc14d2fb": "success:Ready for release:6c1da80d8c7a",
+    "dlworrell/atarix:fitment:ea7d10d404ce287eabdf794cda5f83b03ad8a5f4": "success:Ready for release:28a845ca950a",
     "dlworrell/atarix:fitment:eaa04cd9a586bb21106042320f279f372ac79c2f": "failure:Not ready for release:e77e252a8413",
     "dlworrell/code-noodling:fitment/source:12d33ef0203c3f3a72761447348cd7591481cf93": "success:fitment \u2192 main is the ADR-0013 promotion path:1c0d005afdc5",
     "dlworrell/code-noodling:fitment/source:1fe3d0a0edfadfd708e18097b9100d0da45c3db0": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:426426125524",
@@ -147,6 +148,7 @@
     "dlworrell/code-noodling:fitment/source:975a4d7cee755369ac28c97509687963bf25c589": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:9160ad038dfb",
     "dlworrell/code-noodling:fitment/source:9eb90ad2b2746ba574aa496fc6435fc2cf8f8b1e": "failure:Pull requests into main come from fitment, not dependabot/pip/election-analysis/ci/pip-11b375465a:415764e146fc",
     "dlworrell/code-noodling:fitment/source:a29351cc4afe09c5e65c9725f56d50949c414b83": "failure:Pull requests into main come from fitment, not automation/election-reports:39a1b9fc6a5e",
+    "dlworrell/code-noodling:fitment/source:abcef1487d47727f28aad0ebad38d151fbbed97e": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:76b23e6e1329",
     "dlworrell/code-noodling:fitment/source:acc10186f78b08c34ce5578b20a200ff7d3e5b61": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:199e65194e02",
     "dlworrell/code-noodling:fitment/source:ace470f1f74e29f2c65f198c0476a4df4c10af36": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:12bdf816efd7",
     "dlworrell/code-noodling:fitment/source:c5e7e324cd251ebcc628495eaa3ce70ab8a22369": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:5afe161f548e",
@@ -254,7 +256,7 @@
       "reviewed": "5bd8da8bfad3c325a4a13735f4f8f36b724a2281"
     },
     "dlworrell/atarix": {
-      "reviewed": "e245ca32b0f02b0354b11101f9ca0670cc14d2fb"
+      "reviewed": "ea7d10d404ce287eabdf794cda5f83b03ad8a5f4"
     },
     "dlworrell/code-noodling": {
       "reviewed": "de5a7d0d72ac72f4303975e8b342ed08a100706d"
