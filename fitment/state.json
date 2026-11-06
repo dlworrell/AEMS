@@ -135,6 +135,7 @@
     "dlworrell/atarix:fitment:4207fabb658a638dea3f32e2c9d9dd0676886e41": "success:Ready for release:a03c9623e9a7",
     "dlworrell/atarix:fitment:43ee45d5af3486d24852201f39d6efad3bf23825": "success:Ready for release:991487332e4d",
     "dlworrell/atarix:fitment:756eea9fa28733be55ab2e01c515f8105be0bcfb": "success:Ready for release:67755224c23e",
+    "dlworrell/atarix:fitment:a73f71f2a0ea236992d480dd0310e0c79a24b17c": "success:Ready for release:264307300526",
     "dlworrell/atarix:fitment:e245ca32b0f02b0354b11101f9ca0670cc14d2fb": "success:Ready for release:6c1da80d8c7a",
     "dlworrell/atarix:fitment:ea7d10d404ce287eabdf794cda5f83b03ad8a5f4": "success:Ready for release:a36c993446fb",
     "dlworrell/atarix:fitment:eaa04cd9a586bb21106042320f279f372ac79c2f": "failure:Not ready for release:e77e252a8413",
@@ -179,6 +180,7 @@
     "dlworrell/code-noodling:fitment/source:fcacdea9919aa2312e886d23bef16b6fc648e9b1": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:fe2482087748",
     "dlworrell/code-noodling:fitment:0634fe55fc70060f798f119856b9e92dc1c26432": "failure:Not ready for release:a8991e34cfc6",
     "dlworrell/code-noodling:fitment:12d33ef0203c3f3a72761447348cd7591481cf93": "failure:Not ready for release:796db611d926",
+    "dlworrell/code-noodling:fitment:1408d6a2a2bbf0a6f8b121ac03ea4fbb73536e82": "success:Ready for release:a8b106dcbd8e",
     "dlworrell/code-noodling:fitment:20261056c556a8e43711b36da59392e8539c139d": "success:Ready for release:70f748b66369",
     "dlworrell/code-noodling:fitment:212f40baceb05fe8449ae9b8ee101855be1b22f4": "success:Ready for release:eab4c2a88062",
     "dlworrell/code-noodling:fitment:21b097dbc5f6a5637c8df2989fe398c933495251": "success:Ready for release:3dde5465fe5b",
@@ -279,10 +281,10 @@
       "reviewed": "5bd8da8bfad3c325a4a13735f4f8f36b724a2281"
     },
     "dlworrell/atarix": {
-      "reviewed": "ea7d10d404ce287eabdf794cda5f83b03ad8a5f4"
+      "reviewed": "a73f71f2a0ea236992d480dd0310e0c79a24b17c"
     },
     "dlworrell/code-noodling": {
-      "reviewed": "d6b8fbf941f9950968fdb7ae3e7522587ac84fa5"
+      "reviewed": "1408d6a2a2bbf0a6f8b121ac03ea4fbb73536e82"
     },
     "dlworrell/engineering-docs-toolkit": {
       "reviewed": "c242c06ec10771efe754f8a48448411b67a9c8ee"
