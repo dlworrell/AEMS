@@ -114,6 +114,19 @@ TEST_SKIP_PATTERN = re.compile(
 TEST_PATH_PATTERN = re.compile(r"(^|/)(tests?|spec|__tests__)/|(^|/)test_[^/]+$|_test\.[a-z]+$|\.test\.[a-z]+$")
 
 
+
+def skip_reason(repository: str, installed: dict[str, bool]) -> str | None:
+    """Why a configured repository is left out of this run, or None to cycle it.
+
+    Private repositories are skipped by owner decision (2026-11-06), and so is any
+    repository the App cannot reach: an uninstalled App is a notice, not a failure.
+    """
+    if repository not in installed:
+        return f"the {APP_SLUG} App is not installed on it"
+    if installed[repository]:
+        return "private repository"
+    return None
+
 class Ring0Error(RuntimeError):
     """A configuration or input error that stops the sweep."""
 
@@ -1099,6 +1112,7 @@ class Sweep:
         self.trusted = trusted
         self.dry_run = dry_run
         self.log = log
+        self.skipped: list[str] = []
         self.state: dict[str, Any] = {}
         self.code_version: str | None = None
         self.errors: list[str] = []
@@ -1163,21 +1177,22 @@ class Sweep:
                 raise
             trust = None
         self.trusted = self.trusted | parse_trust_file(trust)
-        installed = {r["full_name"] for r in self.gh.get_all("/installation/repositories?per_page=100")}
+        installed = {r["full_name"]: bool(r.get("private"))
+                     for r in self.gh.get_all("/installation/repositories?per_page=100")}
         targets = [r for r in self.config.repositories if not repo_filter or r in repo_filter]
         for repository in sorted(self.config.publishing):
             if repo_filter and repository not in repo_filter:
                 continue
-            if repository not in installed:
-                self.errors.append(f"{repository}: the {APP_SLUG} App is not installed")
+            if (reason := skip_reason(repository, installed)):
+                self.skip(repository, reason)
                 continue
             try:
                 self.publish_automation(repository)
             except GitHubError as exc:
                 self.errors.append(f"{repository}: {exc}")
         for repository in targets:
-            if repository not in installed:
-                self.errors.append(f"{repository}: the {APP_SLUG} App is not installed")
+            if (reason := skip_reason(repository, installed)):
+                self.skip(repository, reason)
                 continue
             try:
                 self.sweep_repository(repository)
@@ -1187,6 +1202,11 @@ class Sweep:
         prune_state(self.state, self.now)
         self.ledger.flush(self.state, self.now)
         return 1 if self.errors else 0
+
+    def skip(self, repository: str, reason: str) -> None:
+        if f"{repository}: {reason}" not in self.skipped:
+            self.skipped.append(f"{repository}: {reason}")
+            self.log(f"::notice::{repository}: skipped: {reason}")
 
     def sweep_repository(self, repository: str) -> None:
         since = self.since(repository)
