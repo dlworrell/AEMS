@@ -223,6 +223,18 @@ class CycleTests(unittest.TestCase):
     def checks(self, gh, name):
         return [b for p, b in gh.posts if p.endswith("/check-runs") and b["name"] == name]
 
+    def test_uninstalled_and_private_repositories_are_skipped_not_failed(self):
+        # Owner decision 2026-11-06: skip private repositories and any the App cannot reach.
+        for installed in ([], [{"full_name": REPO, "private": True}]):
+            with self.subTest(installed=installed):
+                gh = FakeGitHub(routes(**{"/installation/repositories": {"repositories": installed}}))
+                cycle = self.make(gh)
+                self.assertEqual(cycle.run(), 0)
+                self.assertEqual(cycle.errors, [])
+                self.assertEqual(len(cycle.skipped), 1)
+                self.assertIn(REPO, cycle.skipped[0])
+                self.assertEqual((gh.posts, gh.patches, gh.puts), ([], [], []))
+
     def test_missing_branch_is_an_error(self):
         gh = FakeGitHub(routes(**{f"/repos/{REPO}/branches/fitment": fc.GitHubError(404, "missing")}))
         cycle = self.make(gh)
