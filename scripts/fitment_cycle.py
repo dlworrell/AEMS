@@ -79,6 +79,19 @@ FINGERPRINT_PATTERN = re.compile(r"<!-- fitment:fp=([0-9a-f]{16}) -->")
 CLOSING_PATTERN = re.compile(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b", re.IGNORECASE)
 
 
+
+def skip_reason(repository: str, installed: dict[str, bool]) -> str | None:
+    """Why a configured repository is left out of this run, or None to cycle it.
+
+    Private repositories are skipped by owner decision (2026-11-06), and so is any
+    repository the App cannot reach: an uninstalled App is a notice, not a failure.
+    """
+    if repository not in installed:
+        return f"the {APP_SLUG} App is not installed on it"
+    if installed[repository]:
+        return "private repository"
+    return None
+
 class FitmentError(RuntimeError):
     """Configuration or state that the cycle cannot proceed with."""
 
@@ -466,6 +479,7 @@ class Cycle:
         self.log = log
         self.state: dict[str, Any] = {}
         self.errors: list[str] = []
+        self.skipped: list[str] = []
         self.summary: list[tuple[str, str, str]] = []
 
     def note(self, repository: str, action: str, detail: str) -> None:
@@ -474,12 +488,14 @@ class Cycle:
 
     def run(self, repo_filter: list[str] | None = None) -> int:
         self.state = self.store.load()
-        installed = {r["full_name"] for r in self.gh.get_all("/installation/repositories?per_page=100")}
+        installed = {r["full_name"]: bool(r.get("private"))
+                     for r in self.gh.get_all("/installation/repositories?per_page=100")}
         for repository in self.config.repositories:
             if repo_filter and repository not in repo_filter:
                 continue
-            if repository not in installed:
-                self.errors.append(f"{repository}: the {APP_SLUG} App is not installed")
+            if (reason := skip_reason(repository, installed)):
+                self.skipped.append(f"{repository}: {reason}")
+                self.log(f"::notice::{repository}: skipped: {reason}")
                 continue
             try:
                 self.cycle_repository(repository)
