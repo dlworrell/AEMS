@@ -108,6 +108,7 @@
     "dlworrell/Rocket_demo:fitment:1c4c102f743e80b22434097010bcf9ca6f5e4125": "success:Ready for release:e971da3713d9",
     "dlworrell/Rocket_demo:fitment:3f7e5489e01a06342c50595d57c82b5e364040cc": "failure:Not ready for release:7e1389e399c9",
     "dlworrell/Rocket_demo:fitment:5bd8da8bfad3c325a4a13735f4f8f36b724a2281": "success:Ready for release:800316dcc7c6",
+    "dlworrell/atarix:fitment/source:01d50c8f6b9fa1463617025c05d5a0c30d8e57b4": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:098c4ab5516f",
     "dlworrell/atarix:fitment/source:09d02e607faddfab72fdc654dccf78a8ca20e0c0": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:b0451da1b16b",
     "dlworrell/atarix:fitment/source:19447204d561f7d29a55f4b03e6c8aff7a2fc49b": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:cf6f0f5f931e",
     "dlworrell/atarix:fitment/source:1c6131481424dac74ebca1412260a394831914f5": "success:fitment \u2192 main is the ADR-0013 promotion path:8f666685217a",
