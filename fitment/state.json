@@ -134,6 +134,7 @@
     "dlworrell/atarix:fitment:e245ca32b0f02b0354b11101f9ca0670cc14d2fb": "success:Ready for release:6c1da80d8c7a",
     "dlworrell/atarix:fitment:ea7d10d404ce287eabdf794cda5f83b03ad8a5f4": "success:Ready for release:a36c993446fb",
     "dlworrell/atarix:fitment:eaa04cd9a586bb21106042320f279f372ac79c2f": "failure:Not ready for release:e77e252a8413",
+    "dlworrell/code-noodling:fitment/source:0ce2d289726dbddfa240d9fbe0b1ac629179bf4e": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:b60674edd71e",
     "dlworrell/code-noodling:fitment/source:12d33ef0203c3f3a72761447348cd7591481cf93": "success:fitment \u2192 main is the ADR-0013 promotion path:1c0d005afdc5",
     "dlworrell/code-noodling:fitment/source:1fe3d0a0edfadfd708e18097b9100d0da45c3db0": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:426426125524",
     "dlworrell/code-noodling:fitment/source:20261056c556a8e43711b36da59392e8539c139d": "success:fitment \u2192 main is the ADR-0013 promotion path:a795e161ecc1",
