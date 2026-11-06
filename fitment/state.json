@@ -180,6 +180,7 @@
     "dlworrell/code-noodling:fitment:7ae0fb9ac603de51056cc50dea5ffdaa0ae71e47": "failure:Not ready for release:30cf279cf87a",
     "dlworrell/code-noodling:fitment:85bab74a6efdf6d497ee4f070e57965bcb4463ba": "success:Ready for release:52cb74363c12",
     "dlworrell/code-noodling:fitment:d65f912f20f42b45dca4c3961ad4f92784f39df8": "success:Ready for release:8e795cea1ecb",
+    "dlworrell/code-noodling:fitment:dc2af6e9216a3438312190ac7359b375c3de6cdb": "failure:Not ready for release:7a3d2c33270f",
     "dlworrell/code-noodling:fitment:dda908a01dbf1e810de6103c37c7f73d1dd3cce2": "success:Ready for release:31ff114f7113",
     "dlworrell/code-noodling:fitment:de5a7d0d72ac72f4303975e8b342ed08a100706d": "success:Ready for release:630bf7293657",
     "dlworrell/engineering-docs-toolkit:fitment/source:01d935329836f4bd3f635e3cfe47230858e3aad1": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:0d94e967328f",
@@ -272,7 +273,7 @@
       "reviewed": "ea7d10d404ce287eabdf794cda5f83b03ad8a5f4"
     },
     "dlworrell/code-noodling": {
-      "reviewed": "20261056c556a8e43711b36da59392e8539c139d"
+      "reviewed": "dc2af6e9216a3438312190ac7359b375c3de6cdb"
     },
     "dlworrell/engineering-docs-toolkit": {
       "reviewed": "c242c06ec10771efe754f8a48448411b67a9c8ee"
