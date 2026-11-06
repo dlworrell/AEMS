@@ -38,6 +38,22 @@ repository in `config/fitment.json` it:
 | Gate | `fitment` on the `fitment` head fails while another check on it fails, a `blocker` or `major` fitment issue is open, or the review could not run |
 | Promotion | Opens `dev-daily` → `fitment` when `dev-daily` is ahead and its CI is green, and `fitment` → `main` when the gate passes |
 
+### Repositories it skips
+
+Owner decision (2026-11-06): a repository listed in `config/fitment.json` is
+skipped, not cycled, when
+
+- it is **private**, or
+- the `catylist-ring-0` App is **not installed** on it.
+
+A skip is a `::notice::<repo>: skipped: <reason>` line in the run log and an
+entry in the run's `skipped` list. It is **not an error**: the run still exits 0
+when every other repository succeeds, so a skipped repository sends no failure
+email. Before this decision an uninstalled App failed the run (exit 1). A
+repository that is made public, or gets the App installed again, is cycled on
+the next run with no configuration change. The ring-0 sweep follows the same
+rule (see [the ring-0 enforcement page](catylist-code-of-conduct-enforcement.md)).
+
 It never approves, merges or pushes. The owner merges every promotion. It opens a promotion
 only from a branch a ruleset protects from deletion (`protect-integration-branches`);
 otherwise merging it would let "delete branch on merge" remove `dev-daily` or

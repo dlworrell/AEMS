@@ -25,6 +25,18 @@ exchanges the App's private key for an installation token that expires within
 an hour and carries only Checks, Issues, Pull requests and Discussions write and
 Contents read. AEMS's own workflow token writes only the ledger branch in AEMS.
 
+### Repositories it skips
+
+Owner decision (2026-11-06): a repository in `config/ring0.json` (swept or a
+publishing target) is skipped when it is **private** or the App is **not
+installed** on it. The run logs one `::notice::<repo>: skipped: <reason>` line
+per repository, even when the repository is both swept and a publishing
+target, records it in `skipped`, and still exits 0; a skip is not an error and
+sends no failure email. Before this decision an uninstalled App failed the run.
+Re-installing the App, or making the repository public, brings it back on the
+next run. The fitment cycle follows the same rule
+([fitment cycle](fitment-cycle.md#repositories-it-skips)).
+
 ## What it checks
 
 | Input | Deterministic checks | AI enforcer | Action on failure |

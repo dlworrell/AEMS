@@ -638,11 +638,21 @@ class SweepTests(unittest.TestCase):
         with self.assertRaises(r0.Ring0Error):
             sweep.run()
 
-    def test_uninstalled_repository_is_an_error(self):
-        gh = FakeGitHub(routes(**{"/installation/repositories": {"repositories": []}}))
-        sweep, _ = make_sweep(gh, tmp=self.tmp.name)
-        self.assertEqual(sweep.run(), 1)
-        self.assertIn("not installed", sweep.errors[0])
+    def test_uninstalled_or_private_repository_is_skipped_not_failed(self):
+        # Owner decision 2026-11-06: skip private repositories and any the App cannot reach.
+        for installed in ([], [{"full_name": REPO, "private": True}]):
+            with self.subTest(installed=installed):
+                gh = FakeGitHub(routes(**{"/installation/repositories": {"repositories": installed}}))
+                # REPO is both swept and a publishing target, so both loops reach it (#184).
+                sweep, _ = make_sweep(gh, tmp=self.tmp.name, publishing={REPO: []})
+                notices: list[str] = []
+                sweep.log = notices.append
+                self.assertEqual(sweep.run(), 0)
+                self.assertEqual(sweep.errors, [])
+                self.assertEqual(len(sweep.skipped), 1, sweep.skipped)  # recorded once, not per loop
+                self.assertIn(REPO, sweep.skipped[0])
+                self.assertEqual(len([n for n in notices if n.startswith("::notice::") and REPO in n]), 1)
+                self.assertEqual(gh.mutations, [])
 
 
 class ConfigTests(unittest.TestCase):
