@@ -153,6 +153,7 @@
     "dlworrell/code-noodling:fitment/source:975a4d7cee755369ac28c97509687963bf25c589": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:9160ad038dfb",
     "dlworrell/code-noodling:fitment/source:9eb90ad2b2746ba574aa496fc6435fc2cf8f8b1e": "failure:Pull requests into main come from fitment, not dependabot/pip/election-analysis/ci/pip-11b375465a:415764e146fc",
     "dlworrell/code-noodling:fitment/source:a29351cc4afe09c5e65c9725f56d50949c414b83": "failure:Pull requests into main come from fitment, not automation/election-reports:39a1b9fc6a5e",
+    "dlworrell/code-noodling:fitment/source:a6a1f1b9b9bd2ba380210a29a05147f2efbabb75": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:b60674edd71e",
     "dlworrell/code-noodling:fitment/source:abcef1487d47727f28aad0ebad38d151fbbed97e": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:76b23e6e1329",
     "dlworrell/code-noodling:fitment/source:acc10186f78b08c34ce5578b20a200ff7d3e5b61": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:199e65194e02",
     "dlworrell/code-noodling:fitment/source:ace470f1f74e29f2c65f198c0476a4df4c10af36": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:12bdf816efd7",
