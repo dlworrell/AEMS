@@ -226,6 +226,7 @@
     "dlworrell/evo:fitment/source:a6f8d7b9b4d5cb16bfd1893dfebdf9780d63bb4c": "success:fitment \u2192 main is the ADR-0013 promotion path:730016575555",
     "dlworrell/evo:fitment/source:c7606adca57b22adf305084ece392882dd6cc2b3": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:697232337aed",
     "dlworrell/evo:fitment/source:cce7fde6cd39084776c4c75e2bc508dc18b54bfa": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:8bc9649e99a4",
+    "dlworrell/evo:fitment/source:cdeeac3c588bcc1c4d1c7e2eb9b172e001041e67": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:75437e44fa73",
     "dlworrell/evo:fitment/source:d6d1b795ef658fc40394f4e0e7ec627b70ec45c9": "success:fitment \u2192 main is the ADR-0013 promotion path:1700b4dea200",
     "dlworrell/evo:fitment/source:e0c0fe9afba72ff68f14dd9b6629cc7d015ccf67": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:dabeda907d91",
     "dlworrell/evo:fitment/source:f5a875225c994e929cc01c939d0aa3135dd26443": "success:fitment \u2192 main is the ADR-0013 promotion path:1700b4dea200",
