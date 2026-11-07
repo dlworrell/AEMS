@@ -68,6 +68,7 @@
     "dlworrell/AES:fitment:9621195801aace56fab186c1affba9ca7a7e928e": "failure:Not ready for release:b7a67d026cbc",
     "dlworrell/AES:fitment:b68a38cc3105dd56b310a8c42361b4dde1763b0c": "success:Ready for release:96d7f11ed0e4",
     "dlworrell/AES:fitment:e6fc8a7e9be2fcfd200bfd19e22cb62bc9f5ee10": "success:Ready for release:cfc0c7e7ebd2",
+    "dlworrell/Catylist:fitment/source:1497e61843c1a7ccd79105cb2d93c661c1018358": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:c4decb721231",
     "dlworrell/Catylist:fitment/source:394d9c6a68a98af611d46752c2aa62751dd73b07": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:1964c332e9d7",
     "dlworrell/Catylist:fitment/source:8d1a65dead043e011efb15c98283ffc53776d1e9": "success:fitment \u2192 main is the ADR-0013 promotion path:fbbeebe891f2",
     "dlworrell/Catylist:fitment/source:99237b98628f45ede7c101af2458c073b679a0cb": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:40ce092a67b3",
@@ -182,6 +183,7 @@
     "dlworrell/code-noodling:fitment/source:dda908a01dbf1e810de6103c37c7f73d1dd3cce2": "success:fitment \u2192 main is the ADR-0013 promotion path:965ed589e54b",
     "dlworrell/code-noodling:fitment/source:de5a7d0d72ac72f4303975e8b342ed08a100706d": "success:fitment \u2192 main is the ADR-0013 promotion path:f05dee545735",
     "dlworrell/code-noodling:fitment/source:f0e4903e9596c4b168330d49d2dd8bdb423da5cc": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:a7a5c99693a7",
+    "dlworrell/code-noodling:fitment/source:f33ab7957edb7bf0b3da51e0cc48dc6c4ed47737": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:9d74dee9158b",
     "dlworrell/code-noodling:fitment/source:fc023635e2549de74190ac1492518a186c221706": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:0c49f8ae76ed",
     "dlworrell/code-noodling:fitment/source:fc07221a58f5832f588d91116ba2357c0d7bc7bf": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:426426125524",
     "dlworrell/code-noodling:fitment/source:fcacdea9919aa2312e886d23bef16b6fc648e9b1": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:fe2482087748",
@@ -234,6 +236,7 @@
     "dlworrell/evo:fitment:4ab2502b183aac45a3248e9cb33d1d97c6ff3355": "success:Ready for release:8af0feece047",
     "dlworrell/evo:fitment:53fa9152295ad1a173cfa79f73850be771822f9e": "failure:Not ready for release:48958b2cff64",
     "dlworrell/evo:fitment:5cf03a1560317bf8e41a991ff1e751ae0620e527": "success:Ready for release:f45a6d14c0b5",
+    "dlworrell/evo:fitment:9e6d23d4b7bc78374553d9944a614d0c33aaef9f": "failure:Not ready for release:c817cbe3bcca",
     "dlworrell/evo:fitment:a6f8d7b9b4d5cb16bfd1893dfebdf9780d63bb4c": "success:Ready for release:c17e377748a9",
     "dlworrell/evo:fitment:abe14ddc8a07f145f21e0595c8b8b6fbabd20bfa": "failure:Not ready for release:48958b2cff64",
     "dlworrell/evo:fitment:b4e2f74185b77b58f35defa001a8002703150133": "success:Ready for release:09da236ab968",
@@ -300,7 +303,7 @@
       "reviewed": "c242c06ec10771efe754f8a48448411b67a9c8ee"
     },
     "dlworrell/evo": {
-      "reviewed": "0551c6b18bdeababbfb15f55262ca1b059ebe909"
+      "reviewed": "9e6d23d4b7bc78374553d9944a614d0c33aaef9f"
     },
     "dlworrell/herkules-1934-english": {
       "reviewed": "bd817f02b3c7541dffa9099288928f17030b03fc"
