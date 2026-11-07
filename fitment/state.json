@@ -234,6 +234,7 @@
     "dlworrell/evo:fitment/source:e0c0fe9afba72ff68f14dd9b6629cc7d015ccf67": "success:dev-daily \u2192 fitment is the ADR-0013 promotion path:dabeda907d91",
     "dlworrell/evo:fitment/source:f5a875225c994e929cc01c939d0aa3135dd26443": "success:fitment \u2192 main is the ADR-0013 promotion path:1700b4dea200",
     "dlworrell/evo:fitment:0551c6b18bdeababbfb15f55262ca1b059ebe909": "failure:Not ready for release:d23f9d5755a6",
+    "dlworrell/evo:fitment:3718af1dee45db98fbb054faf08e578ca3150f4e": "failure:Not ready for release:16f510f1004d",
     "dlworrell/evo:fitment:4ab2502b183aac45a3248e9cb33d1d97c6ff3355": "success:Ready for release:8af0feece047",
     "dlworrell/evo:fitment:53fa9152295ad1a173cfa79f73850be771822f9e": "failure:Not ready for release:48958b2cff64",
     "dlworrell/evo:fitment:5cf03a1560317bf8e41a991ff1e751ae0620e527": "success:Ready for release:f45a6d14c0b5",
@@ -304,7 +305,7 @@
       "reviewed": "c242c06ec10771efe754f8a48448411b67a9c8ee"
     },
     "dlworrell/evo": {
-      "reviewed": "9e6d23d4b7bc78374553d9944a614d0c33aaef9f"
+      "reviewed": "3718af1dee45db98fbb054faf08e578ca3150f4e"
     },
     "dlworrell/herkules-1934-english": {
       "reviewed": "bd817f02b3c7541dffa9099288928f17030b03fc"
