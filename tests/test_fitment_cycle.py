@@ -311,6 +311,27 @@ class CycleTests(unittest.TestCase):
         cycle.run()
         self.assertFalse([p for p, _ in gh.posts if p == f"/repos/{REPO}/issues"])
 
+    def test_every_review_request_lists_all_changed_files(self):
+        # code-noodling #272-#274: a source file and its tests landed in different requests,
+        # and the reviewer, seeing only its own batch, reported the tests as missing.
+        big = "@@ -1 +1,2 @@\n x\n+" + "y" * (fc.MAX_MODEL_INPUT_CHARS // 3)
+        compare = promoted(files=("src/a.py", "src/tool.py", "tests/test_tool.py"))
+        for entry in compare["files"]:
+            entry["patch"] = big
+        gh = FakeGitHub(routes(**{f"/repos/{REPO}/compare/main...{FIT}": compare}))
+        review, model = reviewer()
+        self.assertEqual(self.make(gh, review).run(), 0)
+        items = [json.loads(r["messages"][0]["content"].split("<change>\n", 1)[1].rsplit("\n</change>", 1)[0])
+                 for r in model.requests]
+        self.assertGreater(len(items), 1)
+        everything = ["src/a.py", "src/tool.py", "tests/test_tool.py"]
+        for number, item in enumerate(items, start=1):
+            self.assertEqual(item["request"], f"{number} of {len(items)}")
+            self.assertEqual([f["path"] for f in item["all_changed_files"]], everything)
+            self.assertTrue(all(set(f) == {"path", "status"} for f in item["all_changed_files"]))
+        # Each file's patch is still sent exactly once, in some request.
+        self.assertEqual(sorted(f["path"] for item in items for f in item["files"]), everything)
+
     def _fix_routes(self, issue_labels=("fitment", "minor"), comments=None, other_files=()):
         fix = "f" * 40
         compare = promoted(files=("src/tool.py", *other_files), messages=("fix: tighten --strict\n\nFixes #12",))
