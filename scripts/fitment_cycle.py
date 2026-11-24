@@ -206,6 +206,9 @@ def parse_review(payload: Any, changed: set[str]) -> tuple[list[ReviewFinding], 
 def review_batches(files: list[dict[str, Any]], limit: int = MAX_MODEL_INPUT_CHARS // 2) -> list[list[dict[str, Any]]]:
     """Group changed files so each model request stays under the input limit.
 
+    The other half of the limit leaves room for the commit messages and the
+    ``all_changed_files`` inventory that every request carries.
+
     A single file larger than the limit is sent without its patch, marked as
     omitted, rather than truncated.
     """
@@ -627,10 +630,17 @@ class Cycle:
         followups = self.fixed_files(repository, compare.get("commits") or [])
         changed = {f["path"] for f in files}
         findings: list[ReviewFinding] = []
+        # A large change is split into several requests. Each one also lists every changed path,
+        # so a source file whose tests or docs landed in another batch is not reported as untested
+        # or undocumented (code-noodling #272-#274: three false major findings blocked a release).
+        inventory = [{"path": f["path"], "status": f["status"]} for f in files]
+        batches = review_batches(files)
         try:
-            for batch in review_batches(files):
+            for number, batch in enumerate(batches, start=1):
                 found, _ = self.reviewer.review({"repository": repository, "range": compare.get("html_url", ""),
-                                                 "commit_messages": messages, "files": batch}, changed)
+                                                 "commit_messages": messages,
+                                                 "request": f"{number} of {len(batches)}",
+                                                 "all_changed_files": inventory, "files": batch}, changed)
                 findings.extend(found)
         except ReviewUnavailable as exc:
             repo_state["review_error"] = str(exc)
